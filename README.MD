@@ -46,7 +46,7 @@ This dockerfile converts some env variables to arguments in the server command, 
 
 `STEAMVAC:` Enables or disables de SteamVac protection in server
 
-`WORKSHOP_IDS:` Semicolon separated list of Workshop IDs to install to the server
+`WORKSHOP_IDS:` Semicolon separated list of Workshop IDs to install to the server. Leaving this empty will clear any existing value!
 
 `MOD_IDS:` Semicolon separated list of Mod IDs to install to the server
 
