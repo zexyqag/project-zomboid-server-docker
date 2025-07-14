@@ -150,7 +150,9 @@ fi
 if [ -n "${WORKSHOP_IDS}" ]; then
  	echo "*** INFO: Found Workshop IDs including ${WORKSHOP_IDS} ***"
 	sed -i "s/WorkshopItems=.*/WorkshopItems=${WORKSHOP_IDS}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
-	
+else
+ 	echo "*** INFO: Workshop IDs is empty, clearing configuration ***"
+	sed -i 's/WorkshopItems=.*$/WorkshopItems=/' "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
 fi
 
 # Fixes EOL in script file for good measure
