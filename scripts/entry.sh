@@ -1,4 +1,20 @@
 #!/bin/bash
+is_true() {
+  # $1 = value to check
+  # $2 = default (optional, "false" if not set)
+  local val="${1,,}"
+  local default="${2:-false}"
+  case "$val" in
+    1|true) return 0 ;;
+    0|false) return 1 ;;
+    *)
+      case "${default,,}" in
+        1|true) return 0 ;;
+        *) return 1 ;;
+      esac
+    ;;
+  esac
+}
 
 cd ${STEAMAPPDIR}
 
@@ -8,7 +24,7 @@ cd ${STEAMAPPDIR}
 #                                   #
 #####################################
 
-if [ "${FORCEUPDATE}" == "1" ]; then
+if is_true "${FORCEUPDATE}"; then
   echo "FORCEUPDATE variable is set, so the server will be updated right now"
   bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" +login anonymous +app_update "${STEAMAPPID}" validate +quit
 fi
@@ -27,7 +43,7 @@ if [ -n "${MEMORY}" ]; then
 fi
 
 # Option to perform a Soft Reset
-if [ "${SOFTRESET}" == "1" ] || [ "${SOFTRESET,,}" == "true" ]; then
+if is_true "${SOFTRESET}"; then
   ARGS="${ARGS} -Dsoftreset"
 fi
 
@@ -36,13 +52,13 @@ ARGS="${ARGS} -- "
 
 # Runs a coop server instead of a dedicated server. Disables the default admin from being accessible.
 # - Default: Disabled
-if [ "${COOP}" == "1" ] || [ "${COOP,,}" == "true" ]; then
+if is_true "${COOP}"; then
   ARGS="${ARGS} -coop"
 fi
 
 # Disables Steam integration on server.
 # - Default: Enabled
-if [ "${NOSTEAM}" == "1" ] || [ "${NOSTEAM,,}" == "true" ]; then
+if is_true "${NOSTEAM}"; then
   ARGS="${ARGS} -nosteam"
 fi
 
@@ -62,7 +78,7 @@ fi
 
 # Launches the game in debug mode.
 # - Default: Disabled
-if [ "${DEBUG}" == "1" ] || [ "${DEBUG,,}" == "true" ]; then
+if is_true "${DEBUG}"; then
   ARGS="${ARGS} -debug"
 fi
 
@@ -99,7 +115,7 @@ if [ -n "${SERVERPRESET}" ]; then
     echo "*** ERROR: the preset ${SERVERPRESET} doesn't exists. Please fix the configuration before start the server ***"
     exit 1
   # If SandboxVars files doesn't exists or replace is true, copy the file
-  elif [ ! -f "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_SandboxVars.lua" ] || [ "${SERVERPRESETREPLACE,,}" == "true" ]; then
+  elif [ ! -f "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_SandboxVars.lua" ] || is_true "${SERVERPRESETREPLACE}"; then
     echo "*** INFO: New server will be created using the preset ${SERVERPRESET} ***"
     echo "*** Copying preset file from \"${STEAMAPPDIR}/media/lua/shared/Sandbox/${SERVERPRESET}.lua\" to \"${HOMEDIR}/Zomboid/Server/${SERVERNAME}_SandboxVars.lua\" ***"
     mkdir -p "${HOMEDIR}/Zomboid/Server/"
