@@ -153,6 +153,23 @@ if [ -n "${WORKSHOP_IDS}" ]; then
 	
 fi
 
+if [ -n "${DISABLE_ANTICHEAT}" ]; then
+  IFS=',' read -ra ITEMS <<< "$DISABLE_ANTICHEAT"
+  for ITEM in "${ITEMS[@]}"; do
+    if [[ "$ITEM" =~ ^([0-9]+)-([0-9]+)$ ]]; then
+      START=${BASH_REMATCH[1]}
+      END=${BASH_REMATCH[2]}
+      for ((i=START; i<=END; i++)); do
+        sed -i "s/^AntiCheatProtectionType${i}=.*/AntiCheatProtectionType${i}=false/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+        grep -q "^AntiCheatProtectionType${i}=" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini" || echo "AntiCheatProtectionType${i}=false" >> "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+      done
+    elif [[ "$ITEM" =~ ^[0-9]+$ ]]; then
+      sed -i "s/^AntiCheatProtectionType${ITEM}=.*/AntiCheatProtectionType${ITEM}=false/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+      grep -q "^AntiCheatProtectionType${ITEM}=" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini" || echo "AntiCheatProtectionType${ITEM}=false" >> "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+    fi
+  done
+fi
+
 # Fixes EOL in script file for good measure
 sed -i 's/\r$//' /server/scripts/search_folder.sh
 # Check 'search_folder.sh' script for details
