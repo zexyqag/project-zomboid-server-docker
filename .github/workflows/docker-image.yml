@@ -1,9 +1,13 @@
 name: Build and Publish Docker Image
 
+
 on:
   push:
     branches:
       - main
+    paths:
+      - 'scripts/entry.sh'
+      - 'scripts/search_folder.sh'
   schedule:
     - cron: "0 0 * * *" # daily at midnight UTC
   workflow_dispatch:
@@ -33,10 +37,31 @@ jobs:
           REPO_NAME=${{ github.repository }}
           echo "REPO_NAME_LC=${REPO_NAME,,}" >>${GITHUB_ENV}
 
+      - name: Check for Project Zomboid server update (only on schedule/manual)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: |
+          chmod +x scripts/get_updates.sh
+          scripts/get_updates.sh
+        continue-on-error: true
+
       - name: Build Docker image
+        if: github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' || (github.event_name != 'push' && (success() || failure()))
         run: |
           docker build -t ghcr.io/$REPO_NAME_LC:latest .
 
       - name: Push Docker image to GitHub Container Registry
+        if: github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' || (github.event_name != 'push' && (success() || failure()))
         run: |
           docker push ghcr.io/$REPO_NAME_LC:latest
+
+      - name: Build & Push Docker image if update detected (scheduled/manual)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: |
+          chmod +x scripts/get_updates.sh
+          scripts/get_updates.sh
+          if [ $? -eq 10 ]; then
+            docker build -t ghcr.io/$REPO_NAME_LC:latest .
+            docker push ghcr.io/$REPO_NAME_LC:latest
+          else
+            echo "No new server version detected. Skipping build/push."
+          fi

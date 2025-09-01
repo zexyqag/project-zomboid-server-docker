@@ -73,14 +73,8 @@ LATEST_SERVER_VERSION=`curl "${PZ_URL_FORUM}" 2>/dev/null|egrep -iv "(IWBUMS|UNS
 NEW_VERSION=$(versionCompare ${LATEST_IMAGE_VERSION} ${LATEST_SERVER_VERSION})
 
 if [ $NEW_VERSION == -1 ]; then
-	echo -e "\n\nA new version of the server was detected ($LATEST_SERVER_VERSION). Creating the new image...\n"
-  echo "****************************************************************************"
-  docker build --compress --no-cache -t ${DOCKER_IMAGE}:latest -t ${DOCKER_IMAGE}:${LATEST_SERVER_VERSION} .
-  docker push ${DOCKER_IMAGE}:${LATEST_SERVER_VERSION}
-  docker push ${DOCKER_IMAGE}:latest
-  echo "****************************************************************************"
-  echo -e "\n\n"
-  exit 0
+  echo -e "\n\nA new version of the server was detected ($LATEST_SERVER_VERSION).\n"
+  exit 10
 elif [ $NEW_VERSION == 0 ]; then
   echo -e "\n\nThere is no new version of the Zomboid server\n\n"
 elif [ $NEW_VERSION == 1 ]; then
@@ -99,13 +93,8 @@ LATEST_SERVER_VERSION=`curl "${PZ_URL_WEB}" 2>/dev/null| grep -i "Stable Build" 
 NEW_VERSION=$(versionCompare ${LATEST_IMAGE_VERSION} ${LATEST_SERVER_VERSION})
 
 if [ $NEW_VERSION == -1 ]; then
-  echo -e "\n\nA new version of the server was detected ($LATEST_SERVER_VERSION). Creating the new image...\n"
-  echo "****************************************************************************"
-  docker build --compress --no-cache -t ${DOCKER_IMAGE}:latest -t ${DOCKER_IMAGE}:${LATEST_SERVER_VERSION} .
-  docker push ${DOCKER_IMAGE}:${LATEST_SERVER_VERSION}
-  docker push ${DOCKER_IMAGE}:latest
-  echo "****************************************************************************"
-  echo -e "\n\n"
+  echo -e "\n\nA new version of the server was detected ($LATEST_SERVER_VERSION).\n"
+  exit 10
 elif [ $NEW_VERSION == 0 ]; then
   echo -e "\n\nThere is no new version of the Zomboid server\n\n"
 elif [ $NEW_VERSION == 1 ]; then
