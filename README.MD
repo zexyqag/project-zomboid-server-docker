@@ -2,15 +2,20 @@
 
 This Dockerfile downloads the Project Zombie dedicated server using SteamCMD. Will allow you to deploy with ease a server in Kubernetes, Docker...
 
-The ready to use image is available here:
 
-https://hub.docker.com/r/danixu86/project-zomboid-dedicated-server
+The ready to use image is published automatically to GitHub Container Registry (GHCR) when a new Project Zomboid server version is detected or when key scripts are updated.
+
+Example image URL:
+```
+ghcr.io/zexyqag/project-zomboid-server-docker:latest
+```
 
 **WARNING:** Running the image on Windows using WSL2 in Docker Desktop will make the server startup times significantly slower. This is fine unless you are running alot of mods in which case server startup times may vary from 15 - 40 minutes. The best way to solve this problem is to run your container on a Linux based system or in a Linux VM.
 
 ## Environment variables
 
-This dockerfile converts some env variables to arguments in the server command, allowing to configure it. The image supports the following environment variables:
+
+This Dockerfile converts environment variables to server command arguments, allowing flexible configuration. Boolean environment variables are handled consistently (accepting `1`, `true`, `0`, `false`). The image supports the following environment variables:
 
 `ADMINUSERNAME:` Sets the administrator username, otherwise `admin` will be used.
 
@@ -44,9 +49,13 @@ This dockerfile converts some env variables to arguments in the server command, 
 
 `STEAMPORT1 & STEAMPORT2:` Sets the two additional ports required for steam to work. I guess that those ports are UDP, but it can be also TCP.
 
-`STEAMVAC:` Enables or disables de SteamVac protection in server
 
-`WORKSHOP_IDS:` Semicolon separated list of Workshop IDs to install to the server
+`STEAMVAC:` Enables or disables SteamVac protection in server
+
+`DISABLE_ANTICHEAT:` Comma-separated list or range of anti-cheat protection types to disable (e.g. `1,2,3-5`).
+
+
+`WORKSHOP_IDS:` Semicolon separated list of Workshop IDs and/or Workshop Collection IDs to install to the server. You can mix individual mod IDs and collection IDs. Any collections will be automatically resolved to their contained mod IDs (including nested collections, with circular references prevented and duplicates removed).
 
 `MOD_IDS:` Semicolon separated list of Mod IDs to install to the server
 
@@ -114,11 +123,15 @@ To setup the server you can use the docker-compose program:
 * Copy the .env.template to .env and edit it with the settings you want. The only mandatory variable is ADMINPASSWORD and just the first time the server is executed (once is started at least once, it can be removed). The other variables are optional.
 * Run the `docker-compose up -d` command to start the server.
 
+
+## Build & Publish Automation
+
+This repository uses GitHub Actions to automatically build and publish the Docker image to GHCR:
+
+- The workflow checks for new Project Zomboid server versions and only builds/pushes if an update is detected.
+- It also builds/pushes when `scripts/entry.sh` or `scripts/search_folder.sh` are changed.
+
 ## Scripts folder
 
-In the scripts folders there are three scripts:
-
-* entry.sh: The script used in the image to start the server
-* search_folder.sh: Script to search through mod folders for any maps 
-* update_forum.sh: Check the posts in the forum for updates and create a new image if a new version exists. This script was made because looks like the official page doesn't update the version as soon it is out.
-* uodate_web.sh: Check the version in the official page and create a new image if a new version exists
+* entry.sh: Main entry script for starting the server
+* search_folder.sh: Script to search mod folders for maps
