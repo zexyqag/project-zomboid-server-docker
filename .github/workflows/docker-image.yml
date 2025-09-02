@@ -8,6 +8,8 @@ on:
     paths:
       - 'scripts/entry.sh'
       - 'scripts/search_folder.sh'
+      - 'scripts/resolve_workshop_collection.sh'
+      - 'Dockerfile'
   schedule:
     - cron: "0 0 * * *" # daily at midnight UTC
   workflow_dispatch:
