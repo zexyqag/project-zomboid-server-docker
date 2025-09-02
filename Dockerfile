@@ -15,6 +15,7 @@ ENV HOME="${HOMEDIR}"
 RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
   dos2unix \
+  jq \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
