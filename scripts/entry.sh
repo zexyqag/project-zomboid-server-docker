@@ -163,10 +163,20 @@ if [ -n "${MOD_IDS}" ]; then
 	sed -i "s/Mods=.*/Mods=${MOD_IDS}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
 fi
 
+
+# Resolve all WORKSHOP_IDS (collections and direct mod IDs) to a flat list of mod IDs
 if [ -n "${WORKSHOP_IDS}" ]; then
- 	echo "*** INFO: Found Workshop IDs including ${WORKSHOP_IDS} ***"
-	sed -i "s/WorkshopItems=.*/WorkshopItems=${WORKSHOP_IDS}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
-	
+  echo "*** INFO: Resolving Workshop IDs and Collections: ${WORKSHOP_IDS} ***"
+  if [ -x /server/scripts/resolve_workshop_collection.sh ]; then
+    resolved_ids=$( /server/scripts/resolve_workshop_collection.sh "${WORKSHOP_IDS}" )
+    # Join with semicolon for ini
+    resolved_ids_str=$(echo "$resolved_ids" | paste -sd ';' -)
+    sed -i "s/WorkshopItems=.*/WorkshopItems=${resolved_ids_str}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+    echo "*** INFO: WorkshopItems resolved to: ${resolved_ids_str} ***"
+  else
+    echo "Warning: resolve_workshop_collection.sh not found or not executable, using WORKSHOP_IDS as-is." >&2
+    sed -i "s/WorkshopItems=.*/WorkshopItems=${WORKSHOP_IDS}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+  fi
 fi
 
 if [ -n "${DISABLE_ANTICHEAT}" ]; then
