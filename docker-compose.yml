@@ -6,6 +6,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        # STEAMAPPBRANCH: unstable
     env_file:
       - .env
     ports:

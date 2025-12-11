@@ -6,6 +6,7 @@ FROM cm2network/steamcmd:root
 LABEL maintainer="daniel.carrasco@electrosoftcloud.com"
 
 ENV STEAMAPPID=380870
+ARG STEAMAPPBRANCH=""
 ENV STEAMAPP=pz
 ENV STEAMAPPDIR="${HOMEDIR}/${STEAMAPP}-dedicated"
 # Fix for a new installation problem in the Steamcmd client
@@ -30,7 +31,7 @@ RUN set -x \
   && chown -R "${USER}:${USER}" "${STEAMAPPDIR}" \
   && bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" \
   +login anonymous \
-  +app_update "${STEAMAPPID}" validate \
+  +app_update "${STEAMAPPID}" ${STEAMAPPBRANCH:+-beta "$STEAMAPPBRANCH"} validate \
   +quit
 
 # Copy the entry point file
