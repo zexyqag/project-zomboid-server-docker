@@ -6,7 +6,7 @@ FROM cm2network/steamcmd:root
 LABEL maintainer="daniel.carrasco@electrosoftcloud.com"
 
 ENV STEAMAPPID=380870
-ARG STEAMAPPBRANCH=""
+ENV STEAMAPPBRANCH=""
 ENV STEAMAPP=pz
 ENV STEAMAPPDIR="${HOMEDIR}/${STEAMAPP}-dedicated"
 # Fix for a new installation problem in the Steamcmd client

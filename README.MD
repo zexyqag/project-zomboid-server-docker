@@ -6,7 +6,7 @@ The ready to use image is available here:
 
 https://hub.docker.com/r/danixu86/project-zomboid-dedicated-server
 
-> **Note:** If you want to play **Build 42** multiplayer, you must set the `STEAMAPPBRANCH` [build argument](#build-arguments) to `unstable`.
+> **Note:** If you want to play **Build 42** multiplayer, you must set the `STEAMAPPBRANCH` [environment variable](#environment-variables) to `unstable`.
 
 **WARNING:** Running the image on Windows using WSL2 in Docker Desktop will make the server startup times significantly slower. This is fine unless you are running alot of mods in which case server startup times may vary from 15 - 40 minutes. The best way to solve this problem is to run your container on a Linux based system or in a Linux VM.
 
@@ -56,32 +56,13 @@ This dockerfile converts some env variables to arguments in the server command, 
 
 `LANG:` This env variable will set the container locales, which will be used by the pz server to set the language. Example (en_EN.UTF-8, es_ES.UTF-8...)
 
+`STEAMAPPBRANCH:` Sets the Steam beta branch to download (e.g., `unstable`). If not set, the stable branch is used.
+
 Mods will install on second server start
 
 Maps are added on third server start, after mods are added
 
-## Build arguments
 
-The Dockerfile supports the following build arguments:
-
-`STEAMAPPBRANCH`: Sets the Steam beta branch to download (e.g., `unstable`). If not set, the stable branch is used.
-
-### Example using docker build
-
-```bash
-docker build --build-arg STEAMAPPBRANCH=unstable -t project-zomboid-server .
-```
-
-### Example using docker-compose
-
-```yaml
-services:
-  zomboid-server:
-    build:
-      context: .
-      args:
-        STEAMAPPBRANCH: unstable
-```
 
 ## Soft Reset
 
