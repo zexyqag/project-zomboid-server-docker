@@ -11,6 +11,11 @@ ENV STEAMAPPDIR="${HOMEDIR}/${STEAMAPP}-dedicated"
 # Fix for a new installation problem in the Steamcmd client
 ENV HOME="${HOMEDIR}"
 
+# Receive the value from docker-compose as an ARG
+ARG STEAMAPPBRANCH="public"
+# Promote the ARG value to an ENV for runtime
+ENV STEAMAPPBRANCH=$STEAMAPPBRANCH
+
 # Install required packages
 RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
@@ -30,7 +35,7 @@ RUN set -x \
   && chown -R "${USER}:${USER}" "${STEAMAPPDIR}" \
   && bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" \
   +login anonymous \
-  +app_update "${STEAMAPPID}" validate \
+  +app_update "${STEAMAPPID}" -beta "${STEAMAPPBRANCH}" validate \
   +quit
 
 # Copy the entry point file
