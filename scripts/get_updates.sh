@@ -10,7 +10,7 @@
 DOCKER_IMAGE="danixu86/project-zomboid-dedicated-server"
 PZ_URL_WEB="https://projectzomboid.com/blog/"
 PZ_URL_FORUM="https://theindiestone.com/forums/index.php?/forum/35-pz-updates/"
-
+APPLY_FOR_UNSTABLE_VERSIONS=true
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 cd "${SCRIPT_DIR}/../"
@@ -63,14 +63,35 @@ function versionCompare(){
 
 # Get the laster version in dockerhub
 LATEST_IMAGE_VERSION=`curl -L -s "https://registry.hub.docker.com/v2/repositories/${DOCKER_IMAGE}/tags?page_size=1024"|jq  '.results[]["name"]'|grep -iv "latest"|sort|tail -n1|sed 's/"//g'`
+echo "Latest docker image version: "$LATEST_IMAGE_VERSION
 
 ##########################################
 ##                                      ##
 ## Checking the latest version in Forum ##
 ##                                      ##
 ##########################################
-LATEST_SERVER_VERSION=`curl "${PZ_URL_FORUM}" 2>/dev/null|egrep -iv "(IWBUMS|UNSTABLE)"|grep -oPi "[0-9]{1,3}\.[0-9]{1,2} released"|sort -r|head -n1|grep -oP "[0-9]{1,3}\.[0-9]{1,2}"`
+
+VERSIONS_TO_COMPARE="Released"
+
+if [ "$APPLY_FOR_UNSTABLE_VERSIONS" = true ]; then
+    VERSIONS_TO_COMPARE="Released|BETA|HOTFIX|UNSTABLE"
+    echo "Searching for beta/unstable versions too"
+fi
+
+
+LATEST_SERVER_VERSION=$(curl -s "${PZ_URL_FORUM}" | \
+grep -oPi "[0-9]{2,3}\.[0-9]{1,2}(\.[0-9]{1,2})? ($VERSIONS_TO_COMPARE)" | \
+head -n1 | \
+grep -oE "[0-9]+\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+")
+
 NEW_VERSION=$(versionCompare ${LATEST_IMAGE_VERSION} ${LATEST_SERVER_VERSION})
+
+if [ "$APPLY_FOR_UNSTABLE_VERSIONS" = true ]; then
+    VERSIONS_TO_COMPARE="Released|BETA|HOTFIX|UNSTABLE"
+    echo "Latest docker image version: $LATEST_SERVER_VERSION - Searching for beta/unstable versions too)"
+else
+  echo "Latest docker image version: "$LATEST_SERVER_VERSION
+fi
 
 if [ $NEW_VERSION == -1 ]; then
 	echo -e "\n\nA new version of the server was detected ($LATEST_SERVER_VERSION). Creating the new image...\n"
