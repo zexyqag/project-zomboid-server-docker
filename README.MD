@@ -10,9 +10,9 @@ https://hub.docker.com/r/danixu86/project-zomboid-dedicated-server
 
 **WARNING:** Running the image on Windows using WSL2 in Docker Desktop will make the server startup times significantly slower. This is fine unless you are running alot of mods in which case server startup times may vary from 15 - 40 minutes. The best way to solve this problem is to run your container on a Linux based system or in a Linux VM.
 
-## Environment variables
+## Run time environment variables
 
-This dockerfile converts some env variables to arguments in the server command, allowing to configure it. The image supports the following environment variables:
+This image uses some env variables as arguments in the server command, allowing to configure it. The image supports the following environment variables:
 
 `ADMINUSERNAME:` Sets the administrator username, otherwise `admin` will be used.
 
@@ -56,13 +56,21 @@ This dockerfile converts some env variables to arguments in the server command, 
 
 `LANG:` This env variable will set the container locales, which will be used by the pz server to set the language. Example (en_EN.UTF-8, es_ES.UTF-8...)
 
-`STEAMAPPBRANCH:` Sets the Steam beta branch to download (e.g., `unstable`). If not set, the stable branch is used.
-
 Mods will install on second server start
 
 Maps are added on third server start, after mods are added
 
+## Build time environment variables
 
+This env variables will be used at build time to generate the image.
+
+`STEAMAPPBRANCH:` Sets the Project Zomboid branch to download (e.g., `unstable`). If not set, the stable (public) branch will be downloaded. You can see a list of branches in the [SteamDB website](https://steamdb.info/app/108600/depots/).
+
+This will work only when using the `docker compose` command. If you are building the image using the `docker build` command, then must be passed as argument, for example:
+
+```bash
+docker build --compress --no-cache --build-arg STEAMAPPBRANCH=unstable .
+```
 
 ## Soft Reset
 
@@ -128,6 +136,5 @@ To setup the server you can use the docker-compose program:
 In the scripts folders there are three scripts:
 
 * entry.sh: The script used in the image to start the server
-* search_folder.sh: Script to search through mod folders for any maps 
-* update_forum.sh: Check the posts in the forum for updates and create a new image if a new version exists. This script was made because looks like the official page doesn't update the version as soon it is out.
-* uodate_web.sh: Check the version in the official page and create a new image if a new version exists
+* search_folder.sh: Script to search through mod folders for any maps
+* get_updates.sh: will perform a search of the latest version on the forum and the website to download and build the latest stable and unstable version. The local image will be created and it will try to upload the image to the Dockerhub website, but it will fail by the lack of permissions.
