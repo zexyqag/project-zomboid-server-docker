@@ -12,7 +12,7 @@ ENV STEAMAPPDIR="${HOMEDIR}/${STEAMAPP}-dedicated"
 ENV HOME="${HOMEDIR}"
 
 # Receive the value from docker-compose as an ARG
-ARG STEAMAPPBRANCH=""
+ARG STEAMAPPBRANCH="public"
 # Promote the ARG value to an ENV for runtime
 ENV STEAMAPPBRANCH=$STEAMAPPBRANCH
 
@@ -35,7 +35,7 @@ RUN set -x \
   && chown -R "${USER}:${USER}" "${STEAMAPPDIR}" \
   && bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" \
   +login anonymous \
-  +app_update "${STEAMAPPID}" ${STEAMAPPBRANCH:+-beta "$STEAMAPPBRANCH"} validate \
+  +app_update "${STEAMAPPID}" -beta "${STEAMAPPBRANCH}" validate \
   +quit
 
 # Copy the entry point file

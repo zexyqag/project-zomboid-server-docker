@@ -167,6 +167,10 @@ if [ ${BUILD_UNSTABLE_VERSIONS} == true ]; then
 
   if [ "${LATEST_IMAGE_UNSTABLE_VERSION}" == "" ] || [ $NEW_VERSION == -1 ]; then
     echo -e "\n\nA new version of the unstable server was detected ($LATEST_UNSTABLE_VERSION). Creating the new image...\n"
+
+    docker build --compress --no-cache --build-arg STEAMAPPBRANCH=unstable -t ${DOCKER_IMAGE}:latest-unstable -t ${DOCKER_IMAGE}:${LATEST_UNSTABLE_VERSION}-unstable .
+    docker push ${DOCKER_IMAGE}:${LATEST_UNSTABLE_VERSION}-unstable
+    docker push ${DOCKER_IMAGE}:latest-unstable
   elif [ $NEW_VERSION == 0 ]; then
     echo -e "\n\nThere is no new unstable version of the Zomboid server\n\n"
   elif [ $NEW_VERSION == 1 ]; then
@@ -184,6 +188,11 @@ NEW_VERSION=$(versionCompare ${LATEST_STABLE_VERSION} ${LATEST_IMAGE_STABLE_VERS
 
 if [ "${LATEST_IMAGE_STABLE_VERSION}" == "" ] || [ $NEW_VERSION == -1 ]; then
   echo -e "\n\nA new version of the unstable server was detected ($LATEST_STABLE_VERSION). Creating the new image...\n"
+
+  docker build --compress --no-cache -t ${DOCKER_IMAGE}:latest -t ${DOCKER_IMAGE}:latest-release -t ${DOCKER_IMAGE}:${LATEST_SERVER_VERSION}-release .
+  docker push ${DOCKER_IMAGE}:${LATEST_SERVER_VERSION}-release
+  docker push ${DOCKER_IMAGE}:latest-release
+  docker push ${DOCKER_IMAGE}:latest
 elif [ $NEW_VERSION == 0 ]; then
   echo -e "\n\nThere is no new unstable version of the Zomboid server\n\n"
 elif [ $NEW_VERSION == 1 ]; then
@@ -193,26 +202,3 @@ else
 fi
 echo "****************************************************************************"
 echo -e "\n\n"
-
-
-exit 0
-
-# This code is kept because this script still a WiP that does nothing. The final magic is below, but needs some 
-# Dockerfile changes and tests first
-#
-if [ $NEW_VERSION == -1 ]; then
-	echo -e "\n\nA new version of the server was detected ($LATEST_SERVER_VERSION). Creating the new image...\n"
-  echo "****************************************************************************"
-  docker build --compress --no-cache -t ${DOCKER_IMAGE}:latest -t ${DOCKER_IMAGE}:${LATEST_SERVER_VERSION} .
-  docker push ${DOCKER_IMAGE}:${LATEST_SERVER_VERSION}
-  docker push ${DOCKER_IMAGE}:latest
-  echo "****************************************************************************"
-  echo -e "\n\n"
-  exit 0
-elif [ $NEW_VERSION == 0 ]; then
-  echo -e "\n\nThere is no new version of the Zomboid server\n\n"
-elif [ $NEW_VERSION == 1 ]; then
-  echo -e "\n\nServer version (${LATEST_SERVER_VERSION}) is lower than latest docker version (${LATEST_IMAGE_VERSION})... Please, check this script because maybe is not working correctly\n\n"
-else
-  echo -e "\n\nThere was an unknown error.\n\n"
-fi
