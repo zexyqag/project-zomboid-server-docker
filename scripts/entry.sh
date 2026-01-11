@@ -145,7 +145,23 @@ if [ -n "${STEAMPORT2}" ]; then
 fi
 
 if [ -n "${PASSWORD}" ]; then
-	sed -i "s/Password=.*/Password=${PASSWORD}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+	sed -i "s/^Password=.*/Password=${PASSWORD}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+fi
+
+if [ -n "${RCONPASSWORD}" ]; then
+	sed -i "s/^RCONPassword=.*/RCONPassword=${RCONPASSWORD}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+fi
+
+# Shows the server on the in-game browser.
+if [ "${PUBLIC}" == "1" ] || [ "${PUBLIC,,}" == "true"]; then
+  sed -i "s/^Public=.*/Public=true/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+else if [ "${PUBLIC}" == "0" ] || [ "${PUBLIC,,}" == "false"]; then
+  sed -i "s/^Public=.*/Public=false/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+fi
+
+# Set the display name for the server.
+if [ -n "${DISPLAYNAME}" ]; then
+  sed -i "s/^PublicName=.*/PublicName=${DISPLAYNAME}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
 fi
 
 if [ -n "${MOD_IDS}" ]; then
