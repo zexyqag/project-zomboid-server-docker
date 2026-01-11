@@ -153,9 +153,9 @@ if [ -n "${RCONPASSWORD}" ]; then
 fi
 
 # Shows the server on the in-game browser.
-if [ "${PUBLIC}" == "1" ] || [ "${PUBLIC,,}" == "true"]; then
+if [ "${PUBLIC}" == "1" ] || [ "${PUBLIC,,}" == "true" ]; then
   sed -i "s/^Public=.*/Public=true/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
-else if [ "${PUBLIC}" == "0" ] || [ "${PUBLIC,,}" == "false"]; then
+elif [ "${PUBLIC}" == "0" ] || [ "${PUBLIC,,}" == "false" ]; then
   sed -i "s/^Public=.*/Public=false/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
 fi
 
