@@ -20,6 +20,12 @@ This image uses some env variables as arguments in the server command, allowing 
 
 `PASSWORD:` Sets or changes server password. Is optional.
 
+`RCONPASSWORD:` Sets or changes RCON  password. Must be secure.
+
+`PUBLIC:` Shows the server on the in-game browser if `true`, Hides it if `false`. Keeps the setting in the setting file if unset (`false` at first start). 
+
+`DISPLAYNAME:` Sets or changes the servers name in the server browser. Keeps the setting in the setting file if unset.  
+
 `CACHEDIR:` Set the folder where the data will be stored. By default the server stores the data in the Zomboid folder in home directory (/home/steam/Zomboid). Is recommended to store this data into a persistent volume to keep the server state.
 
 `DEBUG:` Enable the debug mode in server
