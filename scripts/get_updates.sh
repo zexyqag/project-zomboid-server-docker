@@ -40,7 +40,7 @@ function versionCompare(){
     A=$1
     B=$2
   fi
-  
+
   CURRENT=1
   A_NUM=`echo -n $A|cut -d "." -f${CURRENT}`
 
@@ -165,7 +165,7 @@ if [ ${BUILD_UNSTABLE_VERSIONS} == true ]; then
 
   NEW_VERSION=$(versionCompare ${LATEST_UNSTABLE_VERSION} ${LATEST_IMAGE_UNSTABLE_VERSION})
 
-  if [ "${LATEST_IMAGE_UNSTABLE_VERSION}" == "" ] || [ $NEW_VERSION == -1 ]; then
+  if [ "${LATEST_IMAGE_UNSTABLE_VERSION}" == "" ] || [ $NEW_VERSION == 1 ]; then
     echo -e "\n\nA new version of the unstable server was detected ($LATEST_UNSTABLE_VERSION). Creating the new image...\n"
 
     docker build --compress --no-cache --build-arg STEAMAPPBRANCH=unstable -t ${DOCKER_IMAGE}:latest-unstable -t ${DOCKER_IMAGE}:${LATEST_UNSTABLE_VERSION}-unstable .
@@ -173,7 +173,7 @@ if [ ${BUILD_UNSTABLE_VERSIONS} == true ]; then
     docker push ${DOCKER_IMAGE}:latest-unstable
   elif [ $NEW_VERSION == 0 ]; then
     echo -e "\n\nThere is no new unstable version of the Zomboid server\n\n"
-  elif [ $NEW_VERSION == 1 ]; then
+  elif [ $NEW_VERSION == -1 ]; then
     echo -e "\n\nServer unstable version (${LATEST_UNSTABLE_VERSION}) is lower than latest docker version (${LATEST_IMAGE_UNSTABLE_VERSION})... Please, check this script because maybe is not working correctly\n\n"
   else
     echo -e "\n\nThere was an unknown error checking the unstable version.\n\n"
