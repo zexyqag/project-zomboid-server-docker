@@ -141,7 +141,7 @@ if [ -n "${STEAMPORT1}" ]; then
   ARGS="${ARGS} -steamport1 ${STEAMPORT1}"
 fi
 if [ -n "${STEAMPORT2}" ]; then
-  ARGS="${ARGS} -steamport2 ${STEAMPORT1}"
+  ARGS="${ARGS} -steamport2 ${STEAMPORT2}"
 fi
 
 if [ -n "${PASSWORD}" ]; then
