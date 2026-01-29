@@ -36,7 +36,11 @@ This image uses some env variables as arguments in the server command, allowing 
 
 `IP:` Set the interface IP where the server will listen. By default all the interfaces.
 
-`MEMORY:` Amount of memory to use in the server JVM (units can be used, for example 2048m). By default 8096m.
+`MIN_MEMORY:` Initial memory allocation for the JVM (e.g., 2048m).
+
+`MAX_MEMORY:` Maximum memory limit for the JVM (e.g., 4096m).
+
+`MEMORY:` Amount of memory to use in the server JVM (e.g., 8096m). This variable is used as a fallback for both minimum and maximum memory if `MIN_MEMORY` and `MAX_MEMORY` are not defined.
 
 `MODFOLDERS`: Mod folders to use to load the game mods. Allowed options are workshop, steam, and mods. Options must be separated by comma, for example: workshop,steam,mods
 
