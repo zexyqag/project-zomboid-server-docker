@@ -129,7 +129,7 @@ if [ -n "${PORT}" ]; then
 fi
 
 # Option to enable/disable VAC on Steam servers. On the server command-line use -steamvac true/false. In the server's INI file, use STEAMVAC=true/false.
-if [ -n "${STEAMVAC}" ] || [ "${STEAMVAC,,}" == "true" ] || [ "${STEAMVAC,,}" == "false" ]; then
+if [ -n "${STEAMVAC}" ] && { [ "${STEAMVAC,,}" == "true" ] || [ "${STEAMVAC,,}" == "false" ]; }; then
   ARGS="${ARGS} -steamvac ${STEAMVAC,,}"
 fi
 
