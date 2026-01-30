@@ -8,13 +8,13 @@ cd ${STEAMAPPDIR}
 #                                   #
 #####################################
 
-if [ "${FORCESTEAMCLIENTSOUPDATE}" == "1" ]; then
+if [ "${FORCESTEAMCLIENTSOUPDATE}" == "1" ] || [ "${FORCESTEAMCLIENTSOUPDATE,,}" == "true" ]; then
   echo "FORCESTEAMCLIENTSOUPDATE variable is set, updating steamclient.so in Zomboid's server"
   cp "${STEAMCMDDIR}/linux64/steamclient.so" "${STEAMAPPDIR}/linux64/steamclient.so"
   cp "${STEAMCMDDIR}/linux32/steamclient.so" "${STEAMAPPDIR}/steamclient.so"
 fi
 
-if [ "${FORCEUPDATE}" == "1" ]; then
+if [ "${FORCEUPDATE}" == "1" ] || [ "${FORCEUPDATE,,}" == "true" ]; then
   echo "FORCEUPDATE variable is set, so the server will be updated right now"
   bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" +login anonymous +app_update "${STEAMAPPID}" -beta "${STEAMAPPBRANCH}" validate +quit
 fi
@@ -129,7 +129,7 @@ if [ -n "${PORT}" ]; then
 fi
 
 # Option to enable/disable VAC on Steam servers. On the server command-line use -steamvac true/false. In the server's INI file, use STEAMVAC=true/false.
-if [ -n "${STEAMVAC}" ]; then
+if [ -n "${STEAMVAC}" ] && { [ "${STEAMVAC,,}" == "true" ] || [ "${STEAMVAC,,}" == "false" ]; }; then
   ARGS="${ARGS} -steamvac ${STEAMVAC,,}"
 fi
 
