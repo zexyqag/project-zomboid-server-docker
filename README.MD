@@ -67,7 +67,13 @@ This Dockerfile converts environment variables to server command arguments, allo
 
 `DISABLE_ANTICHEAT:` Comma-separated list or range of anti-cheat protection types to disable (e.g. `1,2,3-5`).
 
-`WORKSHOP_IDS:` Semicolon separated list of Workshop IDs and/or Workshop Collection IDs to install to the server. You can mix individual mod IDs and collection IDs. Any collections will be automatically resolved to their contained mod IDs (including nested collections, with circular references prevented and duplicates removed). Leaving this empty will clear any existing WorkshopItems value.
+`WORKSHOP_IDS:` Semicolon separated list of Workshop IDs and/or Workshop Collection IDs to install to the server. You can mix individual mod IDs and collection IDs. Any collections will be automatically resolved to their contained mod IDs (including nested collections, with circular references prevented and duplicates removed). Leaving this empty will clear any existing WorkshopItems value. If collection resolution fails, WorkshopItems is left unchanged.
+
+`STEAM_API_KEY:` Optional Steam Web API key used when resolving Workshop collections. Not required for public collections but may be needed for private or rate-limited access.
+
+`CLEAN_WORKSHOP:` If true, removes workshop items on disk that are not listed in `WORKSHOP_IDS` (after collection resolution). This only runs when `WORKSHOP_IDS` is set and collection resolution succeeds to avoid wiping everything by accident.
+
+`CLEAN_WORKSHOP_DRY_RUN:` If true, logs which workshop items would be removed without deleting anything. Requires `CLEAN_WORKSHOP=true`.
 
 `MOD_IDS:` Semicolon separated list of Mod IDs to install to the server. NOTE - B42 changes the way mod IDs must be supplied (\mod1;\mod2 inside the servertest.ini file) when defining this variable, preceed each mod id with two backslashes (\\) to escape the backslash into the ini file. Leaving this empty will clear any existing Mods value.
 
@@ -140,6 +146,8 @@ This ports are used by the No Steam clients to connect with the server, so it mu
 * The 16261 port can be changed using the PORT environment variable. This will affect at the TCP ports range, changing it to the next port. For example, if PORT is set to 12234, the TCP range will be 12234 - 12244.
 * The TCP ports range is used by the clients, so every client slot will need a port. If your server plans to host 50 clients, then you will need to open 50 ports in firewall/nat... (16262 - 16312).
 * The Wiki says that Non Steam ports is supposed to be for non steam clients, but I am using the steam client and those ports are used too.
+
+When using docker-compose, be sure to map the UDP ports you need (16261 + 16262, or the range for your slot count) and the TCP port range if clients fail to connect.
 
 ## How to use the image
 

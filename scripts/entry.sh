@@ -171,9 +171,9 @@ if [ -n "${RCONPASSWORD}" ]; then
 fi
 
 # Shows the server on the in-game browser.
-if [ "${PUBLIC}" == "1" ] || [ "${PUBLIC,,}" == "true" ]; then
+if is_true "${PUBLIC}"; then
   sed -i "s/^Public=.*/Public=true/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
-elif [ "${PUBLIC}" == "0" ] || [ "${PUBLIC,,}" == "false" ]; then
+elif [ -n "${PUBLIC}" ]; then
   sed -i "s/^Public=.*/Public=false/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
 fi
 
@@ -196,17 +196,56 @@ if [ -n "${WORKSHOP_IDS}" ]; then
   echo "*** INFO: Resolving Workshop IDs and Collections: ${WORKSHOP_IDS} ***"
   if [ -x /server/scripts/resolve_workshop_collection.sh ]; then
     resolved_ids=$( /server/scripts/resolve_workshop_collection.sh "${WORKSHOP_IDS}" )
-    # Join with semicolon for ini
-    resolved_ids_str=$(echo "$resolved_ids" | paste -sd ';' -)
-    sed -i "s/WorkshopItems=.*/WorkshopItems=${resolved_ids_str}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
-    echo "*** INFO: WorkshopItems resolved to: ${resolved_ids_str} ***"
+    resolver_status=$?
+    if [ $resolver_status -ne 0 ] || [ -z "$resolved_ids" ]; then
+      echo "Warning: failed to resolve Workshop collections, leaving WorkshopItems unchanged." >&2
+      workshop_resolve_failed=true
+    else
+      # Join with semicolon for ini
+      resolved_ids_str=$(echo "$resolved_ids" | paste -sd ';' -)
+      workshop_ids_effective="${resolved_ids_str}"
+      sed -i "s/WorkshopItems=.*/WorkshopItems=${resolved_ids_str}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+      echo "*** INFO: WorkshopItems resolved to: ${resolved_ids_str} ***"
+    fi
   else
-    echo "Warning: resolve_workshop_collection.sh not found or not executable, using WORKSHOP_IDS as-is." >&2
-    sed -i "s/WorkshopItems=.*/WorkshopItems=${WORKSHOP_IDS}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+    echo "Warning: resolve_workshop_collection.sh not found or not executable, leaving WorkshopItems unchanged." >&2
+    workshop_resolve_failed=true
   fi
 else
   echo "*** INFO: WORKSHOP_IDS is empty, clearing configuration ***"
   sed -i 's/WorkshopItems=.*$/WorkshopItems=/' "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+fi
+
+# Optional cleanup of unused workshop content
+if is_true "${CLEAN_WORKSHOP}" && [ -n "${WORKSHOP_IDS}" ] && [ -n "${workshop_ids_effective}" ] && [ "${workshop_resolve_failed}" != "true" ]; then
+  workshop_dir="${HOMEDIR}/pz-dedicated/steamapps/workshop/content/108600"
+  if [ -d "${workshop_dir}" ]; then
+    if is_true "${CLEAN_WORKSHOP_DRY_RUN}"; then
+      echo "*** INFO: CLEAN_WORKSHOP_DRY_RUN enabled, listing unused workshop items ***"
+    else
+      echo "*** INFO: CLEAN_WORKSHOP enabled, pruning unused workshop items ***"
+    fi
+    IFS=';' read -ra KEEP_IDS <<< "${workshop_ids_effective}"
+    for item_dir in "${workshop_dir}"/*; do
+      [ -d "${item_dir}" ] || continue
+      item_id=$(basename "${item_dir}")
+      keep=false
+      for keep_id in "${KEEP_IDS[@]}"; do
+        if [ "${item_id}" == "${keep_id}" ]; then
+          keep=true
+          break
+        fi
+      done
+      if [ "${keep}" == "false" ]; then
+        if is_true "${CLEAN_WORKSHOP_DRY_RUN}"; then
+          echo "*** INFO: Would remove unused workshop item ${item_id} ***"
+        else
+          echo "*** INFO: Removing unused workshop item ${item_id} ***"
+          rm -rf "${item_dir}"
+        fi
+      fi
+    done
+  fi
 fi
 
 if [ -n "${DISABLE_ANTICHEAT}" ]; then

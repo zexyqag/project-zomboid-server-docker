@@ -32,9 +32,21 @@ while (( depth <= DEPTH_LIMIT )) && ((${#to_process[@]} > 0)); do
   fi
   resp=$(curl -s -X POST 'https://api.steampowered.com/ISteamRemoteStorage/GetCollectionDetails/v1/' \
     --data "$post_data")
+  if [ -z "$resp" ]; then
+    echo "Error: empty response from Steam API" >&2
+    exit 2
+  fi
   # Next batch of collections to process
   next_batch=()
-  count=$(echo "$resp" | jq '.response.resultcount')
+  count=$(echo "$resp" | jq -r '.response.resultcount' 2>/dev/null)
+  if [ -z "$count" ] || [ "$count" == "null" ]; then
+    echo "Error: invalid response from Steam API" >&2
+    exit 2
+  fi
+  if [ "$count" == "0" ]; then
+    echo "Error: no collection details returned from Steam API" >&2
+    exit 3
+  fi
   for ((idx=0; idx<count; idx++)); do
     # Mark as visited
     id=$(echo "$resp" | jq -r ".response.collectiondetails[$idx].publishedfileid")

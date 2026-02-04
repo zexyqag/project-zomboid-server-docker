@@ -15,6 +15,7 @@ services:
       - "16261:16261/udp"
       - "16262:16262/udp"
       - "27015:27015/tcp"
+      # If you increase slots or change PORT, map the TCP range (PORT+1..PORT+10) as needed.
     volumes:
       # Server data
       - ./data:/home/steam/Zomboid
