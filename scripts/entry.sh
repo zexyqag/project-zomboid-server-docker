@@ -135,6 +135,11 @@ if [ -n "${SERVERPRESET}" ]; then
     chmod 644 "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_SandboxVars.lua"
   fi
 fi
+# Apply SandboxVars overrides from environment
+SANDBOXVARS_FILE="${HOMEDIR}/Zomboid/Server/${SERVERNAME}_SandboxVars.lua"
+if [ -f "${SANDBOXVARS_FILE}" ] && [ -x /server/scripts/apply_lua_vars.sh ]; then
+  /server/scripts/apply_lua_vars.sh "${SANDBOXVARS_FILE}" "SANDBOXVARS_"
+fi
 
 # Option to handle multiple network cards. Example: 127.0.0.1
 if [ -n "${IP}" ]; then

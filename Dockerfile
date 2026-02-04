@@ -52,6 +52,10 @@ RUN chmod 550 /server/scripts/resolve_workshop_collection.sh
 COPY --chown=${USER}:${USER} scripts/search_folder.sh /server/scripts/search_folder.sh
 RUN chmod 550 /server/scripts/search_folder.sh
 
+# Copy Lua vars helper
+COPY --chown=${USER}:${USER} scripts/apply_lua_vars.sh /server/scripts/apply_lua_vars.sh
+RUN chmod 550 /server/scripts/apply_lua_vars.sh
+
 # Create required folders to keep their permissions on mount
 RUN mkdir -p "${HOMEDIR}/Zomboid"
 

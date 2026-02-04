@@ -71,6 +71,12 @@ This Dockerfile converts environment variables to server command arguments, allo
 
 `STEAM_API_KEY:` Optional Steam Web API key used when resolving Workshop collections. Not required for public collections but may be needed for private or rate-limited access.
 
+`SANDBOXVARS_*:` Optional overrides for SandboxVars. Use single underscores as a path separator. Example: `SANDBOXVARS_ZombieLore_Transmission=4` updates `SandboxVars.ZombieLore.Transmission`. To include a literal underscore in a key name, use double underscores (`__`). Values are treated as raw Lua, so strings should be quoted (e.g., `"SomeText"`).
+
+`LUAVARS_DRY_RUN:` If true, logs the changes that would be applied without modifying the file.
+
+`LUAVARS_STRICT:` If true, exits with an error when an env var does not match any key in the SandboxVars file.
+
 `CLEAN_WORKSHOP:` If true, removes workshop items on disk that are not listed in `WORKSHOP_IDS` (after collection resolution). This only runs when `WORKSHOP_IDS` is set and collection resolution succeeds to avoid wiping everything by accident.
 
 `CLEAN_WORKSHOP_DRY_RUN:` If true, logs which workshop items would be removed without deleting anything. Requires `CLEAN_WORKSHOP=true`.
