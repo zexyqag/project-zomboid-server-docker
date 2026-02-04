@@ -10,12 +10,13 @@ Example image URL:
 ghcr.io/zexyqag/project-zomboid-server-docker:latest
 ```
 
+> **Note:** If you want to play **Build 42** multiplayer, you must set the `STEAMAPPBRANCH` [environment variable](#environment-variables) to `unstable`.
+
 **WARNING:** Running the image on Windows using WSL2 in Docker Desktop will make the server startup times significantly slower. This is fine unless you are running alot of mods in which case server startup times may vary from 15 - 40 minutes. The best way to solve this problem is to run your container on a Linux based system or in a Linux VM.
 
-## Environment variables
+## Run time environment variables
 
-
-This Dockerfile converts environment variables to server command arguments, allowing flexible configuration. Boolean environment variables are handled consistently (accepting `1`, `true`, `0`, `false`). The image supports the following environment variables:
+This Dockerfile converts environment variables to server command arguments, allowing flexible configuration. Boolean environment variables are handled consistently (accepting `1`, `true`, `yes`, `y`, `on` and `0`, `false`, `no`, `n`, `off`). The image supports the following environment variables:
 
 `ADMINUSERNAME:` Sets the administrator username, otherwise `admin` will be used.
 
@@ -23,15 +24,27 @@ This Dockerfile converts environment variables to server command arguments, allo
 
 `PASSWORD:` Sets or changes server password. Is optional.
 
+`RCONPASSWORD:` Sets or changes RCON  password. Must be secure.
+
+`PUBLIC:` Shows the server on the in-game browser if `true`, Hides it if `false`. Keeps the setting in the setting file if unset (`false` at first start). 
+
+`DISPLAYNAME:` Sets or changes the servers name in the server browser. Keeps the setting in the setting file if unset.  
+
 `CACHEDIR:` Set the folder where the data will be stored. By default the server stores the data in the Zomboid folder in home directory (/home/steam/Zomboid). Is recommended to store this data into a persistent volume to keep the server state.
 
 `DEBUG:` Enable the debug mode in server
 
 `FORCEUPDATE:` Force a server update on every start. This process can be slow if the image is old.
 
+`FORCESTEAMCLIENTSOUPDATE:` Forcibly update the steamclient.so libraries in the pz-dedicated directory before starting the server. May help with Workshop item downloads. Do not set if everything works fine.
+
 `IP:` Set the interface IP where the server will listen. By default all the interfaces.
 
-`MEMORY:` Amount of memory to use in the server JVM (units can be used, for example 2048m). By default 8096m.
+`MIN_MEMORY:` Initial memory allocation for the JVM (e.g., 2048m).
+
+`MAX_MEMORY:` Maximum memory limit for the JVM (e.g., 4096m).
+
+`MEMORY:` Amount of memory to use in the server JVM (e.g., 8096m). This variable is used as a fallback for both minimum and maximum memory if `MIN_MEMORY` and `MAX_MEMORY` are not defined.
 
 `MODFOLDERS`: Mod folders to use to load the game mods. Allowed options are workshop, steam, and mods. Options must be separated by comma, for example: workshop,steam,mods
 
@@ -54,16 +67,28 @@ This Dockerfile converts environment variables to server command arguments, allo
 
 `DISABLE_ANTICHEAT:` Comma-separated list or range of anti-cheat protection types to disable (e.g. `1,2,3-5`).
 
+`WORKSHOP_IDS:` Semicolon separated list of Workshop IDs and/or Workshop Collection IDs to install to the server. You can mix individual mod IDs and collection IDs. Any collections will be automatically resolved to their contained mod IDs (including nested collections, with circular references prevented and duplicates removed). Leaving this empty will clear any existing WorkshopItems value.
 
-`WORKSHOP_IDS:` Semicolon separated list of Workshop IDs and/or Workshop Collection IDs to install to the server. You can mix individual mod IDs and collection IDs. Any collections will be automatically resolved to their contained mod IDs (including nested collections, with circular references prevented and duplicates removed).
-
-`MOD_IDS:` Semicolon separated list of Mod IDs to install to the server
+`MOD_IDS:` Semicolon separated list of Mod IDs to install to the server. NOTE - B42 changes the way mod IDs must be supplied (\mod1;\mod2 inside the servertest.ini file) when defining this variable, preceed each mod id with two backslashes (\\) to escape the backslash into the ini file. Leaving this empty will clear any existing Mods value.
 
 `LANG:` This env variable will set the container locales, which will be used by the pz server to set the language. Example (en_EN.UTF-8, es_ES.UTF-8...)
 
 Mods will install on second server start
 
 Maps are added on third server start, after mods are added
+
+## Build time environment variables
+
+This env variables will be used at build time to generate the image.
+
+`STEAMAPPBRANCH:` Sets the Project Zomboid branch to download (e.g., `unstable`). If not set, the stable (public) branch will be downloaded. You can see a list of branches in the [SteamDB website](https://steamdb.info/app/108600/depots/).
+
+This will work only when using the `docker compose` command. If you are building the image using the `docker build` command, then must be passed as argument, for example:
+
+```bash
+docker build --compress --no-cache --build-arg STEAMAPPBRANCH=unstable .
+```
+
 ## Soft Reset
 
 Soft reset will perform the following tasks:
@@ -133,5 +158,8 @@ This repository uses GitHub Actions to automatically build and publish the Docke
 
 ## Scripts folder
 
-* entry.sh: Main entry script for starting the server
-* search_folder.sh: Script to search mod folders for maps
+In the scripts folders there are three scripts:
+
+* entry.sh: The script used in the image to start the server
+* search_folder.sh: Script to search through mod folders for any maps
+* get_updates.sh: will perform a search of the latest version on the forum and the website to download and build the latest stable and unstable version. The local image will be created and it will try to upload the image to the Dockerhub website, but it will fail by the lack of permissions.

@@ -10,7 +10,7 @@
 DOCKER_IMAGE="danixu86/project-zomboid-dedicated-server"
 PZ_URL_WEB="https://projectzomboid.com/blog/"
 PZ_URL_FORUM="https://theindiestone.com/forums/index.php?/forum/35-pz-updates/"
-
+BUILD_UNSTABLE_VERSIONS=true
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 cd "${SCRIPT_DIR}/../"
@@ -40,7 +40,7 @@ function versionCompare(){
     A=$1
     B=$2
   fi
-  
+
   CURRENT=1
   A_NUM=`echo -n $A|cut -d "." -f${CURRENT}`
 
@@ -61,44 +61,144 @@ function versionCompare(){
   echo 0
 }
 
-# Get the laster version in dockerhub
-LATEST_IMAGE_VERSION=`curl -L -s "https://registry.hub.docker.com/v2/repositories/${DOCKER_IMAGE}/tags?page_size=1024"|jq  '.results[]["name"]'|grep -iv "latest"|sort|tail -n1|sed 's/"//g'`
+##########################################
+##                                      ##
+## Checking the latest built version    ##
+##                                      ##
+##########################################
+LATEST_IMAGES=`curl -L -s "https://registry.hub.docker.com/v2/repositories/${DOCKER_IMAGE}/tags?page_size=1024" | jq  '.results[]["name"]' | grep -iv "latest" | sort`
+# Get the latest stable version
+LATEST_IMAGE_STABLE_VERSION=`echo "${LATEST_IMAGES}" | grep -i "release" | tail -n1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+" | sed 's/"//g'`
+# Get the latest unstable version.
+LATEST_IMAGE_UNSTABLE_VERSION=`echo "${LATEST_IMAGES}" | grep -i "unstable" | tail -n1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+" | sed 's/"//g'`
+echo "Latest docker images version:"
+echo -e "\tRELEASE: ${LATEST_IMAGE_STABLE_VERSION}"
+echo -e "\tUNSTABLE: ${LATEST_IMAGE_UNSTABLE_VERSION}"
 
 ##########################################
 ##                                      ##
 ## Checking the latest version in Forum ##
 ##                                      ##
 ##########################################
-LATEST_SERVER_VERSION=`curl "${PZ_URL_FORUM}" 2>/dev/null|egrep -iv "(IWBUMS|UNSTABLE)"|grep -oPi "[0-9]{1,3}\.[0-9]{1,2} released"|sort -r|head -n1|grep -oP "[0-9]{1,3}\.[0-9]{1,2}"`
-NEW_VERSION=$(versionCompare ${LATEST_IMAGE_VERSION} ${LATEST_SERVER_VERSION})
+# Texts to search on the forum
+STABLE_TITLES="Released"
+UNSTABLE_TITLES="BETA|HOTFIX|UNSTABLE"
+# Forum data
+FORUM_DATA=`curl -s "${PZ_URL_FORUM}"`
+# Get the latest stable versions to filter it later
+LATEST_FORUM_STABLE_VERSIONS=$(echo "${FORUM_DATA}" | \
+grep -oPi "[0-9]{2,3}\.[0-9]{1,2}(\.[0-9]{1,2})? ($STABLE_TITLES)" | \
+grep -oE "[0-9]+\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+" | sort | uniq)
+# Get the latest unstable versions to filter it later
+LATEST_FORUM_UNSTABLE_VERSIONS=$(echo "${FORUM_DATA}" | \
+grep -oPi "[0-9]{2,3}\.[0-9]{1,2}(\.[0-9]{1,2})? ($UNSTABLE_TITLES)" | \
+grep -oE "[0-9]+\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+" | sort | uniq)
 
-if [ $NEW_VERSION == -1 ]; then
-  echo -e "\n\nA new version of the server was detected ($LATEST_SERVER_VERSION).\n"
-  exit 10
-elif [ $NEW_VERSION == 0 ]; then
-  echo -e "\n\nThere is no new version of the Zomboid server\n\n"
-elif [ $NEW_VERSION == 1 ]; then
-  echo -e "\n\nServer version (${LATEST_SERVER_VERSION}) is lower than latest docker version (${LATEST_IMAGE_VERSION})... Please, check this script because maybe is not working correctly\n\n"
+# Sometimes a pinned post hiddens the latest version, so all versions will be checked
+LATEST_FORUM_STABLE_VERSION=0.0.0
+for version in $LATEST_FORUM_STABLE_VERSIONS; do
+  COMPARE_VERSION=$(versionCompare ${LATEST_FORUM_STABLE_VERSION} ${version})
+  if [ $COMPARE_VERSION == -1 ]; then
+    LATEST_FORUM_STABLE_VERSION=$version
+  fi
+done
+LATEST_FORUM_UNSTABLE_VERSION=0.0.0
+for version in $LATEST_FORUM_UNSTABLE_VERSIONS; do
+  COMPARE_VERSION=$(versionCompare ${LATEST_FORUM_UNSTABLE_VERSION} ${version})
+  if [ $COMPARE_VERSION == -1 ]; then
+    LATEST_FORUM_UNSTABLE_VERSION=$version
+  fi
+done
+
+echo -e "\n\nLatest forum versions:"
+echo -e "\tRELEASE: ${LATEST_FORUM_STABLE_VERSION}"
+echo -e "\tUNSTABLE: ${LATEST_FORUM_UNSTABLE_VERSION}"
+
+################################################
+##                                            ##
+## Checking the latest version in the webpage ##
+##                                            ##
+################################################
+# Texts to search on the webpage
+STABLE_TEXT="Stable Build"
+UNSTABLE_TEXT="IWBUMS Beta"
+
+# Extract the versions from the website (sometimes it is outdated, that is why I check first the forum)
+WEBPAGE_DATA=`curl "${PZ_URL_WEB}" 2>/dev/null`
+LATEST_WEBPAGE_STABLE_VERSION=`echo "${WEBPAGE_DATA}" | grep -i "${STABLE_TEXT}" | head -n1 | cut -d ":" -f2 | awk '{print $1}'`
+LATEST_WEBPAGE_UNSTABLE_VERSION=`echo "${WEBPAGE_DATA}" | grep -i "${UNSTABLE_TEXT}" | head -n1 | cut -d ":" -f2 | awk '{print $1}'`
+
+echo -e "\n\nLatest website versions:"
+echo -e "\tRELEASE: ${LATEST_WEBPAGE_STABLE_VERSION}"
+echo -e "\tUNSTABLE: ${LATEST_WEBPAGE_UNSTABLE_VERSION}"
+
+
+##################################
+##                              ##
+## Building the required images ##
+##                              ##
+##################################
+
+LATEST_STABLE_VERSION=""
+LATEST_STABLE_VERSION_COMPARE=$(versionCompare ${LATEST_FORUM_STABLE_VERSION} ${LATEST_WEBPAGE_STABLE_VERSION})
+if [ $LATEST_STABLE_VERSION_COMPARE == -1 ]; then
+  LATEST_STABLE_VERSION=$LATEST_WEBPAGE_STABLE_VERSION
 else
-  echo -e "\n\nThere was an unknown error.\n\n"
+  LATEST_STABLE_VERSION=$LATEST_FORUM_STABLE_VERSION
 fi
 
-############################################
-##                                        ##
-## Checking the latest version in webpage ##
-##                                        ##
-############################################
-LATEST_SERVER_VERSION=`curl "${PZ_URL_WEB}" 2>/dev/null| grep -i "Stable Build" | head -n1 | cut -d ":" -f2 | awk '{print $1}'`
-
-NEW_VERSION=$(versionCompare ${LATEST_IMAGE_VERSION} ${LATEST_SERVER_VERSION})
-
-if [ $NEW_VERSION == -1 ]; then
-  echo -e "\n\nA new version of the server was detected ($LATEST_SERVER_VERSION).\n"
-  exit 10
-elif [ $NEW_VERSION == 0 ]; then
-  echo -e "\n\nThere is no new version of the Zomboid server\n\n"
-elif [ $NEW_VERSION == 1 ]; then
-  echo -e "\n\nServer version (${LATEST_SERVER_VERSION}) is lower than latest docker version (${LATEST_IMAGE_VERSION})... Please, check this script because maybe is not working correctly\n\n"
+LATEST_UNSTABLE_VERSION=""
+LATEST_UNSTABLE_VERSION_COMPARE=$(versionCompare ${LATEST_FORUM_UNSTABLE_VERSION} ${LATEST_WEBPAGE_UNSTABLE_VERSION})
+if [ $LATEST_UNSTABLE_VERSION_COMPARE == -1 ]; then
+  LATEST_UNSTABLE_VERSION=$LATEST_WEBPAGE_UNSTABLE_VERSION
 else
-  echo -e "\n\nThere was an unknown error.\n\n"
+  LATEST_UNSTABLE_VERSION=$LATEST_FORUM_UNSTABLE_VERSION
 fi
+
+echo -e "\n\nDetected real latest versions (forum and website):"
+echo -e "\tRELEASE: ${LATEST_STABLE_VERSION}"
+echo -e "\tUNSTABLE: ${LATEST_UNSTABLE_VERSION}"
+
+if [ ${BUILD_UNSTABLE_VERSIONS} == true ]; then
+  echo -e "\n\n****************************************************************************"
+  echo "The unstable image build is enabled. Checking latest version..."
+
+  NEW_VERSION=$(versionCompare ${LATEST_UNSTABLE_VERSION} ${LATEST_IMAGE_UNSTABLE_VERSION})
+
+  if [ "${LATEST_IMAGE_UNSTABLE_VERSION}" == "" ] || [ $NEW_VERSION == 1 ]; then
+    echo -e "\n\nA new version of the unstable server was detected ($LATEST_UNSTABLE_VERSION). Creating the new image...\n"
+
+    docker build --compress --no-cache --build-arg STEAMAPPBRANCH=unstable -t ${DOCKER_IMAGE}:latest-unstable -t ${DOCKER_IMAGE}:${LATEST_UNSTABLE_VERSION}-unstable .
+    docker push ${DOCKER_IMAGE}:${LATEST_UNSTABLE_VERSION}-unstable
+    docker push ${DOCKER_IMAGE}:latest-unstable
+  elif [ $NEW_VERSION == 0 ]; then
+    echo -e "\n\nThere is no new unstable version of the Zomboid server\n\n"
+  elif [ $NEW_VERSION == -1 ]; then
+    echo -e "\n\nServer unstable version (${LATEST_UNSTABLE_VERSION}) is lower than latest docker version (${LATEST_IMAGE_UNSTABLE_VERSION})... Please, check this script because maybe is not working correctly\n\n"
+  else
+    echo -e "\n\nThere was an unknown error checking the unstable version.\n\n"
+  fi
+  echo "****************************************************************************"
+  echo -e "\n\n"
+fi
+
+echo -e "\n\n****************************************************************************"
+echo "Checking the latest stable version..."
+NEW_VERSION=$(versionCompare ${LATEST_STABLE_VERSION} ${LATEST_IMAGE_STABLE_VERSION})
+
+if [ "${LATEST_IMAGE_STABLE_VERSION}" == "" ] || [ $NEW_VERSION == -1 ]; then
+  echo -e "\n\nA new version of the unstable server was detected ($LATEST_STABLE_VERSION). Creating the new image...\n"
+
+  docker build --compress --no-cache -t ${DOCKER_IMAGE}:latest -t ${DOCKER_IMAGE}:latest-release -t ${DOCKER_IMAGE}:${LATEST_STABLE_VERSION}-release .
+  docker push ${DOCKER_IMAGE}:${LATEST_STABLE_VERSION}-release
+  docker push ${DOCKER_IMAGE}:latest-release
+  docker push ${DOCKER_IMAGE}:latest
+elif [ $NEW_VERSION == 0 ]; then
+  echo -e "\n\nThere is no new unstable version of the Zomboid server\n\n"
+elif [ $NEW_VERSION == 1 ]; then
+  echo -e "\n\nServer unstable version (${LATEST_STABLE_VERSION}) is lower than latest docker version (${LATEST_IMAGE_STABLE_VERSION})... Please, check this script because maybe is not working correctly\n\n"
+else
+  echo -e "\n\nThere was an unknown error checking the unstable version.\n\n"
+fi
+echo "****************************************************************************"
+echo -e "\n\n"

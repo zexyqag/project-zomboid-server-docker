@@ -5,11 +5,11 @@ is_true() {
   local val="${1,,}"
   local default="${2:-false}"
   case "$val" in
-    1|true) return 0 ;;
-    0|false) return 1 ;;
+    1|true|yes|y|on) return 0 ;;
+    0|false|no|n|off) return 1 ;;
     *)
       case "${default,,}" in
-        1|true) return 0 ;;
+        1|true|yes|y|on) return 0 ;;
         *) return 1 ;;
       esac
     ;;
@@ -24,9 +24,15 @@ cd ${STEAMAPPDIR}
 #                                   #
 #####################################
 
+if is_true "${FORCESTEAMCLIENTSOUPDATE}"; then
+  echo "FORCESTEAMCLIENTSOUPDATE variable is set, updating steamclient.so in Zomboid's server"
+  cp "${STEAMCMDDIR}/linux64/steamclient.so" "${STEAMAPPDIR}/linux64/steamclient.so"
+  cp "${STEAMCMDDIR}/linux32/steamclient.so" "${STEAMAPPDIR}/steamclient.so"
+fi
+
 if is_true "${FORCEUPDATE}"; then
   echo "FORCEUPDATE variable is set, so the server will be updated right now"
-  bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" +login anonymous +app_update "${STEAMAPPID}" validate +quit
+  bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" +login anonymous +app_update "${STEAMAPPID}" -beta "${STEAMAPPBRANCH}" validate +quit
 fi
 
 
@@ -38,8 +44,10 @@ fi
 ARGS=""
 
 # Set the server memory. Units are accepted (1024m=1Gig, 2048m=2Gig, 4096m=4Gig): Example: 1024m
-if [ -n "${MEMORY}" ]; then
-  ARGS="${ARGS} -Xmx${MEMORY} -Xms${MEMORY}"
+if [ -n "${MIN_MEMORY}" ] && [ -n "${MAX_MEMORY}" ]; then
+  ARGS="${ARGS} -Xms${MIN_MEMORY} -Xmx${MAX_MEMORY}"
+elif [ -n "${MEMORY}" ]; then
+  ARGS="${ARGS} -Xms${MEMORY} -Xmx${MEMORY}"
 fi
 
 # Option to perform a Soft Reset
@@ -139,7 +147,7 @@ if [ -n "${PORT}" ]; then
 fi
 
 # Option to enable/disable VAC on Steam servers. On the server command-line use -steamvac true/false. In the server's INI file, use STEAMVAC=true/false.
-if [ -n "${STEAMVAC}" ]; then
+if [ -n "${STEAMVAC}" ] && { [ "${STEAMVAC,,}" == "true" ] || [ "${STEAMVAC,,}" == "false" ]; }; then
   ARGS="${ARGS} -steamvac ${STEAMVAC,,}"
 fi
 
@@ -151,16 +159,35 @@ if [ -n "${STEAMPORT1}" ]; then
   ARGS="${ARGS} -steamport1 ${STEAMPORT1}"
 fi
 if [ -n "${STEAMPORT2}" ]; then
-  ARGS="${ARGS} -steamport2 ${STEAMPORT1}"
+  ARGS="${ARGS} -steamport2 ${STEAMPORT2}"
 fi
 
 if [ -n "${PASSWORD}" ]; then
-	sed -i "s/Password=.*/Password=${PASSWORD}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+	sed -i "s/^Password=.*/Password=${PASSWORD}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+fi
+
+if [ -n "${RCONPASSWORD}" ]; then
+	sed -i "s/^RCONPassword=.*/RCONPassword=${RCONPASSWORD}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+fi
+
+# Shows the server on the in-game browser.
+if [ "${PUBLIC}" == "1" ] || [ "${PUBLIC,,}" == "true" ]; then
+  sed -i "s/^Public=.*/Public=true/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+elif [ "${PUBLIC}" == "0" ] || [ "${PUBLIC,,}" == "false" ]; then
+  sed -i "s/^Public=.*/Public=false/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+fi
+
+# Set the display name for the server.
+if [ -n "${DISPLAYNAME}" ]; then
+  sed -i "s/^PublicName=.*/PublicName=${DISPLAYNAME}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
 fi
 
 if [ -n "${MOD_IDS}" ]; then
- 	echo "*** INFO: Found Mods including ${MOD_IDS} ***"
-	sed -i "s/Mods=.*/Mods=${MOD_IDS}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+   echo "*** INFO: Found Mods including ${MOD_IDS} ***"
+  sed -i "s/Mods=.*/Mods=${MOD_IDS}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+else
+   echo "*** INFO: MOD_IDS is empty, clearing configuration ***"
+  sed -i 's/Mods=.*$/Mods=/' "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
 fi
 
 
@@ -177,6 +204,9 @@ if [ -n "${WORKSHOP_IDS}" ]; then
     echo "Warning: resolve_workshop_collection.sh not found or not executable, using WORKSHOP_IDS as-is." >&2
     sed -i "s/WorkshopItems=.*/WorkshopItems=${WORKSHOP_IDS}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
   fi
+else
+  echo "*** INFO: WORKSHOP_IDS is empty, clearing configuration ***"
+  sed -i 's/WorkshopItems=.*$/WorkshopItems=/' "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
 fi
 
 if [ -n "${DISABLE_ANTICHEAT}" ]; then
