@@ -188,10 +188,10 @@ if [ -n "${DISPLAYNAME}" ]; then
 fi
 
 if [ -n "${MOD_IDS}" ]; then
-   echo "*** INFO: Found Mods including ${MOD_IDS} ***"
+  echo "*** INFO: Found Mods including ${MOD_IDS} ***"
   sed -i "s/Mods=.*/Mods=${MOD_IDS}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
 else
-   echo "*** INFO: MOD_IDS is empty, clearing configuration ***"
+  echo "*** INFO: MOD_IDS is empty, clearing configuration ***"
   sed -i 's/Mods=.*$/Mods=/' "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
 fi
 

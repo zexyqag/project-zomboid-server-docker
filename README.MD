@@ -17,7 +17,6 @@ ghcr.io/zexyqag/project-zomboid-server-docker:latest
 ## Run time environment variables
 
 This Dockerfile converts environment variables to server command arguments, allowing flexible configuration. Boolean environment variables are handled consistently (accepting `1`, `true`, `yes`, `y`, `on` and `0`, `false`, `no`, `n`, `off`). The image supports the following environment variables:
-
 `ADMINUSERNAME:` Sets the administrator username, otherwise `admin` will be used.
 
 `ADMINPASSWORD:` Sets or changes the admin password. Is mandatory at first startup or will fail. I recommend to remove it once the server is started because the server logs every argument in clear text (if doesn't cares, you can leave it).
@@ -61,7 +60,6 @@ This Dockerfile converts environment variables to server command arguments, allo
 `SOFTRESET:` Performs a soft reset in the server. More info in the Soft Reset section.
 
 `STEAMPORT1 & STEAMPORT2:` Sets the two additional ports required for steam to work. I guess that those ports are UDP, but it can be also TCP.
-
 
 `STEAMVAC:` Enables or disables SteamVac protection in server
 
@@ -162,14 +160,12 @@ To setup the server you can use the docker-compose program:
 * Copy the .env.template to .env and edit it with the settings you want. The only mandatory variable is ADMINPASSWORD and just the first time the server is executed (once is started at least once, it can be removed). The other variables are optional.
 * Run the `docker-compose up -d` command to start the server.
 
-
 ## Build & Publish Automation
 
 This repository uses GitHub Actions to automatically build and publish the Docker image to GHCR:
 
 - The workflow checks for new Project Zomboid server versions and only builds/pushes if an update is detected.
 - It also builds/pushes when `scripts/entry.sh` or `scripts/search_folder.sh` are changed.
-
 ## Scripts folder
 
 In the scripts folders there are three scripts:
