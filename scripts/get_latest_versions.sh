@@ -4,7 +4,6 @@ set -euo pipefail
 
 PZ_URL_WEB="https://projectzomboid.com/blog/"
 PZ_URL_FORUM="https://theindiestone.com/forums/index.php?/forum/35-pz-updates/"
-STEAM_API_KEY="${STEAM_API_KEY:-}"
 STEAM_APP_ID=380870
 
 ###########################################
@@ -55,22 +54,9 @@ function versionCompare(){
 
 ##########################################
 ##                                      ##
-## Try Steam Web API (build IDs)        ##
+## Forum/blog parsing                    ##
 ##                                      ##
 ##########################################
-if [ -n "${STEAM_API_KEY}" ]; then
-  STEAM_API_RESP=$(curl -s "https://api.steampowered.com/ISteamApps/GetAppInfo/v2/?appids=${STEAM_APP_ID}&key=${STEAM_API_KEY}")
-  STEAM_STABLE_BUILD=$(echo "${STEAM_API_RESP}" | jq -r ".appdata[\"${STEAM_APP_ID}\"].depots.branches.public.buildid // empty")
-  STEAM_UNSTABLE_BUILD=$(echo "${STEAM_API_RESP}" | jq -r ".appdata[\"${STEAM_APP_ID}\"].depots.branches.unstable.buildid // empty")
-
-  if [ -n "${STEAM_STABLE_BUILD}" ] && [ -n "${STEAM_UNSTABLE_BUILD}" ]; then
-    echo "LATEST_STABLE_VERSION=${STEAM_STABLE_BUILD}"
-    echo "LATEST_UNSTABLE_VERSION=${STEAM_UNSTABLE_BUILD}"
-    exit 0
-  else
-    echo "Warning: Steam API did not return build IDs, falling back to forum/blog parsing" >&2
-  fi
-fi
 
 ##########################################
 ##                                      ##

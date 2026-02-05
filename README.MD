@@ -17,7 +17,7 @@ Additional tags are published for stable/unstable and versioned builds:
 * `stable-<pz_version>-<repo_version>` / `unstable-<pz_version>-<repo_version>`
 * `latest-unstable`
 
-When Steam Web API is used for version detection, `<pz_version>` will be the Steam build ID for that branch.
+`<pz_version>` is the detected server version from the forum/blog parsing.
 
 > **Note:** If you want to play **Build 42** multiplayer, you must set the `STEAMAPPBRANCH` [environment variable](#environment-variables) to `unstable`.
 
@@ -76,7 +76,7 @@ This Dockerfile converts environment variables to server command arguments, allo
 
 `WORKSHOP_IDS:` Semicolon separated list of Workshop IDs and/or Workshop Collection IDs to install to the server. You can mix individual mod IDs and collection IDs. Any collections will be automatically resolved to their contained mod IDs (including nested collections, with circular references prevented and duplicates removed). Leaving this empty will clear any existing WorkshopItems value. If collection resolution fails, WorkshopItems is left unchanged.
 
-`STEAM_API_KEY:` Optional Steam Web API key used when resolving Workshop collections. Not required for public collections but may be needed for private or rate-limited access.
+`STEAM_API_KEY:` Optional Steam Web API key used only for resolving Workshop collections. Not required for public collections but may be needed for private or rate-limited access.
 
 `SANDBOXVARS_*:` Optional overrides for SandboxVars. Use single underscores as a path separator. Example: `SANDBOXVARS_ZombieLore_Transmission=4` updates `SandboxVars.ZombieLore.Transmission`. To include a literal underscore in a key name, use double underscores (`__`). Values are treated as raw Lua, so strings should be quoted (e.g., `"SomeText"`).
 

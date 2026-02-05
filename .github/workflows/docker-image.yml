@@ -48,8 +48,6 @@ jobs:
         run: |
           chmod +x scripts/get_latest_versions.sh
           scripts/get_latest_versions.sh >> ${GITHUB_ENV}
-        env:
-          STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
 
       - name: Decide which images to build
         run: |
