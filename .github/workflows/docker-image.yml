@@ -8,17 +8,12 @@ on:
     paths:
       - 'scripts/**'
       - 'Dockerfile'
-    paths-ignore:
-      - 'scripts/smoke/**'
-      - '**/*.md'
   pull_request:
     paths:
       - 'scripts/**'
+      - 'smoke/**'
       - 'Dockerfile'
       - '.github/workflows/docker-image.yml'
-    paths-ignore:
-      - 'scripts/smoke/**'
-      - '**/*.md'
   schedule:
     - cron: "0 0 * * *" # daily at midnight UTC
   workflow_dispatch:
@@ -33,7 +28,7 @@ jobs:
 
       - name: Run helper smoke tests
         run: |
-          bash scripts/smoke/run_smoke.sh
+          bash smoke/run_smoke.sh
 
   build:
     if: github.event_name != 'pull_request'
