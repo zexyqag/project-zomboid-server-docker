@@ -7,7 +7,7 @@ The ready to use image is published automatically to GitHub Container Registry (
 
 Example image URL:
 ```
-ghcr.io/zexyqag/project-zomboid-server-docker:latest
+ghcr.io/zexyqag/project-zomboid-server-docker:stable
 ```
 
 Additional tags are published for stable/unstable and versioned builds:
@@ -15,9 +15,16 @@ Additional tags are published for stable/unstable and versioned builds:
 * `stable` / `unstable`
 * `stable-<pz_version>` / `unstable-<pz_version>`
 * `stable-<pz_version>-<repo_version>` / `unstable-<pz_version>-<repo_version>`
-* `latest-unstable`
 
 `<pz_version>` is the detected server version from the forum/blog parsing.
+`<repo_version>` is the first 7 characters of the Git commit SHA.
+
+Tag meanings:
+
+* `stable` points to the newest stable build.
+* `unstable` points to the newest unstable build.
+* `stable-<pz_version>` / `unstable-<pz_version>` track the newest repo build for that PZ version.
+* `stable-<pz_version>-<repo_version>` / `unstable-<pz_version>-<repo_version>` pin an exact repo snapshot.
 
 > **Note:** If you want to play **Build 42** multiplayer, you must set the `STEAMAPPBRANCH` [environment variable](#environment-variables) to `unstable`.
 

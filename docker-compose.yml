@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   ProjectZomboidDedicatedServer:
-    image: ghcr.io/zexyqag/project-zomboid-server-docker:latest
+    image: ghcr.io/zexyqag/project-zomboid-server-docker:stable
     restart: unless-stopped
     build:
       context: .

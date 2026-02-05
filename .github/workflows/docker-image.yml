@@ -49,52 +49,67 @@ jobs:
           chmod +x scripts/get_latest_versions.sh
           scripts/get_latest_versions.sh >> ${GITHUB_ENV}
 
-      - name: Decide which images to build
+      - name: Decide which images to build (push = rebuild both, schedule/manual = build missing)
         run: |
+          BUILD_STABLE=false
+          BUILD_UNSTABLE=false
+
           if [ "${{ github.event_name }}" = "push" ]; then
-            echo "BUILD_STABLE=true" >> ${GITHUB_ENV}
-            echo "BUILD_UNSTABLE=true" >> ${GITHUB_ENV}
-          else
-            BUILD_STABLE=false
-            BUILD_UNSTABLE=false
-
-            if ! docker manifest inspect ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION} >/dev/null 2>&1; then
-              BUILD_STABLE=true
-            fi
-
-            if ! docker manifest inspect ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION} >/dev/null 2>&1; then
-              BUILD_UNSTABLE=true
-            fi
-
-            echo "BUILD_STABLE=${BUILD_STABLE}" >> ${GITHUB_ENV}
-            echo "BUILD_UNSTABLE=${BUILD_UNSTABLE}" >> ${GITHUB_ENV}
+            BUILD_STABLE=true
+            BUILD_UNSTABLE=true
           fi
+
+          if ! docker manifest inspect ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION} >/dev/null 2>&1; then
+            # New stable server version not yet published.
+            BUILD_STABLE=true
+          fi
+
+          if ! docker manifest inspect ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION} >/dev/null 2>&1; then
+            # New unstable server version not yet published.
+            BUILD_UNSTABLE=true
+          fi
+
+          echo "BUILD_STABLE=${BUILD_STABLE}" >> ${GITHUB_ENV}
+          echo "BUILD_UNSTABLE=${BUILD_UNSTABLE}" >> ${GITHUB_ENV}
 
       - name: Build stable Docker image
         if: env.BUILD_STABLE == 'true'
         run: |
-          docker build \
-            -t ghcr.io/$REPO_NAME_LC:latest \
-            -t ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION} \
-            -t ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION}-${REPO_VERSION} \
-            -t ghcr.io/$REPO_NAME_LC:stable \
-            .
+          for attempt in 1 2 3 4 5; do
+            if docker build \
+              -t ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION} \
+              -t ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION}-${REPO_VERSION} \
+              -t ghcr.io/$REPO_NAME_LC:stable \
+              .; then
+              exit 0
+            fi
+            wait_seconds=$((attempt * 15))
+            echo "Docker build failed (attempt ${attempt}); retrying in ${wait_seconds}s..." >&2
+            sleep "${wait_seconds}"
+          done
+          exit 1
 
       - name: Build unstable Docker image
         if: env.BUILD_UNSTABLE == 'true'
         run: |
-          docker build \
-            --build-arg STEAMAPPBRANCH=unstable \
-            -t ghcr.io/$REPO_NAME_LC:latest-unstable \
-            -t ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION} \
-            -t ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION}-${REPO_VERSION} \
-            -t ghcr.io/$REPO_NAME_LC:unstable \
-            .
+          for attempt in 1 2 3 4 5; do
+            if docker build \
+              --build-arg STEAMAPPBRANCH=unstable \
+              -t ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION} \
+              -t ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION}-${REPO_VERSION} \
+              -t ghcr.io/$REPO_NAME_LC:unstable \
+              .; then
+              exit 0
+            fi
+            wait_seconds=$((attempt * 15))
+            echo "Docker build failed (attempt ${attempt}); retrying in ${wait_seconds}s..." >&2
+            sleep "${wait_seconds}"
+          done
+          exit 1
 
       - name: Push stable Docker image to GitHub Container Registry
         if: env.BUILD_STABLE == 'true'
         run: |
-          docker push ghcr.io/$REPO_NAME_LC:latest
           docker push ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION}
           docker push ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION}-${REPO_VERSION}
           docker push ghcr.io/$REPO_NAME_LC:stable
@@ -102,7 +117,6 @@ jobs:
       - name: Push unstable Docker image to GitHub Container Registry
         if: env.BUILD_UNSTABLE == 'true'
         run: |
-          docker push ghcr.io/$REPO_NAME_LC:latest-unstable
           docker push ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION}
           docker push ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION}-${REPO_VERSION}
           docker push ghcr.io/$REPO_NAME_LC:unstable
