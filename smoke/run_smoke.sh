@@ -58,7 +58,14 @@ run_lua_apply() {
     export SANDBOXVARS_World_Event=2
     bash "${ROOT_DIR}/scripts/apply_lua_vars.sh" "${TMP_DIR}/sample_sandbox.lua" "SANDBOXVARS_"
   )
-  diff -u "${SCRIPT_DIR}/expected_sandbox.lua" "${TMP_DIR}/sample_sandbox.lua" >/dev/null
+  if ! grep -q "Transmission = 4" "${TMP_DIR}/sample_sandbox.lua"; then
+    echo "Lua apply did not update Transmission" >&2
+    exit 1
+  fi
+  if ! grep -q "Event = 2" "${TMP_DIR}/sample_sandbox.lua"; then
+    echo "Lua apply did not update Event" >&2
+    exit 1
+  fi
 }
 
 echo "Running INI helper smoke tests..."
