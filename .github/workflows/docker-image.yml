@@ -6,17 +6,37 @@ on:
     branches:
       - main
     paths:
-      - 'scripts/entry.sh'
-      - 'scripts/search_folder.sh'
-      - 'scripts/resolve_workshop_collection.sh'
-      - 'scripts/get_latest_versions.sh'
+      - 'scripts/**'
       - 'Dockerfile'
+    paths-ignore:
+      - 'scripts/smoke/**'
+      - '**/*.md'
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - 'Dockerfile'
+      - '.github/workflows/docker-image.yml'
+    paths-ignore:
+      - 'scripts/smoke/**'
+      - '**/*.md'
   schedule:
     - cron: "0 0 * * *" # daily at midnight UTC
   workflow_dispatch:
 
 jobs:
+  smoke:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run helper smoke tests
+        run: |
+          bash scripts/smoke/run_smoke.sh
+
   build:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -72,51 +92,30 @@ jobs:
           echo "BUILD_STABLE=${BUILD_STABLE}" >> ${GITHUB_ENV}
           echo "BUILD_UNSTABLE=${BUILD_UNSTABLE}" >> ${GITHUB_ENV}
 
-      - name: Build stable Docker image
+      - name: Build and push stable Docker image
         if: env.BUILD_STABLE == 'true'
-        run: |
-          for attempt in 1 2 3 4 5; do
-            if docker build \
-              -t ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION} \
-              -t ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION}-${REPO_VERSION} \
-              -t ghcr.io/$REPO_NAME_LC:stable \
-              .; then
-              exit 0
-            fi
-            wait_seconds=$((attempt * 15))
-            echo "Docker build failed (attempt ${attempt}); retrying in ${wait_seconds}s..." >&2
-            sleep "${wait_seconds}"
-          done
-          exit 1
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }}
+            ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }}-${{ env.REPO_VERSION }}
+            ghcr.io/${{ env.REPO_NAME_LC }}:stable
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Build unstable Docker image
+      - name: Build and push unstable Docker image
         if: env.BUILD_UNSTABLE == 'true'
-        run: |
-          for attempt in 1 2 3 4 5; do
-            if docker build \
-              --build-arg STEAMAPPBRANCH=unstable \
-              -t ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION} \
-              -t ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION}-${REPO_VERSION} \
-              -t ghcr.io/$REPO_NAME_LC:unstable \
-              .; then
-              exit 0
-            fi
-            wait_seconds=$((attempt * 15))
-            echo "Docker build failed (attempt ${attempt}); retrying in ${wait_seconds}s..." >&2
-            sleep "${wait_seconds}"
-          done
-          exit 1
-
-      - name: Push stable Docker image to GitHub Container Registry
-        if: env.BUILD_STABLE == 'true'
-        run: |
-          docker push ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION}
-          docker push ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION}-${REPO_VERSION}
-          docker push ghcr.io/$REPO_NAME_LC:stable
-
-      - name: Push unstable Docker image to GitHub Container Registry
-        if: env.BUILD_UNSTABLE == 'true'
-        run: |
-          docker push ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION}
-          docker push ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION}-${REPO_VERSION}
-          docker push ghcr.io/$REPO_NAME_LC:unstable
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          build-args: |
+            STEAMAPPBRANCH=unstable
+          tags: |
+            ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }}
+            ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }}-${{ env.REPO_VERSION }}
+            ghcr.io/${{ env.REPO_NAME_LC }}:unstable
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

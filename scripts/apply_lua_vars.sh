@@ -7,8 +7,9 @@ set -euo pipefail
 
 LUA_FILE="${1:-}"
 ENV_PREFIX="${2:-SANDBOXVARS_}"
-DRY_RUN_ENV="LUAVARS_DRY_RUN"
-STRICT_ENV="LUAVARS_STRICT"
+DRY_RUN_ENV="SANDBOXVARS_CTRL_DRY_RUN"
+STRICT_ENV="SANDBOXVARS_CTRL_STRICT"
+CASE_SENSITIVE_ENV="SANDBOXVARS_CTRL_CASE_SENSITIVE"
 ESC_UNDERSCORE_PLACEHOLDER="__ESC_UNDERSCORE__"
 
 if [ -z "${LUA_FILE}" ] || [ ! -f "${LUA_FILE}" ]; then
@@ -22,7 +23,7 @@ trap 'rm -f "$MAP_FILE"' EXIT
 
 while IFS='=' read -r name value; do
   case "$name" in
-    ${DRY_RUN_ENV}|${STRICT_ENV})
+    ${DRY_RUN_ENV}|${STRICT_ENV}|${CASE_SENSITIVE_ENV})
       continue
       ;;
     ${ENV_PREFIX}*)
@@ -33,7 +34,7 @@ while IFS='=' read -r name value; do
       key="${key_placeholder//${ESC_UNDERSCORE_PLACEHOLDER}/_}"
       # Build full path under SandboxVars
       full_path="SandboxVars.${key}"
-      printf '%s=%s\n' "${full_path,,}" "$value" >> "$MAP_FILE"
+      printf '%s=%s\n' "${full_path}" "$value" >> "$MAP_FILE"
       ;;
   esac
 done < <(env)
@@ -47,15 +48,18 @@ cp -f "$LUA_FILE" "${LUA_FILE}.bak"
 
 DRY_RUN="${!DRY_RUN_ENV:-}"
 STRICT_MODE="${!STRICT_ENV:-}"
+CASE_SENSITIVE="${!CASE_SENSITIVE_ENV:-}"
 
-awk -v mapfile="$MAP_FILE" -v dry_run="$DRY_RUN" -v strict_mode="$STRICT_MODE" '
+awk -v mapfile="$MAP_FILE" -v dry_run="$DRY_RUN" -v strict_mode="$STRICT_MODE" -v case_sensitive="$CASE_SENSITIVE" '
 BEGIN {
+  case_sensitive_enabled=(case_sensitive ~ /^(1|true|yes|y|on)$/)
   while ((getline line < mapfile) > 0) {
     split(line, a, "=")
     key=a[1]
     val=substr(line, index(line, "=")+1)
-    updates[key]=val
-    seen[key]=0
+    map_key = (case_sensitive_enabled ? key : tolower(key))
+    updates[map_key]=val
+    seen[map_key]=0
   }
   depth=0
 }
@@ -99,13 +103,13 @@ function join_path(k,   i, path) {
     value=m[2]
     comma=m[3]
     path=join_path(key)
-    path_lc=tolower(path)
-    if (path_lc in updates) {
+    path_key = (case_sensitive_enabled ? path : tolower(path))
+    if (path_key in updates) {
       indent=""
       match(line, /^\s*/, ind)
       indent=substr(line, RSTART, RLENGTH)
-      newval=updates[path_lc]
-      seen[path_lc]=1
+      newval=updates[path_key]
+      seen[path_key]=1
       if (dry_run ~ /^(1|true|yes|y|on)$/) {
         printf "DRY_RUN: %s -> %s\n", path, newval > "/dev/stderr"
         print line

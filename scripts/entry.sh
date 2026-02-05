@@ -99,8 +99,23 @@ fi
 # This option is mandatory the first startup or will be asked in console and startup will fail.
 # Once is launched and data is created, then can be removed without problem.
 # Is recommended to remove it, because the server logs the arguments in clear text, so Admin password will be sent to log in every startup.
-if [ -n "${ADMINPASSWORD}" ]; then
-  ARGS="${ARGS} -adminpassword ${ADMINPASSWORD}"
+ADMINPASSWORD_VALUE=""
+if [ -n "${ADMINPASSWORD_FILE}" ]; then
+  if [ -f "${ADMINPASSWORD_FILE}" ]; then
+    ADMINPASSWORD_VALUE=$(<"${ADMINPASSWORD_FILE}")
+  else
+    echo "Warning: ADMINPASSWORD_FILE is set but file not found: ${ADMINPASSWORD_FILE}" >&2
+  fi
+fi
+if [ -z "${ADMINPASSWORD_VALUE}" ] && [ -n "${ADMINPASSWORD}" ]; then
+  ADMINPASSWORD_VALUE="${ADMINPASSWORD}"
+fi
+if [ -n "${ADMINPASSWORD_VALUE}" ]; then
+  if is_true "${ADMINPASSWORD_ONCE}" && [ -f "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini" ]; then
+    echo "*** INFO: ADMINPASSWORD_ONCE enabled and server ini exists; skipping -adminpassword to avoid logging secrets ***"
+  else
+    ARGS="${ARGS} -adminpassword ${ADMINPASSWORD_VALUE}"
+  fi
 fi
 
 # Server password (Doesn't work)
@@ -115,6 +130,17 @@ else
   # If not servername is set, use the default name in the next step
   SERVERNAME="servertest"
 fi
+
+INI_FILE="${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+set_ini_override() {
+  # $1 = key, $2 = value
+  local key="$1"
+  local value="$2"
+  local env_name="INIVARS_${key}"
+  if [ -z "${!env_name+x}" ]; then
+    export "${env_name}=${value}"
+  fi
+}
 
 # If preset is set, then the config file is generated when it doesn't exists or SERVERPRESETREPLACE is set to True.
 if [ -n "${SERVERPRESET}" ]; then
@@ -169,31 +195,31 @@ if [ -n "${STEAMPORT2}" ]; then
 fi
 
 if [ -n "${PASSWORD}" ]; then
-	sed -i "s/^Password=.*/Password=${PASSWORD}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+  set_ini_override "Password" "${PASSWORD}"
 fi
 
 if [ -n "${RCONPASSWORD}" ]; then
-	sed -i "s/^RCONPassword=.*/RCONPassword=${RCONPASSWORD}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+  set_ini_override "RCONPassword" "${RCONPASSWORD}"
 fi
 
 # Shows the server on the in-game browser.
 if is_true "${PUBLIC}"; then
-  sed -i "s/^Public=.*/Public=true/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+  set_ini_override "Public" "true"
 elif [ -n "${PUBLIC}" ]; then
-  sed -i "s/^Public=.*/Public=false/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+  set_ini_override "Public" "false"
 fi
 
 # Set the display name for the server.
 if [ -n "${DISPLAYNAME}" ]; then
-  sed -i "s/^PublicName=.*/PublicName=${DISPLAYNAME}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+  set_ini_override "PublicName" "${DISPLAYNAME}"
 fi
 
 if [ -n "${MOD_IDS}" ]; then
   echo "*** INFO: Found Mods including ${MOD_IDS} ***"
-  sed -i "s/Mods=.*/Mods=${MOD_IDS}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+  set_ini_override "Mods" "${MOD_IDS}"
 else
   echo "*** INFO: MOD_IDS is empty, clearing configuration ***"
-  sed -i 's/Mods=.*$/Mods=/' "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+  set_ini_override "Mods" ""
 fi
 
 
@@ -210,7 +236,7 @@ if [ -n "${WORKSHOP_IDS}" ]; then
       # Join with semicolon for ini
       resolved_ids_str=$(echo "$resolved_ids" | paste -sd ';' -)
       workshop_ids_effective="${resolved_ids_str}"
-      sed -i "s/WorkshopItems=.*/WorkshopItems=${resolved_ids_str}/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+      set_ini_override "WorkshopItems" "${resolved_ids_str}"
       echo "*** INFO: WorkshopItems resolved to: ${resolved_ids_str} ***"
     fi
   else
@@ -219,7 +245,7 @@ if [ -n "${WORKSHOP_IDS}" ]; then
   fi
 else
   echo "*** INFO: WORKSHOP_IDS is empty, clearing configuration ***"
-  sed -i 's/WorkshopItems=.*$/WorkshopItems=/' "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+  set_ini_override "WorkshopItems" ""
 fi
 
 # Optional cleanup of unused workshop content
@@ -232,6 +258,35 @@ if is_true "${CLEAN_WORKSHOP}" && [ -n "${WORKSHOP_IDS}" ] && [ -n "${workshop_i
       echo "*** INFO: CLEAN_WORKSHOP enabled, pruning unused workshop items ***"
     fi
     IFS=';' read -ra KEEP_IDS <<< "${workshop_ids_effective}"
+    keep_total=${#KEEP_IDS[@]}
+
+    if [ -n "${CLEAN_WORKSHOP_KEEP_FILE}" ]; then
+      mkdir -p "$(dirname "${CLEAN_WORKSHOP_KEEP_FILE}")"
+      printf '%s
+' "${KEEP_IDS[@]}" > "${CLEAN_WORKSHOP_KEEP_FILE}"
+      echo "*** INFO: Wrote workshop keep list to ${CLEAN_WORKSHOP_KEEP_FILE} ***"
+    fi
+
+    total_items=0
+    keep_found=0
+    for item_dir in "${workshop_dir}"/*; do
+      [ -d "${item_dir}" ] || continue
+      total_items=$((total_items + 1))
+      item_id=$(basename "${item_dir}")
+      for keep_id in "${KEEP_IDS[@]}"; do
+        if [ "${item_id}" == "${keep_id}" ]; then
+          keep_found=$((keep_found + 1))
+          break
+        fi
+      done
+    done
+    if [ "${total_items}" -gt 0 ] && [ "${keep_found}" -eq 0 ] && ! is_true "${CLEAN_WORKSHOP_ALLOW_REMOVE_ALL}"; then
+      echo "Warning: CLEAN_WORKSHOP would remove all workshop items; set CLEAN_WORKSHOP_ALLOW_REMOVE_ALL=true to allow." >&2
+    else
+    if [ "${keep_found}" -lt "${keep_total}" ]; then
+      echo "Warning: Some keep IDs were not found on disk (${keep_found}/${keep_total})." >&2
+    fi
+    removed_count=0
     for item_dir in "${workshop_dir}"/*; do
       [ -d "${item_dir}" ] || continue
       item_id=$(basename "${item_dir}")
@@ -249,8 +304,11 @@ if is_true "${CLEAN_WORKSHOP}" && [ -n "${WORKSHOP_IDS}" ] && [ -n "${workshop_i
           echo "*** INFO: Removing unused workshop item ${item_id} ***"
           rm -rf "${item_dir}"
         fi
+        removed_count=$((removed_count + 1))
       fi
     done
+    echo "*** INFO: Workshop cleanup summary: kept ${keep_found}/${total_items}, removed ${removed_count} ***"
+    fi
   fi
 fi
 
@@ -261,12 +319,10 @@ if [ -n "${DISABLE_ANTICHEAT}" ]; then
       START=${BASH_REMATCH[1]}
       END=${BASH_REMATCH[2]}
       for ((i=START; i<=END; i++)); do
-        sed -i "s/^AntiCheatProtectionType${i}=.*/AntiCheatProtectionType${i}=false/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
-        grep -q "^AntiCheatProtectionType${i}=" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini" || echo "AntiCheatProtectionType${i}=false" >> "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+        set_ini_override "AntiCheatProtectionType${i}" "false"
       done
     elif [[ "$ITEM" =~ ^[0-9]+$ ]]; then
-      sed -i "s/^AntiCheatProtectionType${ITEM}=.*/AntiCheatProtectionType${ITEM}=false/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
-      grep -q "^AntiCheatProtectionType${ITEM}=" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini" || echo "AntiCheatProtectionType${ITEM}=false" >> "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+      set_ini_override "AntiCheatProtectionType${ITEM}" "false"
     fi
   done
 fi
@@ -278,26 +334,35 @@ if [ -e "${HOMEDIR}/pz-dedicated/steamapps/workshop/content/108600" ]; then
 
   map_list=""
   source /server/scripts/search_folder.sh "${HOMEDIR}/pz-dedicated/steamapps/workshop/content/108600"
-  map_list=$(<"${HOMEDIR}/maps.txt")  
-  rm "${HOMEDIR}/maps.txt"
+  if [ -f "${HOMEDIR}/maps.txt" ]; then
+    map_list=$(<"${HOMEDIR}/maps.txt")
+    rm "${HOMEDIR}/maps.txt"
+  fi
 
   if [ -n "${map_list}" ]; then
     echo "*** INFO: Added maps including ${map_list} ***"
-    sed -i "s/Map=.*/Map=${map_list}Muldraugh, KY/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+    set_ini_override "Map" "${map_list}Muldraugh, KY"
 
     # Checks which added maps have spawnpoints.lua files and adds them to the spawnregions file if they aren't already added
     IFS=";" read -ra strings <<< "$map_list"
     for string in "${strings[@]}"; do
-        if ! grep -q "$string" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_spawnregions.lua"; then
+        if [ -f "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_spawnregions.lua" ] && ! grep -q "$string" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_spawnregions.lua"; then
           if [ -e "${HOMEDIR}/pz-dedicated/media/maps/$string/spawnpoints.lua" ]; then
             result="{ name = \"$string\", file = \"media/maps/$string/spawnpoints.lua\" },"
             sed -i "/function SpawnRegions()/,/return {/ {    /return {/ a\
             \\\t\t$result
             }" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_spawnregions.lua"
           fi
+        elif [ ! -f "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_spawnregions.lua" ]; then
+          echo "Warning: spawnregions file not found, skipping spawnpoints update" >&2
         fi
     done
   fi 
+fi
+
+# Apply INI overrides from environment
+if [ -f "${INI_FILE}" ] && [ -x /server/scripts/apply_ini_vars.sh ]; then
+  /server/scripts/apply_ini_vars.sh "${INI_FILE}" "INIVARS_"
 fi
 
 # Fix to a bug in start-server.sh that causes to no preload a library:
@@ -305,7 +370,9 @@ fi
 export LD_LIBRARY_PATH="${STEAMAPPDIR}/jre64/lib:${LD_LIBRARY_PATH}"
 
 ## Fix the permissions in the data and workshop folders
-chown -R 1000:1000 /home/steam/pz-dedicated/steamapps/workshop /home/steam/Zomboid
+STEAM_UID=$(id -u steam 2>/dev/null || echo 1000)
+STEAM_GID=$(id -g steam 2>/dev/null || echo 1000)
+chown -R "${STEAM_UID}:${STEAM_GID}" /home/steam/pz-dedicated/steamapps/workshop /home/steam/Zomboid
 # When binding a host folder with Docker to the container, the resulting folder has these permissions "d---" (i.e. NO `rwx`) 
 # which will cause runtime issues after launching the server.
 # Fix it the adding back `rwx` permissions for the file owner (steam user)

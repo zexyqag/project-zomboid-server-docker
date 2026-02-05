@@ -4,7 +4,14 @@ set -euo pipefail
 
 PZ_URL_WEB="https://projectzomboid.com/blog/"
 PZ_URL_FORUM="https://theindiestone.com/forums/index.php?/forum/35-pz-updates/"
-STEAM_APP_ID=380870
+USER_AGENT="pz-server-version-check/1.0"
+CACHE_FILE="${PZ_VERSION_CACHE_FILE:-/tmp/pz_versions.env}"
+
+fetch_url() {
+  local url="$1"
+  curl -fsSL --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 20 \
+    -H "User-Agent: ${USER_AGENT}" "${url}" 2>/dev/null || true
+}
 
 ###########################################
 ##
@@ -66,6 +73,7 @@ function versionCompare(){
 STABLE_TITLES="Released"
 UNSTABLE_TITLES="BETA|HOTFIX|UNSTABLE"
 FORUM_DATA=`curl -s "${PZ_URL_FORUM}"`
+FORUM_DATA=$(fetch_url "${PZ_URL_FORUM}")
 
 LATEST_FORUM_STABLE_VERSIONS=$(echo "${FORUM_DATA}" | \
   grep -oPi "[0-9]{2,3}\.[0-9]{1,2}(\.[0-9]{1,2})? ($STABLE_TITLES)" | \
@@ -98,30 +106,61 @@ done
 ################################################
 STABLE_TEXT="Stable Build"
 UNSTABLE_TEXT="IWBUMS Beta"
-WEBPAGE_DATA=`curl "${PZ_URL_WEB}" 2>/dev/null`
-LATEST_WEBPAGE_STABLE_VERSION=`echo "${WEBPAGE_DATA}" | grep -i "${STABLE_TEXT}" | head -n1 | cut -d ":" -f2 | awk '{print $1}'`
-LATEST_WEBPAGE_UNSTABLE_VERSION=`echo "${WEBPAGE_DATA}" | grep -i "${UNSTABLE_TEXT}" | head -n1 | cut -d ":" -f2 | awk '{print $1}'`
+WEBPAGE_DATA=$(fetch_url "${PZ_URL_WEB}")
+LATEST_WEBPAGE_STABLE_VERSION=$(echo "${WEBPAGE_DATA}" | grep -oiE "${STABLE_TEXT}[^0-9]*[0-9]{2,3}\.[0-9]{1,2}(\.[0-9]{1,2})?" | head -n1 | grep -oE "[0-9]{2,3}\.[0-9]{1,2}(\.[0-9]{1,2})?")
+LATEST_WEBPAGE_UNSTABLE_VERSION=$(echo "${WEBPAGE_DATA}" | grep -oiE "${UNSTABLE_TEXT}[^0-9]*[0-9]{2,3}\.[0-9]{1,2}(\.[0-9]{1,2})?" | head -n1 | grep -oE "[0-9]{2,3}\.[0-9]{1,2}(\.[0-9]{1,2})?")
 
 LATEST_STABLE_VERSION=""
-LATEST_STABLE_VERSION_COMPARE=$(versionCompare ${LATEST_FORUM_STABLE_VERSION} ${LATEST_WEBPAGE_STABLE_VERSION})
-if [ $LATEST_STABLE_VERSION_COMPARE == -1 ]; then
-  LATEST_STABLE_VERSION=$LATEST_WEBPAGE_STABLE_VERSION
-else
+if [ -n "${LATEST_FORUM_STABLE_VERSION}" ] && [ -n "${LATEST_WEBPAGE_STABLE_VERSION}" ]; then
+  LATEST_STABLE_VERSION_COMPARE=$(versionCompare ${LATEST_FORUM_STABLE_VERSION} ${LATEST_WEBPAGE_STABLE_VERSION})
+  if [ $LATEST_STABLE_VERSION_COMPARE == -1 ]; then
+    LATEST_STABLE_VERSION=$LATEST_WEBPAGE_STABLE_VERSION
+  else
+    LATEST_STABLE_VERSION=$LATEST_FORUM_STABLE_VERSION
+  fi
+elif [ -n "${LATEST_FORUM_STABLE_VERSION}" ]; then
   LATEST_STABLE_VERSION=$LATEST_FORUM_STABLE_VERSION
+elif [ -n "${LATEST_WEBPAGE_STABLE_VERSION}" ]; then
+  LATEST_STABLE_VERSION=$LATEST_WEBPAGE_STABLE_VERSION
 fi
 
 LATEST_UNSTABLE_VERSION=""
-LATEST_UNSTABLE_VERSION_COMPARE=$(versionCompare ${LATEST_FORUM_UNSTABLE_VERSION} ${LATEST_WEBPAGE_UNSTABLE_VERSION})
-if [ $LATEST_UNSTABLE_VERSION_COMPARE == -1 ]; then
-  LATEST_UNSTABLE_VERSION=$LATEST_WEBPAGE_UNSTABLE_VERSION
-else
+if [ -n "${LATEST_FORUM_UNSTABLE_VERSION}" ] && [ -n "${LATEST_WEBPAGE_UNSTABLE_VERSION}" ]; then
+  LATEST_UNSTABLE_VERSION_COMPARE=$(versionCompare ${LATEST_FORUM_UNSTABLE_VERSION} ${LATEST_WEBPAGE_UNSTABLE_VERSION})
+  if [ $LATEST_UNSTABLE_VERSION_COMPARE == -1 ]; then
+    LATEST_UNSTABLE_VERSION=$LATEST_WEBPAGE_UNSTABLE_VERSION
+  else
+    LATEST_UNSTABLE_VERSION=$LATEST_FORUM_UNSTABLE_VERSION
+  fi
+elif [ -n "${LATEST_FORUM_UNSTABLE_VERSION}" ]; then
   LATEST_UNSTABLE_VERSION=$LATEST_FORUM_UNSTABLE_VERSION
+elif [ -n "${LATEST_WEBPAGE_UNSTABLE_VERSION}" ]; then
+  LATEST_UNSTABLE_VERSION=$LATEST_WEBPAGE_UNSTABLE_VERSION
 fi
 
-if [ -z "$LATEST_STABLE_VERSION" ] || [ -z "$LATEST_UNSTABLE_VERSION" ]; then
+if [ -z "${LATEST_STABLE_VERSION}" ] || [ -z "${LATEST_UNSTABLE_VERSION}" ]; then
   echo "Error: failed to detect latest Project Zomboid versions" >&2
-  exit 2
+  echo "Stable forum: ${LATEST_FORUM_STABLE_VERSION:-<none>}, stable web: ${LATEST_WEBPAGE_STABLE_VERSION:-<none>}" >&2
+  echo "Unstable forum: ${LATEST_FORUM_UNSTABLE_VERSION:-<none>}, unstable web: ${LATEST_WEBPAGE_UNSTABLE_VERSION:-<none>}" >&2
+
+  if [ -f "${CACHE_FILE}" ]; then
+    # shellcheck disable=SC1090
+    source "${CACHE_FILE}"
+    if [ -n "${LATEST_STABLE_VERSION:-}" ] && [ -n "${LATEST_UNSTABLE_VERSION:-}" ]; then
+      echo "Warning: using cached Project Zomboid versions from ${CACHE_FILE}" >&2
+    else
+      exit 2
+    fi
+  else
+    exit 2
+  fi
 fi
+
+mkdir -p "$(dirname "${CACHE_FILE}")"
+{
+  echo "LATEST_STABLE_VERSION=${LATEST_STABLE_VERSION}"
+  echo "LATEST_UNSTABLE_VERSION=${LATEST_UNSTABLE_VERSION}"
+} > "${CACHE_FILE}"
 
 echo "LATEST_STABLE_VERSION=${LATEST_STABLE_VERSION}"
 echo "LATEST_UNSTABLE_VERSION=${LATEST_UNSTABLE_VERSION}"

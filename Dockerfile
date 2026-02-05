@@ -49,6 +49,10 @@ RUN chmod 550 /server/scripts/resolve_workshop_collection.sh
 COPY --chown=${USER}:${USER} scripts/apply_lua_vars.sh /server/scripts/apply_lua_vars.sh
 RUN chmod 550 /server/scripts/apply_lua_vars.sh
 
+# Copy INI vars helper
+COPY --chown=${USER}:${USER} scripts/apply_ini_vars.sh /server/scripts/apply_ini_vars.sh
+RUN chmod 550 /server/scripts/apply_ini_vars.sh
+
 # Create required folders to keep their permissions on mount
 RUN mkdir -p "${HOMEDIR}/Zomboid"
 
