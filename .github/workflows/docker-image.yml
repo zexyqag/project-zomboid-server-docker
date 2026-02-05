@@ -111,32 +111,73 @@ jobs:
       - name: Build and push stable Docker image (retry)
         if: env.BUILD_STABLE == 'true'
         uses: nick-invision/retry@v3
+        env:
+          # Pass Steam credentials if available
+          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+          STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
         with:
           timeout_minutes: 60
           max_attempts: 5
           command: |
-            docker buildx build \
-              --cache-from type=gha \
-              --cache-to type=gha,mode=max \
-              --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }} \
-              --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }}-${{ env.REPO_VERSION }} \
-              --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable \
-              --push \
-              .
+            # If STEAM_USERNAME is set, use it for build-args, else fallback to anonymous
+            if [ -n "$STEAM_USERNAME" ] && [ -n "$STEAM_PASSWORD" ]; then
+              echo "Using Steam credentials for build"
+              docker buildx build \
+                --build-arg STEAM_USERNAME="$STEAM_USERNAME" \
+                --build-arg STEAM_PASSWORD="$STEAM_PASSWORD" \
+                --cache-from type=gha \
+                --cache-to type=gha,mode=max \
+                --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }} \
+                --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }}-${{ env.REPO_VERSION }} \
+                --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable \
+                --push \
+                .
+            else
+              echo "No Steam credentials, using anonymous login"
+              docker buildx build \
+                --cache-from type=gha \
+                --cache-to type=gha,mode=max \
+                --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }} \
+                --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }}-${{ env.REPO_VERSION }} \
+                --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable \
+                --push \
+                .
+            fi
 
       - name: Build and push unstable Docker image (retry)
         if: env.BUILD_UNSTABLE == 'true'
         uses: nick-invision/retry@v3
+        env:
+          # Pass Steam credentials if available
+          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+          STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
         with:
           timeout_minutes: 60
           max_attempts: 5
           command: |
-            docker buildx build \
-              --build-arg STEAMAPPBRANCH=unstable \
-              --cache-from type=gha \
-              --cache-to type=gha,mode=max \
-              --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }} \
-              --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }}-${{ env.REPO_VERSION }} \
-              --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable \
-              --push \
-              .
+            # If STEAM_USERNAME is set, use it for build-args, else fallback to anonymous
+            if [ -n "$STEAM_USERNAME" ] && [ -n "$STEAM_PASSWORD" ]; then
+              echo "Using Steam credentials for build"
+              docker buildx build \
+                --build-arg STEAMAPPBRANCH=unstable \
+                --build-arg STEAM_USERNAME="$STEAM_USERNAME" \
+                --build-arg STEAM_PASSWORD="$STEAM_PASSWORD" \
+                --cache-from type=gha \
+                --cache-to type=gha,mode=max \
+                --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }} \
+                --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }}-${{ env.REPO_VERSION }} \
+                --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable \
+                --push \
+                .
+            else
+              echo "No Steam credentials, using anonymous login"
+              docker buildx build \
+                --build-arg STEAMAPPBRANCH=unstable \
+                --cache-from type=gha \
+                --cache-to type=gha,mode=max \
+                --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }} \
+                --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }}-${{ env.REPO_VERSION }} \
+                --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable \
+                --push \
+                .
+            fi
