@@ -20,7 +20,7 @@ on:
 
 jobs:
   smoke:
-    if: github.event_name == 'pull_request'
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -28,6 +28,7 @@ jobs:
 
       - name: Run helper smoke tests
         run: |
+          echo "Running smoke tests for script changes"
           bash smoke/run_smoke.sh
 
   build:
@@ -87,30 +88,35 @@ jobs:
           echo "BUILD_STABLE=${BUILD_STABLE}" >> ${GITHUB_ENV}
           echo "BUILD_UNSTABLE=${BUILD_UNSTABLE}" >> ${GITHUB_ENV}
 
-      - name: Build and push stable Docker image
+      - name: Build and push stable Docker image (retry)
         if: env.BUILD_STABLE == 'true'
-        uses: docker/build-push-action@v5
+        uses: nick-invision/retry@v3
         with:
-          context: .
-          push: true
-          tags: |
-            ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }}
-            ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }}-${{ env.REPO_VERSION }}
-            ghcr.io/${{ env.REPO_NAME_LC }}:stable
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          timeout_minutes: 60
+          max_attempts: 5
+          command: |
+            docker buildx build \
+              --cache-from type=gha \
+              --cache-to type=gha,mode=max \
+              --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }} \
+              --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }}-${{ env.REPO_VERSION }} \
+              --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable \
+              --push \
+              .
 
-      - name: Build and push unstable Docker image
+      - name: Build and push unstable Docker image (retry)
         if: env.BUILD_UNSTABLE == 'true'
-        uses: docker/build-push-action@v5
+        uses: nick-invision/retry@v3
         with:
-          context: .
-          push: true
-          build-args: |
-            STEAMAPPBRANCH=unstable
-          tags: |
-            ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }}
-            ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }}-${{ env.REPO_VERSION }}
-            ghcr.io/${{ env.REPO_NAME_LC }}:unstable
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          timeout_minutes: 60
+          max_attempts: 5
+          command: |
+            docker buildx build \
+              --build-arg STEAMAPPBRANCH=unstable \
+              --cache-from type=gha \
+              --cache-to type=gha,mode=max \
+              --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }} \
+              --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }}-${{ env.REPO_VERSION }} \
+              --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable \
+              --push \
+              .
