@@ -3,7 +3,7 @@
 This Dockerfile downloads the Project Zomboid dedicated server using SteamCMD. Will allow you to deploy with ease a server in Kubernetes, Docker...
 
 
-The ready to use image is published automatically to GitHub Container Registry (GHCR) when a new Project Zomboid server version is detected or when key scripts are updated.
+The ready to use image is published automatically to GitHub Container Registry (GHCR).
 
 Example image URL:
 ```
@@ -16,7 +16,7 @@ Additional tags are published for stable/unstable and versioned builds:
 * `stable-<pz_version>` / `unstable-<pz_version>`
 * `stable-<pz_version>-<repo_version>` / `unstable-<pz_version>-<repo_version>`
 
-`<pz_version>` is the detected server version from the forum/blog parsing.
+`<pz_version>` is the Project Zomboid server version.
 `<repo_version>` is the first 7 characters of the Git commit SHA.
 
 Tag meanings:
@@ -26,13 +26,44 @@ Tag meanings:
 * `stable-<pz_version>` / `unstable-<pz_version>` track the newest repo build for that PZ version.
 * `stable-<pz_version>-<repo_version>` / `unstable-<pz_version>-<repo_version>` pin an exact repo snapshot.
 
-> **Note:** If you want to play **Build 42** multiplayer, you must set the `STEAMAPPBRANCH` [environment variable](#environment-variables) to `unstable`.
+If you want **Build 42** multiplayer, use an `unstable` image tag. If you build the image yourself, set `STEAMAPPBRANCH=unstable` at build time.
 
 **WARNING:** Running the image on Windows using WSL2 in Docker Desktop will make the server startup times significantly slower. This is fine unless you are running alot of mods in which case server startup times may vary from 15 - 40 minutes. The best way to solve this problem is to run your container on a Linux based system or in a Linux VM.
 
+## Using prebuilt images
+
+Pick the tag you want (`stable` or `unstable`) and run with docker-compose.
+
+Example (stable):
+
+```yaml
+services:
+	ProjectZomboidDedicatedServer:
+		image: ghcr.io/zexyqag/project-zomboid-server-docker:stable
+		env_file:
+			- .env
+		ports:
+			- "16261:16261/udp"
+			- "16262:16262/udp"
+			- "27015:27015/tcp"
+		volumes:
+			- ./data:/home/steam/Zomboid
+			- ./workshop-mods:/home/steam/pz-dedicated/steamapps/workshop
+```
+
+If you want unstable, change the image tag to `unstable`.
+
+## Building your own image
+
+If you want to build locally, set `STEAMAPPBRANCH` at build time (see Build time environment variables).
+
+Use .env.template as a starting point for your `.env` file.
+
 ## Run time environment variables
 
-This Dockerfile converts environment variables to server command arguments, allowing flexible configuration. Boolean environment variables are handled consistently (accepting `1`, `true`, `yes`, `y`, `on` and `0`, `false`, `no`, `n`, `off`). The image supports the following environment variables:
+Boolean options accept: `1`, `true`, `yes`, `y`, `on` and `0`, `false`, `no`, `n`, `off`.
+
+The image supports the following environment variables:
 `ADMINUSERNAME:` Sets the administrator username, otherwise `admin` will be used.
 
 `ADMINPASSWORD:` Sets or changes the admin password. Is mandatory at first startup or will fail. I recommend to remove it once the server is started because the server logs every argument in clear text (if doesn't cares, you can leave it).
@@ -107,11 +138,11 @@ This is due to the server creating its config and data on the first start, downl
 
 ## Build time environment variables
 
-This env variables will be used at build time to generate the image.
+Only used when you build the image yourself. Ignore these when using a prebuilt tag.
 
 `STEAMAPPBRANCH:` Sets the Project Zomboid branch to download (e.g., `unstable`). If not set, the stable (public) branch will be downloaded. You can see a list of branches in the [SteamDB website](https://steamdb.info/app/108600/depots/).
 
-This will work only when using the `docker compose` command. If you are building the image using the `docker build` command, then must be passed as argument, for example:
+If you are building the image using the `docker build` command, pass it as a build arg, for example:
 
 ```bash
 docker build --compress --no-cache --build-arg STEAMAPPBRANCH=unstable .
@@ -178,18 +209,3 @@ To setup the server you can use the docker-compose program:
 * Copy the .env.template to .env and edit it with the settings you want. The only mandatory variable is ADMINPASSWORD and just the first time the server is executed (once is started at least once, it can be removed). The other variables are optional.
 * Run the `docker-compose up -d` command to start the server.
 
-## Build & Publish Automation
-
-This repository uses GitHub Actions to automatically build and publish the Docker image to GHCR:
-
-- The workflow checks for new Project Zomboid server versions and only builds/pushes if an update is detected.
-- It also builds/pushes when `scripts/entry.sh` or `scripts/search_folder.sh` are changed.
-## Scripts folder
-
-In the scripts folder there are several scripts:
-
-* entry.sh: The script used in the image to start the server.
-* search_folder.sh: Script to search through mod folders for any maps.
-* resolve_workshop_collection.sh: Resolves Workshop collection IDs into individual mod IDs.
-* apply_lua_vars.sh: Applies SANDBOXVARS_* environment overrides to the Lua sandbox file.
-* get_latest_versions.sh: Detects latest stable/unstable versions (Steam API preferred, forum/blog fallback) for the CI workflow.
