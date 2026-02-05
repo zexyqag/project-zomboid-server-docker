@@ -32,10 +32,15 @@ RUN sed -i 's/^# *\(es_ES.UTF-8\)/\1/' /etc/locale.gen \
 RUN set -x \
   && mkdir -p "${STEAMAPPDIR}" \
   && chown -R "${USER}:${USER}" "${STEAMAPPDIR}" \
-  && bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" \
-  +login anonymous \
-  +app_update "${STEAMAPPID}" -beta "${STEAMAPPBRANCH}" validate \
-  +quit
+  && for attempt in 1 2 3; do \
+    bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" \
+      +login anonymous \
+      +app_update "${STEAMAPPID}" -beta "${STEAMAPPBRANCH}" validate \
+      +quit \
+      && break; \
+    echo "SteamCMD update failed (attempt ${attempt}); retrying in 10s..." >&2; \
+    sleep 10; \
+  done
 
 # Copy the entry point file
 COPY --chown=${USER}:${USER} scripts/entry.sh /server/scripts/entry.sh
