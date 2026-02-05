@@ -66,80 +66,29 @@ Boolean options accept: `1`, `true`, `yes`, `y`, `on` and `0`, `false`, `no`, `n
 The image supports the following environment variables:
 `ADMINUSERNAME:` Sets the administrator username, otherwise `admin` will be used.
 
-`ADMINPASSWORD:` Sets or changes the admin password. Is mandatory at first startup or will fail. I recommend to remove it once the server is started because the server logs every argument in clear text (if you don't care, you can leave it).
 
-`ADMINPASSWORD_FILE:` Path to a file containing the admin password. If set and the file exists, it takes precedence over `ADMINPASSWORD`.
+`ADMINPASSWORD:` Sets or changes the admin password. This is mandatory at first startup or the server will fail to start. After the first setup, the password is updated directly in the INI file if changed, and is not passed as a command-line argument again. This minimizes the risk of logging the password in clear text. You may remove this variable after the initial setup if you wish.
 
-`ADMINPASSWORD_ONCE:` If `true`, only passes `-adminpassword` when the server ini does not exist yet. This avoids logging the admin password on every startup.
+`ADMINPASSWORD_FILE:` Path to a file containing the admin password. If set and the file exists, it takes precedence over `ADMINPASSWORD`. Same safe handling applies as above.
 
-`PASSWORD:` Sets or changes server password. Is optional.
 
-`RCONPASSWORD:` Sets or changes RCON  password. Must be secure.
+`PASSWORD:` Sets or changes the server password. Is optional. After the first setup, the password is updated directly in the INI file if changed, and is not passed as a command-line argument again.
 
-`PUBLIC:` Shows the server on the in-game browser if `true`, Hides it if `false`. Keeps the setting in the setting file if unset (`false` at first start). 
+`PASSWORD_FILE:` Path to a file containing the server password. If set and the file exists, it takes precedence over `PASSWORD`.
 
-`DISPLAYNAME:` Sets or changes the servers name in the server browser. Keeps the setting in the setting file if unset.  
+`RCONPASSWORD:` Sets or changes the RCON password. Must be secure. After the first setup, the password is updated directly in the INI file if changed, and is not passed as a command-line argument again.
 
-`CACHEDIR:` Set the folder where the data will be stored. By default the server stores the data in the Zomboid folder in home directory (/home/steam/Zomboid). It is recommended to store this data into a persistent volume to keep the server state.
+`RCONPASSWORD_FILE:` Path to a file containing the RCON password. If set and the file exists, it takes precedence over `RCONPASSWORD`.
 
-`DEBUG:` Enable the debug mode in server
 
-`FORCEUPDATE:` Force a server update on every start. This process can be slow if the image is old.
 
-`FORCESTEAMCLIENTSOUPDATE:` Forcibly update the steamclient.so libraries in the pz-dedicated directory before starting the server. May help with Workshop item downloads. Do not set if everything works fine.
+**Server configuration:**
 
-`IP:` Set the interface IP where the server will listen. By default all the interfaces.
+- Set all server INI options using `INIVARS_*` environment variables. See below for examples.
+- For admin, server, and RCON passwords, use only `ADMINPASSWORD`, `ADMINPASSWORD_FILE`, `PASSWORD`, `PASSWORD_FILE`, `RCONPASSWORD`, or `RCONPASSWORD_FILE`.
 
-`MIN_MEMORY:` Initial memory allocation for the JVM (e.g., 2048m).
 
-`MAX_MEMORY:` Maximum memory limit for the JVM (e.g., 4096m).
-
-`MEMORY:` Amount of memory to use in the server JVM (e.g., 8096m). This variable is used as a fallback for both minimum and maximum memory if `MIN_MEMORY` and `MAX_MEMORY` are not defined.
-
-`MODFOLDERS`: Mod folders to use to load the game mods. Allowed options are workshop, steam, and mods. Options must be separated by comma, for example: workshop,steam,mods
-
-`NOSTEAM:` Starts the server in NoSteam mode, allowing to non steam users to connect.
-
-`PORT:` Set the server port. By default 16261
-
-`SERVERNAME:` Set the server name, which allows you to have multiple server versions. Changing the name will create a new server data, so current progress will not be available. Also will not be lost, just reverting the server name change will load it again. **NOTE: Don't use spaces or special characters or admin user will fail**
-
-`SERVERPRESET:` Set the new servers default preset. If not set, the default is apocalypse. Allowed options are Apocalypse, Beginner, Builder, FirstWeek, SixMonthsLater, Survival and Survivor.
-
-`SERVERPRESETREPLACE:` Replace the server preset by the one set by the SERVERPRESET variable. By default false to avoid replacing custom configurations once the server has started.
-
-`SOFTRESET:` Performs a soft reset in the server. More info in the Soft Reset section.
-
-`STEAMPORT1 & STEAMPORT2:` Sets the two additional ports required for steam to work. I guess that those ports are UDP, but it can be also TCP.
-
-`STEAMVAC:` Enables or disables SteamVac protection in server
-
-`DISABLE_ANTICHEAT:` Comma-separated list or range of anti-cheat protection types to disable (e.g. `1,2,3-5`).
-
-`WORKSHOP_IDS:` Semicolon separated list of Workshop IDs and/or Workshop Collection IDs to install to the server. You can mix individual mod IDs and collection IDs. Any collections will be automatically resolved to their contained mod IDs (including nested collections, with circular references prevented and duplicates removed). Leaving this empty will clear any existing WorkshopItems value. If collection resolution fails, WorkshopItems is left unchanged.
-
-`STEAM_API_KEY:` Optional Steam Web API key used only for resolving Workshop collections. Not required for public collections but may be needed for private or rate-limited access.
-
-`SANDBOXVARS_*:` Optional overrides for SandboxVars. Use single underscores as a path separator. Example: `SANDBOXVARS_ZombieLore_Transmission=4` updates `SandboxVars.ZombieLore.Transmission`. To include a literal underscore in a key name, use double underscores (`__`). Values are treated as raw Lua, so strings should be quoted (e.g., `"SomeText"`).
-
-`SANDBOXVARS_CTRL_DRY_RUN:` If true, logs the changes that would be applied without modifying the file.
-
-`SANDBOXVARS_CTRL_STRICT:` If true, exits with an error when an env var does not match any key in the SandboxVars file.
-
-`SANDBOXVARS_CTRL_CASE_SENSITIVE:` If true, matches SandboxVars keys case-sensitively. Default is case-insensitive.
-
-Example Lua overrides:
-
-```bash
-# Use single underscores as path separators
-SANDBOXVARS_ZombieLore_Transmission=4
-SANDBOXVARS_ZombieLore_Mortality=3
-
-# Use double underscores to include a literal underscore in a key
-SANDBOXVARS_World__Event=2
-```
-
-`INIVARS_*:` Optional overrides for the server ini file (servertest.ini). Use `INIVARS_Key=Value` for flat keys. For sectioned ini files, use `INIVARS_Section__Key=Value` to target `[Section]` keys (double underscore separates section and key).
+`INIVARS_*:` Optional overrides for the server ini file (servertest.ini). Use `INIVARS_Key=Value` for flat keys. For sectioned ini files, use `INIVARS_Section__Key=Value` to target `[Section]` keys (double underscore separates section and key). **Note:** Direct use of `INIVARS_Password` and `INIVARS_RCONPassword` is blocked for security reasons. Use the dedicated environment variables (`PASSWORD`, `PASSWORD_FILE`, `RCONPASSWORD`, `RCONPASSWORD_FILE`) for these keys.
 
 `INIVARS_CTRL_DRY_RUN:` If true, logs the changes that would be applied without modifying the ini file.
 
@@ -155,6 +104,9 @@ INIVARS_PublicName="My Server"
 # Sectioned ini keys (if your ini uses [Section] headers)
 INIVARS_ServerOptions__Public=true
 INIVARS_ServerOptions__PublicName="My Server"
+
+# Password and RCONPassword must use the dedicated variables:
+# PASSWORD, PASSWORD_FILE, RCONPASSWORD, RCONPASSWORD_FILE
 ```
 
 `CLEAN_WORKSHOP:` If true, removes workshop items on disk that are not listed in `WORKSHOP_IDS` (after collection resolution). This only runs when `WORKSHOP_IDS` is set and collection resolution succeeds to avoid wiping everything by accident.

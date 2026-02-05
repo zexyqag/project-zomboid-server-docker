@@ -1,3 +1,40 @@
+# Generic function to safely update sensitive INI keys
+safe_update_ini_key() {
+  # $1 = INI file path
+  # $2 = INI key (e.g., Password, RCONPassword)
+  # $3 = value variable name (env var or file)
+  # $4 = optional: file variable name (e.g., PASSWORD_FILE)
+  local ini_file="$1"
+  local key="$2"
+  local value_var="$3"
+  local file_var="$4"
+  local value=""
+
+  # Prefer file if provided and exists
+  if [ -n "$file_var" ]; then
+    local file_path="${!file_var}"
+    if [ -n "$file_path" ] && [ -f "$file_path" ]; then
+      value=$(<"$file_path")
+    fi
+  fi
+  # Fallback to env var if value still empty
+  if [ -z "$value" ] && [ -n "${!value_var}" ]; then
+    value="${!value_var}"
+  fi
+
+  if [ -n "$value" ] && [ -f "$ini_file" ]; then
+    local current_val
+    current_val=$(awk -F '=' -v k="$key" '$1 ~ "^"k"[ \t]*$" {gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2; exit}' "$ini_file")
+    if [ "$current_val" != "$value" ]; then
+      echo "*** INFO: $key has changed, updating INI file directly ***"
+      export INIVARS_${key}="$value"
+    fi
+  fi
+}
+
+# Use generic function for PASSWORD and RCONPASSWORD
+safe_update_ini_key "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini" "Password" "PASSWORD" "PASSWORD_FILE"
+safe_update_ini_key "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini" "RCONPassword" "RCONPASSWORD" "RCONPASSWORD_FILE"
 #!/bin/bash
 is_true() {
   # $1 = value to check
@@ -90,15 +127,12 @@ if is_true "${DEBUG}"; then
   ARGS="${ARGS} -debug"
 fi
 
-# Option to set the admin username. Current admins will not be changed.
 if [ -n "${ADMINUSERNAME}" ]; then
   ARGS="${ARGS} -adminusername ${ADMINUSERNAME}"
 fi
 
+
 # Option to bypasses the enter-a-password prompt when creating a server.
-# This option is mandatory the first startup or will be asked in console and startup will fail.
-# Once is launched and data is created, then can be removed without problem.
-# Is recommended to remove it, because the server logs the arguments in clear text, so Admin password will be sent to log in every startup.
 ADMINPASSWORD_VALUE=""
 if [ -n "${ADMINPASSWORD_FILE}" ]; then
   if [ -f "${ADMINPASSWORD_FILE}" ]; then
@@ -110,36 +144,61 @@ fi
 if [ -z "${ADMINPASSWORD_VALUE}" ] && [ -n "${ADMINPASSWORD}" ]; then
   ADMINPASSWORD_VALUE="${ADMINPASSWORD}"
 fi
+
+# Only set admin password on first setup, otherwise update INI directly if changed
 if [ -n "${ADMINPASSWORD_VALUE}" ]; then
-  if is_true "${ADMINPASSWORD_ONCE}" && [ -f "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini" ]; then
-    echo "*** INFO: ADMINPASSWORD_ONCE enabled and server ini exists; skipping -adminpassword to avoid logging secrets ***"
-  else
+  if [ ! -f "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini" ]; then
+    # First setup: pass as argument
     ARGS="${ARGS} -adminpassword ${ADMINPASSWORD_VALUE}"
+    echo "*** INFO: Setting admin password via -adminpassword (first setup) ***"
+  else
+    # Check if password in INI matches
+    CURRENT_ADMINPASSWORD=$(awk -F '=' '/^Password[ \t]*=/ {gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2; exit}' "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini")
+    if [ "${CURRENT_ADMINPASSWORD}" != "${ADMINPASSWORD_VALUE}" ]; then
+      echo "*** INFO: Admin password has changed, updating INI file directly ***"
+      export INIVARS_Password="${ADMINPASSWORD_VALUE}"
+    fi
   fi
 fi
-
-# Server password (Doesn't work)
-#if [ -n "${PASSWORD}" ]; then
-#  ARGS="${ARGS} -password ${PASSWORD}"
-#fi
 
 # You can choose a different servername by using this option when starting the server.
 if [ -n "${SERVERNAME}" ]; then
   ARGS="${ARGS} -servername \"${SERVERNAME}\""
 else
-  # If not servername is set, use the default name in the next step
   SERVERNAME="servertest"
 fi
 
 INI_FILE="${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+
+
 set_ini_override() {
   # $1 = key, $2 = value
   local key="$1"
   local value="$2"
   local env_name="INIVARS_${key}"
-  if [ -z "${!env_name+x}" ]; then
-    export "${env_name}=${value}"
-  fi
+  # List of keys managed by extra logic
+  case "$key" in
+    WorkshopItems|Mods|Map|AntiCheatProtectionType*|Password|RCONPassword)
+      if [ -n "${!env_name+x}" ]; then
+        case "$key" in
+          Password)
+            msg="Use PASSWORD or PASSWORD_FILE environment variables instead."
+            ;;
+          RCONPassword)
+            msg="Use RCONPASSWORD or RCONPASSWORD_FILE environment variables instead."
+            ;;
+          *)
+            msg="This key is managed by entry.sh logic."
+            ;;
+        esac
+        echo "ERROR: Do not set INIVARS_${key}. $msg Remove INIVARS_${key} from your environment to avoid breaking server setup." >&2
+        exit 10
+      fi
+      ;;
+    *)
+      export "${env_name}=${value}"
+      ;;
+  esac
 }
 
 # If preset is set, then the config file is generated when it doesn't exists or SERVERPRESETREPLACE is set to True.
@@ -163,6 +222,15 @@ if [ -n "${SERVERPRESET}" ]; then
 fi
 # Apply SandboxVars overrides from environment
 SANDBOXVARS_FILE="${HOMEDIR}/Zomboid/Server/${SERVERNAME}_SandboxVars.lua"
+# Reserved keys managed by entry.sh logic (add to this list as needed)
+reserved_sandbox_keys=( )
+for reserved in "${reserved_sandbox_keys[@]}"; do
+  env_name="SANDBOXVARS_${reserved}"
+  if [ -n "${!env_name+x}" ]; then
+    echo "ERROR: Do not set ${env_name}. This key is managed by entry.sh logic. Remove ${env_name} from your environment to avoid breaking server setup." >&2
+    exit 11
+  fi
+done
 if [ -f "${SANDBOXVARS_FILE}" ] && [ -x /server/scripts/apply_lua_vars.sh ]; then
   /server/scripts/apply_lua_vars.sh "${SANDBOXVARS_FILE}" "SANDBOXVARS_"
 fi
@@ -194,25 +262,8 @@ if [ -n "${STEAMPORT2}" ]; then
   ARGS="${ARGS} -steamport2 ${STEAMPORT2}"
 fi
 
-if [ -n "${PASSWORD}" ]; then
-  set_ini_override "Password" "${PASSWORD}"
-fi
-
-if [ -n "${RCONPASSWORD}" ]; then
-  set_ini_override "RCONPassword" "${RCONPASSWORD}"
-fi
-
-# Shows the server on the in-game browser.
-if is_true "${PUBLIC}"; then
-  set_ini_override "Public" "true"
-elif [ -n "${PUBLIC}" ]; then
-  set_ini_override "Public" "false"
-fi
-
-# Set the display name for the server.
-if [ -n "${DISPLAYNAME}" ]; then
-  set_ini_override "PublicName" "${DISPLAYNAME}"
-fi
+## Removed dedicated env var handling for Password, RCONPassword, Public, PublicName
+## Use only INIVARS_* for these keys
 
 if [ -n "${MOD_IDS}" ]; then
   echo "*** INFO: Found Mods including ${MOD_IDS} ***"
