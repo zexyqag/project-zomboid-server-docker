@@ -17,6 +17,11 @@ on:
   schedule:
     - cron: "0 0 * * *" # daily at midnight UTC
   workflow_dispatch:
+    inputs:
+      force_rebuild:
+        description: "Force rebuild of stable/unstable images"
+        required: false
+        default: "false"
 
 jobs:
   smoke:
@@ -75,13 +80,28 @@ jobs:
             BUILD_UNSTABLE=true
           fi
 
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_rebuild }}" = "true" ]; then
+            BUILD_STABLE=true
+            BUILD_UNSTABLE=true
+          fi
+
           if ! docker manifest inspect ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION} >/dev/null 2>&1; then
             # New stable server version not yet published.
             BUILD_STABLE=true
           fi
 
+          if ! docker manifest inspect ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION}-${REPO_VERSION} >/dev/null 2>&1; then
+            # Current repo version not yet published for this stable version.
+            BUILD_STABLE=true
+          fi
+
           if ! docker manifest inspect ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION} >/dev/null 2>&1; then
             # New unstable server version not yet published.
+            BUILD_UNSTABLE=true
+          fi
+
+          if ! docker manifest inspect ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION}-${REPO_VERSION} >/dev/null 2>&1; then
+            # Current repo version not yet published for this unstable version.
             BUILD_UNSTABLE=true
           fi
 
