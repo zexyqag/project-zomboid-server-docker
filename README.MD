@@ -1,6 +1,6 @@
 # Project Zomboid dedicated server container
 
-This Dockerfile downloads the Project Zombie dedicated server using SteamCMD. Will allow you to deploy with ease a server in Kubernetes, Docker...
+This Dockerfile downloads the Project Zomboid dedicated server using SteamCMD. Will allow you to deploy with ease a server in Kubernetes, Docker...
 
 
 The ready to use image is published automatically to GitHub Container Registry (GHCR) when a new Project Zomboid server version is detected or when key scripts are updated.
@@ -9,6 +9,15 @@ Example image URL:
 ```
 ghcr.io/zexyqag/project-zomboid-server-docker:latest
 ```
+
+Additional tags are published for stable/unstable and versioned builds:
+
+* `stable` / `unstable`
+* `stable-<pz_version>` / `unstable-<pz_version>`
+* `stable-<pz_version>-<repo_version>` / `unstable-<pz_version>-<repo_version>`
+* `latest-unstable`
+
+When Steam Web API is used for version detection, `<pz_version>` will be the Steam build ID for that branch.
 
 > **Note:** If you want to play **Build 42** multiplayer, you must set the `STEAMAPPBRANCH` [environment variable](#environment-variables) to `unstable`.
 
@@ -86,6 +95,8 @@ This Dockerfile converts environment variables to server command arguments, allo
 Mods will install on second server start
 
 Maps are added on third server start, after mods are added
+
+This is due to the server creating its config and data on the first start, downloading workshop content on the next start, and then wiring maps after they exist on disk. You can still change `MOD_IDS` and `WORKSHOP_IDS` later; updates apply on restart, but workshop downloads may require an extra restart. Changing maps on an existing world may require a new save depending on the map.
 
 ## Build time environment variables
 
@@ -168,8 +179,10 @@ This repository uses GitHub Actions to automatically build and publish the Docke
 - It also builds/pushes when `scripts/entry.sh` or `scripts/search_folder.sh` are changed.
 ## Scripts folder
 
-In the scripts folders there are three scripts:
+In the scripts folder there are several scripts:
 
-* entry.sh: The script used in the image to start the server
-* search_folder.sh: Script to search through mod folders for any maps
-* get_updates.sh: will perform a search of the latest version on the forum and the website to download and build the latest stable and unstable version. The local image will be created and it will try to upload the image to the Dockerhub website, but it will fail by the lack of permissions.
+* entry.sh: The script used in the image to start the server.
+* search_folder.sh: Script to search through mod folders for any maps.
+* resolve_workshop_collection.sh: Resolves Workshop collection IDs into individual mod IDs.
+* apply_lua_vars.sh: Applies SANDBOXVARS_* environment overrides to the Lua sandbox file.
+* get_latest_versions.sh: Detects latest stable/unstable versions (Steam API preferred, forum/blog fallback) for the CI workflow.

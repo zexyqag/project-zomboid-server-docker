@@ -3,8 +3,6 @@
 ###########################################################
 FROM cm2network/steamcmd:root
 
-LABEL maintainer="daniel.carrasco@electrosoftcloud.com"
-
 ENV STEAMAPPID=380870
 ENV STEAMAPP=pz
 ENV STEAMAPPDIR="${HOMEDIR}/${STEAMAPP}-dedicated"
@@ -47,17 +45,9 @@ RUN chmod 550 /server/scripts/entry.sh
 COPY --chown=${USER}:${USER} scripts/resolve_workshop_collection.sh /server/scripts/resolve_workshop_collection.sh
 RUN chmod 550 /server/scripts/resolve_workshop_collection.sh
 
-# Copy searchfolder file
-COPY --chown=${USER}:${USER} scripts/search_folder.sh /server/scripts/search_folder.sh
-RUN chmod 550 /server/scripts/search_folder.sh
-
 # Copy Lua vars helper
 COPY --chown=${USER}:${USER} scripts/apply_lua_vars.sh /server/scripts/apply_lua_vars.sh
 RUN chmod 550 /server/scripts/apply_lua_vars.sh
-
-# Copy searchfolder file
-COPY --chown=${USER}:${USER} scripts/search_folder.sh /server/scripts/search_folder.sh
-RUN chmod 550 /server/scripts/search_folder.sh
 
 # Create required folders to keep their permissions on mount
 RUN mkdir -p "${HOMEDIR}/Zomboid"

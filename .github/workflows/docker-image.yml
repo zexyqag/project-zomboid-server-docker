@@ -9,6 +9,7 @@ on:
       - 'scripts/entry.sh'
       - 'scripts/search_folder.sh'
       - 'scripts/resolve_workshop_collection.sh'
+      - 'scripts/get_latest_versions.sh'
       - 'Dockerfile'
   schedule:
     - cron: "0 0 * * *" # daily at midnight UTC
@@ -39,31 +40,71 @@ jobs:
           REPO_NAME=${{ github.repository }}
           echo "REPO_NAME_LC=${REPO_NAME,,}" >>${GITHUB_ENV}
 
-      - name: Check for Project Zomboid server update (only on schedule/manual)
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      - name: Set repo version
         run: |
-          chmod +x scripts/get_updates.sh
-          scripts/get_updates.sh
-        continue-on-error: true
+          echo "REPO_VERSION=${GITHUB_SHA::7}" >>${GITHUB_ENV}
 
-      - name: Build Docker image
-        if: github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' || (github.event_name != 'push' && (success() || failure()))
+      - name: Get latest Project Zomboid versions
         run: |
-          docker build -t ghcr.io/$REPO_NAME_LC:latest .
+          chmod +x scripts/get_latest_versions.sh
+          scripts/get_latest_versions.sh >> ${GITHUB_ENV}
+        env:
+          STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
 
-      - name: Push Docker image to GitHub Container Registry
-        if: github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' || (github.event_name != 'push' && (success() || failure()))
+      - name: Decide which images to build
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "BUILD_STABLE=true" >> ${GITHUB_ENV}
+            echo "BUILD_UNSTABLE=true" >> ${GITHUB_ENV}
+          else
+            BUILD_STABLE=false
+            BUILD_UNSTABLE=false
+
+            if ! docker manifest inspect ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION} >/dev/null 2>&1; then
+              BUILD_STABLE=true
+            fi
+
+            if ! docker manifest inspect ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION} >/dev/null 2>&1; then
+              BUILD_UNSTABLE=true
+            fi
+
+            echo "BUILD_STABLE=${BUILD_STABLE}" >> ${GITHUB_ENV}
+            echo "BUILD_UNSTABLE=${BUILD_UNSTABLE}" >> ${GITHUB_ENV}
+          fi
+
+      - name: Build stable Docker image
+        if: env.BUILD_STABLE == 'true'
+        run: |
+          docker build \
+            -t ghcr.io/$REPO_NAME_LC:latest \
+            -t ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION} \
+            -t ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION}-${REPO_VERSION} \
+            -t ghcr.io/$REPO_NAME_LC:stable \
+            .
+
+      - name: Build unstable Docker image
+        if: env.BUILD_UNSTABLE == 'true'
+        run: |
+          docker build \
+            --build-arg STEAMAPPBRANCH=unstable \
+            -t ghcr.io/$REPO_NAME_LC:latest-unstable \
+            -t ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION} \
+            -t ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION}-${REPO_VERSION} \
+            -t ghcr.io/$REPO_NAME_LC:unstable \
+            .
+
+      - name: Push stable Docker image to GitHub Container Registry
+        if: env.BUILD_STABLE == 'true'
         run: |
           docker push ghcr.io/$REPO_NAME_LC:latest
+          docker push ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION}
+          docker push ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION}-${REPO_VERSION}
+          docker push ghcr.io/$REPO_NAME_LC:stable
 
-      - name: Build & Push Docker image if update detected (scheduled/manual)
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      - name: Push unstable Docker image to GitHub Container Registry
+        if: env.BUILD_UNSTABLE == 'true'
         run: |
-          chmod +x scripts/get_updates.sh
-          scripts/get_updates.sh
-          if [ $? -eq 10 ]; then
-            docker build -t ghcr.io/$REPO_NAME_LC:latest .
-            docker push ghcr.io/$REPO_NAME_LC:latest
-          else
-            echo "No new server version detected. Skipping build/push."
-          fi
+          docker push ghcr.io/$REPO_NAME_LC:latest-unstable
+          docker push ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION}
+          docker push ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION}-${REPO_VERSION}
+          docker push ghcr.io/$REPO_NAME_LC:unstable

@@ -142,8 +142,9 @@ if [ -f "${SANDBOXVARS_FILE}" ] && [ -x /server/scripts/apply_lua_vars.sh ]; the
 fi
 
 # Option to handle multiple network cards. Example: 127.0.0.1
+# Use -ip only; passing a raw positional IP can cause unexpected arg parsing.
 if [ -n "${IP}" ]; then
-  ARGS="${ARGS} ${IP} -ip ${IP}"
+  ARGS="${ARGS} -ip ${IP}"
 fi
 
 # Set the DefaultPort for the server. Example: 16261
