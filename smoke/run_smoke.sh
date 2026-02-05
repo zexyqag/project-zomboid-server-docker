@@ -41,7 +41,7 @@ run_lua_dry_run() {
   cp "${SCRIPT_DIR}/sample_sandbox.lua" "${TMP_DIR}/sample_sandbox.lua"
   (
     export SANDBOXVARS_ZombieLore_Transmission=4
-    export SANDBOXVARS_World__Event=2
+    export SANDBOXVARS_World_Event=2
     export SANDBOXVARS_CTRL_DRY_RUN=true
     bash "${ROOT_DIR}/scripts/apply_lua_vars.sh" "${TMP_DIR}/sample_sandbox.lua" "SANDBOXVARS_"
   )
@@ -55,7 +55,7 @@ run_lua_apply() {
   cp "${SCRIPT_DIR}/sample_sandbox.lua" "${TMP_DIR}/sample_sandbox.lua"
   (
     export SANDBOXVARS_ZombieLore_Transmission=4
-    export SANDBOXVARS_World__Event=2
+    export SANDBOXVARS_World_Event=2
     bash "${ROOT_DIR}/scripts/apply_lua_vars.sh" "${TMP_DIR}/sample_sandbox.lua" "SANDBOXVARS_"
   )
   diff -u "${SCRIPT_DIR}/expected_sandbox.lua" "${TMP_DIR}/sample_sandbox.lua" >/dev/null
