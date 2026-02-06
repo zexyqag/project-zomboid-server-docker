@@ -29,7 +29,7 @@ safe_update_ini_key() {
     current_val=$(awk -F '=' -v k="$key" '$1 ~ "^"k"[ \t]*$" {gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2; exit}' "$ini_file")
     if [ "$current_val" != "$value" ]; then
       echo "*** INFO: $key has changed, updating INI file directly ***"
-      export INIVARS_${key}="$value"
+      export INI_${key}="$value"
     fi
   fi
 }
@@ -157,7 +157,7 @@ if [ -n "${ADMINPASSWORD_VALUE}" ]; then
     CURRENT_ADMINPASSWORD=$(awk -F '=' '/^Password[ \t]*=/ {gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2; exit}' "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini")
     if [ "${CURRENT_ADMINPASSWORD}" != "${ADMINPASSWORD_VALUE}" ]; then
       echo "*** INFO: Admin password has changed, updating INI file directly ***"
-      export INIVARS_Password="${ADMINPASSWORD_VALUE}"
+      export INI_Password="${ADMINPASSWORD_VALUE}"
     fi
   fi
 fi
@@ -176,7 +176,7 @@ set_ini_override() {
   # $1 = key, $2 = value
   local key="$1"
   local value="$2"
-  local env_name="INIVARS_${key}"
+  local env_name="INI_${key}"
   # List of keys managed by extra logic
   case "$key" in
     WorkshopItems|Mods|Map|AntiCheatProtectionType*|Password|RCONPassword)
@@ -192,7 +192,7 @@ set_ini_override() {
             msg="This key is managed by entry.sh logic."
             ;;
         esac
-        echo "ERROR: Do not set INIVARS_${key}. $msg Remove INIVARS_${key} from your environment to avoid breaking server setup." >&2
+        echo "ERROR: Do not set INI_${key}. $msg Remove INI_${key} from your environment to avoid breaking server setup." >&2
         exit 10
       fi
       ;;
@@ -264,7 +264,7 @@ if [ -n "${STEAMPORT2}" ]; then
 fi
 
 ## Removed dedicated env var handling for Password, RCONPassword, Public, PublicName
-## Use only INIVARS_* for these keys
+## Use only INI_* for these keys
 
 if [ -n "${MOD_IDS}" ]; then
   echo "*** INFO: Found Mods including ${MOD_IDS} ***"
@@ -414,7 +414,7 @@ fi
 
 # Apply INI overrides from environment
 if [ -f "${INI_FILE}" ] && [ -x /server/scripts/apply_ini_vars.sh ]; then
-  /server/scripts/apply_ini_vars.sh "${INI_FILE}" "INIVARS_"
+  /server/scripts/apply_ini_vars.sh "${INI_FILE}" "INI_"
 fi
 
 # Fix to a bug in start-server.sh that causes to no preload a library:

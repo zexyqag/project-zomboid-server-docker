@@ -64,10 +64,7 @@ jobs:
           docker stop "$CID" >/dev/null 2>&1 || true
           docker rm -f "$CID" >/dev/null 2>&1 || true
           sudo chown -R "$(id -u):$(id -g)" docs/env_sources/stable
-          if [ -f "$INI_PATH" ]; then
-            mkdir -p docs/env_sources/stable/ini
-            cp "$INI_PATH" docs/env_sources/stable/ini/envdocs.ini
-          else
+          if [ ! -f "$INI_PATH" ]; then
             echo "Warning: INI file not created for $TAG" >&2
           fi
           ENV_SOURCES_DIR="docs/env_sources/stable" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
@@ -97,10 +94,7 @@ jobs:
           docker stop "$CID" >/dev/null 2>&1 || true
           docker rm -f "$CID" >/dev/null 2>&1 || true
           sudo chown -R "$(id -u):$(id -g)" docs/env_sources/unstable
-          if [ -f "$INI_PATH" ]; then
-            mkdir -p docs/env_sources/unstable/ini
-            cp "$INI_PATH" docs/env_sources/unstable/ini/envdocs.ini
-          else
+          if [ ! -f "$INI_PATH" ]; then
             echo "Warning: INI file not created for $TAG" >&2
           fi
           ENV_SOURCES_DIR="docs/env_sources/unstable" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
@@ -172,10 +166,7 @@ jobs:
           docker stop "$CID" >/dev/null 2>&1 || true
           docker rm -f "$CID" >/dev/null 2>&1 || true
           sudo chown -R "$(id -u):$(id -g)" docs/env_sources/manual
-          if [ -f "$INI_PATH" ]; then
-            mkdir -p docs/env_sources/manual/ini
-            cp "$INI_PATH" docs/env_sources/manual/ini/envdocs.ini
-          else
+          if [ ! -f "$INI_PATH" ]; then
             echo "Warning: INI file not created for $TAG" >&2
           fi
           ENV_SOURCES_DIR="docs/env_sources/manual" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
@@ -213,10 +204,7 @@ jobs:
             docker stop "$CID" >/dev/null 2>&1 || true
             docker rm -f "$CID" >/dev/null 2>&1 || true
             sudo chown -R "$(id -u):$(id -g)" "$TAG_DIR"
-            if [ -f "$INI_PATH" ]; then
-              mkdir -p "$TAG_DIR/ini"
-              cp "$INI_PATH" "$TAG_DIR/ini/envdocs.ini"
-            else
+            if [ ! -f "$INI_PATH" ]; then
               echo "Warning: INI file not created for $TAG" >&2
             fi
             ENV_SOURCES_DIR="$TAG_DIR" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py

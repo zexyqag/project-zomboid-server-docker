@@ -6,9 +6,12 @@
 set -euo pipefail
 
 INI_FILE="${1:-}"
-ENV_PREFIX="${2:-INIVARS_}"
-DRY_RUN_ENV="INIVARS_CTRL_DRY_RUN"
-STRICT_ENV="INIVARS_CTRL_STRICT"
+ENV_PREFIX="${2:-INI_}"
+LEGACY_ENV_PREFIX="INIVARS_"
+DRY_RUN_ENV="INI_CTRL_DRY_RUN"
+STRICT_ENV="INI_CTRL_STRICT"
+LEGACY_DRY_RUN_ENV="INIVARS_CTRL_DRY_RUN"
+LEGACY_STRICT_ENV="INIVARS_CTRL_STRICT"
 
 if [ -z "${INI_FILE}" ] || [ ! -f "${INI_FILE}" ]; then
   echo "Error: INI file not found: ${INI_FILE}" >&2
@@ -20,11 +23,15 @@ trap 'rm -f "$MAP_FILE"' EXIT
 
 while IFS='=' read -r name value; do
   case "$name" in
-    ${DRY_RUN_ENV}|${STRICT_ENV})
+    ${DRY_RUN_ENV}|${STRICT_ENV}|${LEGACY_DRY_RUN_ENV}|${LEGACY_STRICT_ENV})
       continue
       ;;
-    ${ENV_PREFIX}*)
-      raw="${name#${ENV_PREFIX}}"
+    ${ENV_PREFIX}*|${LEGACY_ENV_PREFIX}*)
+      if [[ "$name" == ${LEGACY_ENV_PREFIX}* ]]; then
+        raw="${name#${LEGACY_ENV_PREFIX}}"
+      else
+        raw="${name#${ENV_PREFIX}}"
+      fi
       section=""
       key="$raw"
       if [[ "$raw" == *"__"* ]]; then
@@ -42,8 +49,8 @@ fi
 
 cp -f "$INI_FILE" "${INI_FILE}.bak"
 
-DRY_RUN="${!DRY_RUN_ENV:-}"
-STRICT_MODE="${!STRICT_ENV:-}"
+DRY_RUN="${!DRY_RUN_ENV:-${!LEGACY_DRY_RUN_ENV:-}}"
+STRICT_MODE="${!STRICT_ENV:-${!LEGACY_STRICT_ENV:-}}"
 
 awk -v mapfile="$MAP_FILE" -v dry_run="$DRY_RUN" -v strict_mode="$STRICT_MODE" '
 BEGIN {

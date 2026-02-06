@@ -49,7 +49,7 @@ def parse_entry_envs(path: Path) -> Set[str]:
     return filtered
 
 
-def parse_ini_keys(paths: Iterable[Path]) -> List[Dict[str, Any]]:
+def parse_ini_keys(paths: Iterable[Path], prefix: str) -> List[Dict[str, Any]]:
     results: Dict[str, Dict[str, Any]] = {}
     for path in paths:
         if not path.exists():
@@ -66,7 +66,7 @@ def parse_ini_keys(paths: Iterable[Path]) -> List[Dict[str, Any]]:
             kv_match = re.match(r"([^=]+)=(.*)", line)
             if kv_match:
                 key = kv_match.group(1).strip()
-                env_name = f"INIVARS_{key}" if section == "" else f"INIVARS_{section}__{key}"
+                env_name = f"{prefix}{key}" if section == "" else f"{prefix}{section}__{key}"
                 if env_name not in results:
                     results[env_name] = {
                         "env_name": env_name,
@@ -82,7 +82,7 @@ def _encode_lua_part(value: str) -> str:
     return value.replace("_", "__")
 
 
-def parse_lua_keys(paths: Iterable[Path]) -> List[Dict[str, Any]]:
+def parse_lua_keys(paths: Iterable[Path], prefix: str) -> List[Dict[str, Any]]:
     results: Dict[str, Dict[str, Any]] = {}
     for path in paths:
         if not path.exists():
@@ -123,7 +123,7 @@ def parse_lua_keys(paths: Iterable[Path]) -> List[Dict[str, Any]]:
                 path_parts = stack + [key]
                 path_value = ".".join(path_parts)
                 encoded_parts = [_encode_lua_part(part) for part in path_parts]
-                env_name = "SANDBOXVARS_" + "_".join(encoded_parts)
+                env_name = prefix + "_".join(encoded_parts)
                 if env_name not in results:
                     results[env_name] = {
                         "env_name": env_name,
@@ -140,11 +140,19 @@ def collect_source_files(repo_root: Path, extracted_root: Path) -> Tuple[List[Pa
     source_mode = "repo_samples"
 
     if extracted_root.exists():
-        ini_files = sorted(extracted_root.rglob("*.ini"))
-        lua_files = sorted(extracted_root.rglob("*.lua"))
-        if ini_files or lua_files:
-            source_mode = "image_extract"
-            return ini_files, lua_files, source_mode
+        server_files = [path for path in extracted_root.rglob("*") if path.is_file() and "Server" in path.parts]
+        sandbox_files = [path for path in server_files if path.name.endswith("_SandboxVars.lua")]
+        world_names = sorted({path.stem.removesuffix("_SandboxVars") for path in sandbox_files})
+        if world_names:
+            ini_files = sorted(
+                path for path in server_files if path.suffix == ".ini" and path.stem in world_names
+            )
+            lua_files = sorted(sandbox_files)
+        else:
+            ini_files = sorted(path for path in server_files if path.suffix == ".ini")
+            lua_files = sorted(path for path in server_files if path.name.endswith("_SandboxVars.lua"))
+        source_mode = "image_extract"
+        return ini_files, lua_files, source_mode
 
     ini_files = [repo_root / path for path in INI_SAMPLE_FILES]
     lua_files = [repo_root / path for path in LUA_SAMPLE_FILES]
@@ -174,8 +182,8 @@ def main() -> None:
         )
 
     ini_files, lua_files, source_mode = collect_source_files(repo_root, sources_root)
-    ini_envs = parse_ini_keys(ini_files)
-    lua_envs = parse_lua_keys(lua_files)
+    ini_envs = parse_ini_keys(ini_files, "INI_")
+    lua_envs = parse_lua_keys(lua_files, "SANDBOXVARS_")
 
     payload: Dict[str, Any] = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
@@ -192,12 +200,12 @@ def main() -> None:
         "lua_env": sorted(lua_envs, key=lambda item: str(item["env_name"])),
         "patterns": [
             {
-                "prefix": "INIVARS_",
-                "description": "Override server INI keys. Use INIVARS_Key=Value or INIVARS_Section__Key=Value.",
+                "prefix": "INI_",
+                "description": "Override server INI keys from the runtime Server INI. Use INI_Key=Value or INI_Section__Key=Value.",
             },
             {
                 "prefix": "SANDBOXVARS_",
-                "description": "Override SandboxVars Lua keys. Use '_' as path separator and '__' for a literal underscore.",
+                "description": "Override runtime SandboxVars Lua keys. Use '_' as path separator and '__' for a literal underscore.",
             },
         ],
     }

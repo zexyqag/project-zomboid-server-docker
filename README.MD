@@ -84,26 +84,28 @@ The image supports the following environment variables:
 
 **Server configuration:**
 
-- Set all server INI options using `INIVARS_*` environment variables. See below for examples.
+- Set all server INI options using `INI_*` environment variables. See below for examples.
 - For admin, server, and RCON passwords, use only `ADMINPASSWORD`, `ADMINPASSWORD_FILE`, `PASSWORD`, `PASSWORD_FILE`, `RCONPASSWORD`, or `RCONPASSWORD_FILE`.
 
 
-`INIVARS_*:` Optional overrides for the server ini file (servertest.ini). Use `INIVARS_Key=Value` for flat keys. For sectioned ini files, use `INIVARS_Section__Key=Value` to target `[Section]` keys (double underscore separates section and key). **Note:** Direct use of `INIVARS_Password` and `INIVARS_RCONPassword` is blocked for security reasons. Use the dedicated environment variables (`PASSWORD`, `PASSWORD_FILE`, `RCONPASSWORD`, `RCONPASSWORD_FILE`) for these keys.
+`INI_*:` Optional overrides for the server ini file (servertest.ini). Use `INI_Key=Value` for flat keys. For sectioned ini files, use `INI_Section__Key=Value` to target `[Section]` keys (double underscore separates section and key). **Note:** Direct use of `INI_Password` and `INI_RCONPassword` is blocked for security reasons. Use the dedicated environment variables (`PASSWORD`, `PASSWORD_FILE`, `RCONPASSWORD`, `RCONPASSWORD_FILE`) for these keys.
 
-`INIVARS_CTRL_DRY_RUN:` If true, logs the changes that would be applied without modifying the ini file.
+`INI_CTRL_DRY_RUN:` If true, logs the changes that would be applied without modifying the ini file.
 
-`INIVARS_CTRL_STRICT:` If true, exits with an error when an env var does not match any key in the ini file.
+`INI_CTRL_STRICT:` If true, exits with an error when an env var does not match any key in the ini file.
+
+Legacy: `INIVARS_*` and `INIVARS_CTRL_*` are still accepted for backward compatibility, but `INI_*` is preferred.
 
 Example INI overrides:
 
 ```bash
 # Flat ini keys
-INIVARS_Public=true
-INIVARS_PublicName="My Server"
+INI_Public=true
+INI_PublicName="My Server"
 
 # Sectioned ini keys (if your ini uses [Section] headers)
-INIVARS_ServerOptions__Public=true
-INIVARS_ServerOptions__PublicName="My Server"
+INI_ServerOptions__Public=true
+INI_ServerOptions__PublicName="My Server"
 
 # Password and RCONPassword must use the dedicated variables:
 # PASSWORD, PASSWORD_FILE, RCONPASSWORD, RCONPASSWORD_FILE
