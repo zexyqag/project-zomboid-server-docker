@@ -63,6 +63,7 @@ jobs:
           done
           docker stop "$CID" >/dev/null 2>&1 || true
           docker rm -f "$CID" >/dev/null 2>&1 || true
+          sudo chown -R "$(id -u):$(id -g)" docs/env_sources/stable
           if [ -f "$INI_PATH" ]; then
             mkdir -p docs/env_sources/stable/ini
             cp "$INI_PATH" docs/env_sources/stable/ini/envdocs.ini
@@ -95,6 +96,7 @@ jobs:
           done
           docker stop "$CID" >/dev/null 2>&1 || true
           docker rm -f "$CID" >/dev/null 2>&1 || true
+          sudo chown -R "$(id -u):$(id -g)" docs/env_sources/unstable
           if [ -f "$INI_PATH" ]; then
             mkdir -p docs/env_sources/unstable/ini
             cp "$INI_PATH" docs/env_sources/unstable/ini/envdocs.ini
@@ -169,6 +171,7 @@ jobs:
           done
           docker stop "$CID" >/dev/null 2>&1 || true
           docker rm -f "$CID" >/dev/null 2>&1 || true
+          sudo chown -R "$(id -u):$(id -g)" docs/env_sources/manual
           if [ -f "$INI_PATH" ]; then
             mkdir -p docs/env_sources/manual/ini
             cp "$INI_PATH" docs/env_sources/manual/ini/envdocs.ini
@@ -209,6 +212,7 @@ jobs:
             done
             docker stop "$CID" >/dev/null 2>&1 || true
             docker rm -f "$CID" >/dev/null 2>&1 || true
+            sudo chown -R "$(id -u):$(id -g)" "$TAG_DIR"
             if [ -f "$INI_PATH" ]; then
               mkdir -p "$TAG_DIR/ini"
               cp "$INI_PATH" "$TAG_DIR/ini/envdocs.ini"
