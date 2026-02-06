@@ -181,3 +181,71 @@ jobs:
                 --push \
                 .
             fi
+
+  env_docs:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs:
+      - build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set lowercase repository name
+        run: |
+          REPO_NAME=${{ github.repository }}
+          echo "REPO_NAME_LC=${REPO_NAME,,}" >>${GITHUB_ENV}
+
+      - name: Get latest Project Zomboid versions
+        run: |
+          chmod +x scripts/get_latest_versions.sh
+          scripts/get_latest_versions.sh >> ${GITHUB_ENV}
+
+      - name: Extract env sources and generate docs (stable)
+        run: |
+          TAG="stable-${LATEST_STABLE_VERSION}"
+          rm -rf docs/env_sources/stable
+          mkdir -p docs/env_sources/stable
+          docker pull ghcr.io/${REPO_NAME_LC}:${TAG}
+          docker run --rm -v "$PWD/docs/env_sources/stable:/out" ghcr.io/${REPO_NAME_LC}:${TAG} /server/scripts/extract_env_sources.sh /out
+          ENV_SOURCES_DIR="docs/env_sources/stable" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
+
+      - name: Extract env sources and generate docs (unstable)
+        run: |
+          TAG="unstable-${LATEST_UNSTABLE_VERSION}"
+          rm -rf docs/env_sources/unstable
+          mkdir -p docs/env_sources/unstable
+          docker pull ghcr.io/${REPO_NAME_LC}:${TAG}
+          docker run --rm -v "$PWD/docs/env_sources/unstable:/out" ghcr.io/${REPO_NAME_LC}:${TAG} /server/scripts/extract_env_sources.sh /out
+          ENV_SOURCES_DIR="docs/env_sources/unstable" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
+
+      - name: Generate env docs
+        run: |
+          python3 scripts/generate_env_docs.py
+
+      - name: Commit and push docs branch
+        run: |
+          rm -rf docs/env_sources
+
+          if git diff --quiet -- docs/env; then
+            echo "No env docs changes to commit"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          tmp_dir="$(mktemp -d)"
+          cp -r docs/env "$tmp_dir/env"
+
+          git checkout --orphan docs/env
+          git rm -rf .
+          mkdir -p docs
+          cp -r "$tmp_dir/env" docs/env
+          git add docs/env
+          git commit -m "chore: update env docs"
+          git push --force origin docs/env
