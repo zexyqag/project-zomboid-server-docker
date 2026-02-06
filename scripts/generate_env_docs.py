@@ -96,7 +96,7 @@ def parse_lua_keys(paths: Iterable[Path]) -> List[Dict[str, Any]]:
                 continue
 
             if not in_sandbox:
-                if re.match(r"SandboxVars\s*=\s*\{\s*$", line):
+                if re.match(r"SandboxVars\s*=\s*\{\s*$", line) or re.match(r"return\s*\{\s*$", line):
                     in_sandbox = True
                     depth = 1
                     stack = []

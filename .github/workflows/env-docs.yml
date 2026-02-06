@@ -46,6 +46,29 @@ jobs:
           mkdir -p docs/env_sources/stable
           docker pull ghcr.io/${REPO_NAME_LC}:${TAG}
           docker run --rm --entrypoint /server/scripts/extract_env_sources.sh -v "$PWD/docs/env_sources/stable:/out" ghcr.io/${REPO_NAME_LC}:${TAG} /out
+          sudo rm -rf docs/env_sources/stable/zomboid
+          mkdir -p docs/env_sources/stable/zomboid
+          TAG_SAFE="${TAG//[^a-zA-Z0-9_.-]/_}"
+          CID=$(docker run -d --name "pz-envdocs-${TAG_SAFE}" \
+            -e ADMINPASSWORD=envdocs \
+            -e SERVERNAME=envdocs \
+            -v "$PWD/docs/env_sources/stable/zomboid:/home/steam/Zomboid" \
+            ghcr.io/${REPO_NAME_LC}:${TAG})
+          INI_PATH="docs/env_sources/stable/zomboid/Server/envdocs.ini"
+          for i in {1..120}; do
+            if [ -f "$INI_PATH" ]; then
+              break
+            fi
+            sleep 2
+          done
+          docker stop "$CID" >/dev/null 2>&1 || true
+          docker rm -f "$CID" >/dev/null 2>&1 || true
+          if [ -f "$INI_PATH" ]; then
+            mkdir -p docs/env_sources/stable/ini
+            cp "$INI_PATH" docs/env_sources/stable/ini/envdocs.ini
+          else
+            echo "Warning: INI file not created for $TAG" >&2
+          fi
           ENV_SOURCES_DIR="docs/env_sources/stable" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
 
       - name: Extract env sources and generate docs (unstable)
@@ -55,6 +78,29 @@ jobs:
           mkdir -p docs/env_sources/unstable
           docker pull ghcr.io/${REPO_NAME_LC}:${TAG}
           docker run --rm --entrypoint /server/scripts/extract_env_sources.sh -v "$PWD/docs/env_sources/unstable:/out" ghcr.io/${REPO_NAME_LC}:${TAG} /out
+          sudo rm -rf docs/env_sources/unstable/zomboid
+          mkdir -p docs/env_sources/unstable/zomboid
+          TAG_SAFE="${TAG//[^a-zA-Z0-9_.-]/_}"
+          CID=$(docker run -d --name "pz-envdocs-${TAG_SAFE}" \
+            -e ADMINPASSWORD=envdocs \
+            -e SERVERNAME=envdocs \
+            -v "$PWD/docs/env_sources/unstable/zomboid:/home/steam/Zomboid" \
+            ghcr.io/${REPO_NAME_LC}:${TAG})
+          INI_PATH="docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+          for i in {1..120}; do
+            if [ -f "$INI_PATH" ]; then
+              break
+            fi
+            sleep 2
+          done
+          docker stop "$CID" >/dev/null 2>&1 || true
+          docker rm -f "$CID" >/dev/null 2>&1 || true
+          if [ -f "$INI_PATH" ]; then
+            mkdir -p docs/env_sources/unstable/ini
+            cp "$INI_PATH" docs/env_sources/unstable/ini/envdocs.ini
+          else
+            echo "Warning: INI file not created for $TAG" >&2
+          fi
           ENV_SOURCES_DIR="docs/env_sources/unstable" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
 
       - name: Commit and push docs branch
@@ -106,6 +152,29 @@ jobs:
           mkdir -p docs/env_sources/manual
           docker pull ghcr.io/${REPO_NAME_LC}:${TAG}
           docker run --rm --entrypoint /server/scripts/extract_env_sources.sh -v "$PWD/docs/env_sources/manual:/out" ghcr.io/${REPO_NAME_LC}:${TAG} /out
+          sudo rm -rf docs/env_sources/manual/zomboid
+          mkdir -p docs/env_sources/manual/zomboid
+          TAG_SAFE="${TAG//[^a-zA-Z0-9_.-]/_}"
+          CID=$(docker run -d --name "pz-envdocs-${TAG_SAFE}" \
+            -e ADMINPASSWORD=envdocs \
+            -e SERVERNAME=envdocs \
+            -v "$PWD/docs/env_sources/manual/zomboid:/home/steam/Zomboid" \
+            ghcr.io/${REPO_NAME_LC}:${TAG})
+          INI_PATH="docs/env_sources/manual/zomboid/Server/envdocs.ini"
+          for i in {1..120}; do
+            if [ -f "$INI_PATH" ]; then
+              break
+            fi
+            sleep 2
+          done
+          docker stop "$CID" >/dev/null 2>&1 || true
+          docker rm -f "$CID" >/dev/null 2>&1 || true
+          if [ -f "$INI_PATH" ]; then
+            mkdir -p docs/env_sources/manual/ini
+            cp "$INI_PATH" docs/env_sources/manual/ini/envdocs.ini
+          else
+            echo "Warning: INI file not created for $TAG" >&2
+          fi
           ENV_SOURCES_DIR="docs/env_sources/manual" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
 
       - name: Extract env sources and generate docs (manual tags)
@@ -123,6 +192,29 @@ jobs:
             mkdir -p "$TAG_DIR"
             docker pull ghcr.io/${REPO_NAME_LC}:${TAG}
             docker run --rm --entrypoint /server/scripts/extract_env_sources.sh -v "$PWD/$TAG_DIR:/out" ghcr.io/${REPO_NAME_LC}:${TAG} /out
+            sudo rm -rf "$TAG_DIR/zomboid"
+            mkdir -p "$TAG_DIR/zomboid"
+            TAG_SAFE="${TAG//[^a-zA-Z0-9_.-]/_}"
+            CID=$(docker run -d --name "pz-envdocs-${TAG_SAFE}" \
+              -e ADMINPASSWORD=envdocs \
+              -e SERVERNAME=envdocs \
+              -v "$PWD/$TAG_DIR/zomboid:/home/steam/Zomboid" \
+              ghcr.io/${REPO_NAME_LC}:${TAG})
+            INI_PATH="$TAG_DIR/zomboid/Server/envdocs.ini"
+            for i in {1..120}; do
+              if [ -f "$INI_PATH" ]; then
+                break
+              fi
+              sleep 2
+            done
+            docker stop "$CID" >/dev/null 2>&1 || true
+            docker rm -f "$CID" >/dev/null 2>&1 || true
+            if [ -f "$INI_PATH" ]; then
+              mkdir -p "$TAG_DIR/ini"
+              cp "$INI_PATH" "$TAG_DIR/ini/envdocs.ini"
+            else
+              echo "Warning: INI file not created for $TAG" >&2
+            fi
             ENV_SOURCES_DIR="$TAG_DIR" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
           done
 
