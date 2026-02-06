@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Generic function to safely update sensitive INI keys
 safe_update_ini_key() {
   # $1 = INI file path
@@ -35,7 +37,6 @@ safe_update_ini_key() {
 # Use generic function for PASSWORD and RCONPASSWORD
 safe_update_ini_key "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini" "Password" "PASSWORD" "PASSWORD_FILE"
 safe_update_ini_key "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini" "RCONPassword" "RCONPASSWORD" "RCONPASSWORD_FILE"
-#!/bin/bash
 is_true() {
   # $1 = value to check
   # $2 = default (optional, "false" if not set)

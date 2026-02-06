@@ -211,7 +211,7 @@ jobs:
           rm -rf docs/env_sources/stable
           mkdir -p docs/env_sources/stable
           docker pull ghcr.io/${REPO_NAME_LC}:${TAG}
-          docker run --rm -v "$PWD/docs/env_sources/stable:/out" ghcr.io/${REPO_NAME_LC}:${TAG} /server/scripts/extract_env_sources.sh /out
+          docker run --rm --entrypoint /server/scripts/extract_env_sources.sh -v "$PWD/docs/env_sources/stable:/out" ghcr.io/${REPO_NAME_LC}:${TAG} /out
           ENV_SOURCES_DIR="docs/env_sources/stable" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
 
       - name: Extract env sources and generate docs (unstable)
@@ -220,7 +220,7 @@ jobs:
           rm -rf docs/env_sources/unstable
           mkdir -p docs/env_sources/unstable
           docker pull ghcr.io/${REPO_NAME_LC}:${TAG}
-          docker run --rm -v "$PWD/docs/env_sources/unstable:/out" ghcr.io/${REPO_NAME_LC}:${TAG} /server/scripts/extract_env_sources.sh /out
+          docker run --rm --entrypoint /server/scripts/extract_env_sources.sh -v "$PWD/docs/env_sources/unstable:/out" ghcr.io/${REPO_NAME_LC}:${TAG} /out
           ENV_SOURCES_DIR="docs/env_sources/unstable" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
 
       - name: Generate env docs
