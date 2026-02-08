@@ -1,0 +1,1379 @@
+{
+  "generated_at": "2026-02-08",
+  "sources": {
+    "entry": "scripts/entry.sh",
+    "env_template": ".env.template",
+    "source_mode": "image_extract",
+    "ini_files": [
+      "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+    ],
+    "lua_files": []
+  },
+  "image_tag": "unstable-42.13.2",
+  "handcrafted_env": [
+    {
+      "name": "ADMINPASSWORD",
+      "source": "scripts/entry.sh",
+      "documented": true
+    },
+    {
+      "name": "ADMINPASSWORD_FILE",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "ADMINUSERNAME",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "CACHEDIR",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "CLEAN_WORKSHOP",
+      "source": "scripts/entry.sh",
+      "documented": true
+    },
+    {
+      "name": "CLEAN_WORKSHOP_ALLOW_REMOVE_ALL",
+      "source": "scripts/entry.sh",
+      "documented": true
+    },
+    {
+      "name": "CLEAN_WORKSHOP_DRY_RUN",
+      "source": "scripts/entry.sh",
+      "documented": true
+    },
+    {
+      "name": "CLEAN_WORKSHOP_KEEP_FILE",
+      "source": "scripts/entry.sh",
+      "documented": true
+    },
+    {
+      "name": "COOP",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "DEBUG",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "DISABLE_ANTICHEAT",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "FORCESTEAMCLIENTSOUPDATE",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "FORCEUPDATE",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "HOMEDIR",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "IP",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "LANG",
+      "source": "scripts/entry.sh",
+      "documented": true
+    },
+    {
+      "name": "LD_LIBRARY_PATH",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "MAX_MEMORY",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "MEMORY",
+      "source": "scripts/entry.sh",
+      "documented": true
+    },
+    {
+      "name": "MIN_MEMORY",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "MODFOLDERS",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "MOD_IDS",
+      "source": "scripts/entry.sh",
+      "documented": true
+    },
+    {
+      "name": "NOSTEAM",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "PORT",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "SERVERPRESET",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "SERVERPRESETREPLACE",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "SOFTRESET",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "STEAMAPPBRANCH",
+      "source": "scripts/entry.sh",
+      "documented": true
+    },
+    {
+      "name": "STEAMAPPDIR",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "STEAMAPPID",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "STEAMCMDDIR",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "STEAMPORT1",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "STEAMPORT2",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "STEAMVAC",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "WORKSHOP_IDS",
+      "source": "scripts/entry.sh",
+      "documented": true
+    }
+  ],
+  "ini_env": [
+    {
+      "env_name": "INI_AdminSafehouse",
+      "section": "",
+      "key": "AdminSafehouse",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AllowCoop",
+      "section": "",
+      "key": "AllowCoop",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AllowDestructionBySledgehammer",
+      "section": "",
+      "key": "AllowDestructionBySledgehammer",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AllowNonAsciiUsername",
+      "section": "",
+      "key": "AllowNonAsciiUsername",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AnnounceAnimalDeath",
+      "section": "",
+      "key": "AnnounceAnimalDeath",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AnnounceDeath",
+      "section": "",
+      "key": "AnnounceDeath",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatChecksum",
+      "section": "",
+      "key": "AntiCheatChecksum",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatFire",
+      "section": "",
+      "key": "AntiCheatFire",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatHit",
+      "section": "",
+      "key": "AntiCheatHit",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatItem",
+      "section": "",
+      "key": "AntiCheatItem",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatMovement",
+      "section": "",
+      "key": "AntiCheatMovement",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatPacket",
+      "section": "",
+      "key": "AntiCheatPacket",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatPermission",
+      "section": "",
+      "key": "AntiCheatPermission",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatPlayer",
+      "section": "",
+      "key": "AntiCheatPlayer",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatRecipe",
+      "section": "",
+      "key": "AntiCheatRecipe",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatSafeHouse",
+      "section": "",
+      "key": "AntiCheatSafeHouse",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatSafety",
+      "section": "",
+      "key": "AntiCheatSafety",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatServerCustomization",
+      "section": "",
+      "key": "AntiCheatServerCustomization",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatXP",
+      "section": "",
+      "key": "AntiCheatXP",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AutoCreateUserInWhiteList",
+      "section": "",
+      "key": "AutoCreateUserInWhiteList",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BackupsCount",
+      "section": "",
+      "key": "BackupsCount",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BackupsOnStart",
+      "section": "",
+      "key": "BackupsOnStart",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BackupsOnVersionChange",
+      "section": "",
+      "key": "BackupsOnVersionChange",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BackupsPeriod",
+      "section": "",
+      "key": "BackupsPeriod",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BadWordListFile",
+      "section": "",
+      "key": "BadWordListFile",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BadWordPolicy",
+      "section": "",
+      "key": "BadWordPolicy",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BadWordReplacement",
+      "section": "",
+      "key": "BadWordReplacement",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BanKickGlobalSound",
+      "section": "",
+      "key": "BanKickGlobalSound",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BloodSplatLifespanDays",
+      "section": "",
+      "key": "BloodSplatLifespanDays",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_CarEngineAttractionModifier",
+      "section": "",
+      "key": "CarEngineAttractionModifier",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ChatMessageCharacterLimit",
+      "section": "",
+      "key": "ChatMessageCharacterLimit",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ChatMessageSlowModeTime",
+      "section": "",
+      "key": "ChatMessageSlowModeTime",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ChatStreams",
+      "section": "",
+      "key": "ChatStreams",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ClientActionLogs",
+      "section": "",
+      "key": "ClientActionLogs",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ClientCommandFilter",
+      "section": "",
+      "key": "ClientCommandFilter",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DefaultPort",
+      "section": "",
+      "key": "DefaultPort",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DenyLoginOnOverloadedServer",
+      "section": "",
+      "key": "DenyLoginOnOverloadedServer",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableBurntTowing",
+      "section": "",
+      "key": "DisableBurntTowing",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableRadioAdmin",
+      "section": "",
+      "key": "DisableRadioAdmin",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableRadioGM",
+      "section": "",
+      "key": "DisableRadioGM",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableRadioInvisible",
+      "section": "",
+      "key": "DisableRadioInvisible",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableRadioModerator",
+      "section": "",
+      "key": "DisableRadioModerator",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableRadioOverseer",
+      "section": "",
+      "key": "DisableRadioOverseer",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableRadioStaff",
+      "section": "",
+      "key": "DisableRadioStaff",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableSafehouseWhenPlayerConnected",
+      "section": "",
+      "key": "DisableSafehouseWhenPlayerConnected",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableScoreboard",
+      "section": "",
+      "key": "DisableScoreboard",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableTrailerTowing",
+      "section": "",
+      "key": "DisableTrailerTowing",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableVehicleTowing",
+      "section": "",
+      "key": "DisableVehicleTowing",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DiscordChannel",
+      "section": "",
+      "key": "DiscordChannel",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DiscordChannelID",
+      "section": "",
+      "key": "DiscordChannelID",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DiscordEnable",
+      "section": "",
+      "key": "DiscordEnable",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DiscordToken",
+      "section": "",
+      "key": "DiscordToken",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisplayUserName",
+      "section": "",
+      "key": "DisplayUserName",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DoLuaChecksum",
+      "section": "",
+      "key": "DoLuaChecksum",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DropOffWhiteListAfterDeath",
+      "section": "",
+      "key": "DropOffWhiteListAfterDeath",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_Faction",
+      "section": "",
+      "key": "Faction",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_FactionDaySurvivedToCreate",
+      "section": "",
+      "key": "FactionDaySurvivedToCreate",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_FactionPlayersRequiredForTag",
+      "section": "",
+      "key": "FactionPlayersRequiredForTag",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_FastForwardMultiplier",
+      "section": "",
+      "key": "FastForwardMultiplier",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_GlobalChat",
+      "section": "",
+      "key": "GlobalChat",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_GoodWordListFile",
+      "section": "",
+      "key": "GoodWordListFile",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_HideAdminsInPlayerList",
+      "section": "",
+      "key": "HideAdminsInPlayerList",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_HideDisguisedUserName",
+      "section": "",
+      "key": "HideDisguisedUserName",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_HidePlayersBehindYou",
+      "section": "",
+      "key": "HidePlayersBehindYou",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ItemNumbersLimitPerContainer",
+      "section": "",
+      "key": "ItemNumbersLimitPerContainer",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_KnockedDownAllowed",
+      "section": "",
+      "key": "KnockedDownAllowed",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_LoginQueueConnectTimeout",
+      "section": "",
+      "key": "LoginQueueConnectTimeout",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_LoginQueueEnabled",
+      "section": "",
+      "key": "LoginQueueEnabled",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_Map",
+      "section": "",
+      "key": "Map",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_MapRemotePlayerVisibility",
+      "section": "",
+      "key": "MapRemotePlayerVisibility",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_MaxAccountsPerUser",
+      "section": "",
+      "key": "MaxAccountsPerUser",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_MaxPlayers",
+      "section": "",
+      "key": "MaxPlayers",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_MaxSafezoneSize",
+      "section": "",
+      "key": "MaxSafezoneSize",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_Mods",
+      "section": "",
+      "key": "Mods",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_MouseOverToSeeDisplayName",
+      "section": "",
+      "key": "MouseOverToSeeDisplayName",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_MultiplayerStatisticsPeriod",
+      "section": "",
+      "key": "MultiplayerStatisticsPeriod",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_NoFire",
+      "section": "",
+      "key": "NoFire",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_Open",
+      "section": "",
+      "key": "Open",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PVP",
+      "section": "",
+      "key": "PVP",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PVPFirearmDamageModifier",
+      "section": "",
+      "key": "PVPFirearmDamageModifier",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PVPLogToolChat",
+      "section": "",
+      "key": "PVPLogToolChat",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PVPLogToolFile",
+      "section": "",
+      "key": "PVPLogToolFile",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PVPMeleeDamageModifier",
+      "section": "",
+      "key": "PVPMeleeDamageModifier",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PVPMeleeWhileHitReaction",
+      "section": "",
+      "key": "PVPMeleeWhileHitReaction",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_Password",
+      "section": "",
+      "key": "Password",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PauseEmpty",
+      "section": "",
+      "key": "PauseEmpty",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PerkLogs",
+      "section": "",
+      "key": "PerkLogs",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PingLimit",
+      "section": "",
+      "key": "PingLimit",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PlayerBumpPlayer",
+      "section": "",
+      "key": "PlayerBumpPlayer",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PlayerRespawnWithOther",
+      "section": "",
+      "key": "PlayerRespawnWithOther",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PlayerRespawnWithSelf",
+      "section": "",
+      "key": "PlayerRespawnWithSelf",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PlayerSafehouse",
+      "section": "",
+      "key": "PlayerSafehouse",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_Public",
+      "section": "",
+      "key": "Public",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PublicDescription",
+      "section": "",
+      "key": "PublicDescription",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PublicName",
+      "section": "",
+      "key": "PublicName",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_RCONPassword",
+      "section": "",
+      "key": "RCONPassword",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_RCONPort",
+      "section": "",
+      "key": "RCONPort",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_RemovePlayerCorpsesOnCorpseRemoval",
+      "section": "",
+      "key": "RemovePlayerCorpsesOnCorpseRemoval",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ResetID",
+      "section": "",
+      "key": "ResetID",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafeHouseRemovalTime",
+      "section": "",
+      "key": "SafeHouseRemovalTime",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehouseAllowFire",
+      "section": "",
+      "key": "SafehouseAllowFire",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehouseAllowLoot",
+      "section": "",
+      "key": "SafehouseAllowLoot",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehouseAllowNonResidential",
+      "section": "",
+      "key": "SafehouseAllowNonResidential",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehouseAllowRespawn",
+      "section": "",
+      "key": "SafehouseAllowRespawn",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehouseAllowTrepass",
+      "section": "",
+      "key": "SafehouseAllowTrepass",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehouseDaySurvivedToClaim",
+      "section": "",
+      "key": "SafehouseDaySurvivedToClaim",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehouseDisableDisguises",
+      "section": "",
+      "key": "SafehouseDisableDisguises",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehousePreventsLootRespawn",
+      "section": "",
+      "key": "SafehousePreventsLootRespawn",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafetyCooldownTimer",
+      "section": "",
+      "key": "SafetyCooldownTimer",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafetyDisconnectDelay",
+      "section": "",
+      "key": "SafetyDisconnectDelay",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafetySystem",
+      "section": "",
+      "key": "SafetySystem",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafetyToggleTimer",
+      "section": "",
+      "key": "SafetyToggleTimer",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SaveWorldEveryMinutes",
+      "section": "",
+      "key": "SaveWorldEveryMinutes",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_Seed",
+      "section": "",
+      "key": "Seed",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ServerImageIcon",
+      "section": "",
+      "key": "ServerImageIcon",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ServerImageLoadingScreen",
+      "section": "",
+      "key": "ServerImageLoadingScreen",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ServerImageLoginScreen",
+      "section": "",
+      "key": "ServerImageLoginScreen",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ServerPlayerID",
+      "section": "",
+      "key": "ServerPlayerID",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ServerWelcomeMessage",
+      "section": "",
+      "key": "ServerWelcomeMessage",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ShowFirstAndLastName",
+      "section": "",
+      "key": "ShowFirstAndLastName",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ShowSafety",
+      "section": "",
+      "key": "ShowSafety",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SledgehammerOnlyInSafehouse",
+      "section": "",
+      "key": "SledgehammerOnlyInSafehouse",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SleepAllowed",
+      "section": "",
+      "key": "SleepAllowed",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SleepNeeded",
+      "section": "",
+      "key": "SleepNeeded",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SneakModeHideFromOtherPlayers",
+      "section": "",
+      "key": "SneakModeHideFromOtherPlayers",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SpawnItems",
+      "section": "",
+      "key": "SpawnItems",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SpawnPoint",
+      "section": "",
+      "key": "SpawnPoint",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SpeedLimit",
+      "section": "",
+      "key": "SpeedLimit",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SteamScoreboard",
+      "section": "",
+      "key": "SteamScoreboard",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SteamVAC",
+      "section": "",
+      "key": "SteamVAC",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SwitchZombiesOwnershipEachUpdate",
+      "section": "",
+      "key": "SwitchZombiesOwnershipEachUpdate",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_TrashDeleteAll",
+      "section": "",
+      "key": "TrashDeleteAll",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_UDPPort",
+      "section": "",
+      "key": "UDPPort",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_UPnP",
+      "section": "",
+      "key": "UPnP",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_UltraSpeedDoesnotAffectToAnimals",
+      "section": "",
+      "key": "UltraSpeedDoesnotAffectToAnimals",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_UsePhysicsHitReaction",
+      "section": "",
+      "key": "UsePhysicsHitReaction",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_UsernameDisguises",
+      "section": "",
+      "key": "UsernameDisguises",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_Voice3D",
+      "section": "",
+      "key": "Voice3D",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_VoiceEnable",
+      "section": "",
+      "key": "VoiceEnable",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_VoiceMaxDistance",
+      "section": "",
+      "key": "VoiceMaxDistance",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_VoiceMinDistance",
+      "section": "",
+      "key": "VoiceMinDistance",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_WarDuration",
+      "section": "",
+      "key": "WarDuration",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_WarSafehouseHitPoints",
+      "section": "",
+      "key": "WarSafehouseHitPoints",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_WarStartDelay",
+      "section": "",
+      "key": "WarStartDelay",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_WebhookAddress",
+      "section": "",
+      "key": "WebhookAddress",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_WorkshopItems",
+      "section": "",
+      "key": "WorkshopItems",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    },
+    {
+      "env_name": "INI_server_browser_announced_ip",
+      "section": "",
+      "key": "server_browser_announced_ip",
+      "sources": [
+        "docs/env_sources/unstable/zomboid/Server/envdocs.ini"
+      ]
+    }
+  ],
+  "lua_env": [],
+  "patterns": [
+    {
+      "prefix": "INI_",
+      "description": "Override server INI keys from the runtime Server INI. Use INI_Key=Value or INI_Section__Key=Value."
+    },
+    {
+      "prefix": "SANDBOXVARS_",
+      "description": "Override runtime SandboxVars Lua keys. Use '_' as path separator and '__' for a literal underscore."
+    }
+  ]
+}
