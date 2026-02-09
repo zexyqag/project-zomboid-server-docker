@@ -1,421 +1,87 @@
 #!/bin/bash
 
-# Generic function to safely update sensitive INI keys
-safe_update_ini_key() {
-  # $1 = INI file path
-  # $2 = INI key (e.g., Password, RCONPassword)
-  # $3 = value variable name (env var or file)
-  # $4 = optional: file variable name (e.g., PASSWORD_FILE)
-  local ini_file="$1"
-  local key="$2"
-  local value_var="$3"
-  local file_var="$4"
-  local value=""
-
-  # Prefer file if provided and exists
-  if [ -n "$file_var" ]; then
-    local file_path="${!file_var}"
-    if [ -n "$file_path" ] && [ -f "$file_path" ]; then
-      value=$(<"$file_path")
-    fi
-  fi
-  # Fallback to env var if value still empty
-  if [ -z "$value" ] && [ -n "${!value_var}" ]; then
-    value="${!value_var}"
-  fi
-
-  if [ -n "$value" ] && [ -f "$ini_file" ]; then
-    local current_val
-    current_val=$(awk -F '=' -v k="$key" '$1 ~ "^"k"[ \t]*$" {gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2; exit}' "$ini_file")
-    if [ "$current_val" != "$value" ]; then
-      echo "*** INFO: $key has changed, updating INI file directly ***"
-      export INI_${key}="$value"
-    fi
-  fi
-}
-
-# Use generic function for PASSWORD and RCONPASSWORD
-safe_update_ini_key "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini" "Password" "PASSWORD" "PASSWORD_FILE"
-safe_update_ini_key "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini" "RCONPassword" "RCONPASSWORD" "RCONPASSWORD_FILE"
-is_true() {
-  # $1 = value to check
-  # $2 = default (optional, "false" if not set)
-  local val="${1,,}"
-  local default="${2:-false}"
-  case "$val" in
-    1|true|yes|y|on) return 0 ;;
-    0|false|no|n|off) return 1 ;;
-    *)
-      case "${default,,}" in
-        1|true|yes|y|on) return 0 ;;
-        *) return 1 ;;
-      esac
-    ;;
-  esac
-}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "${SCRIPT_DIR}/lib/runtime_helpers.sh"
 
 cd ${STEAMAPPDIR}
 
-#####################################
-#                                   #
-# Force an update if the env is set #
-#                                   #
-#####################################
-
-if is_true "${FORCESTEAMCLIENTSOUPDATE}"; then
-  echo "FORCESTEAMCLIENTSOUPDATE variable is set, updating steamclient.so in Zomboid's server"
-  cp "${STEAMCMDDIR}/linux64/steamclient.so" "${STEAMAPPDIR}/linux64/steamclient.so"
-  cp "${STEAMCMDDIR}/linux32/steamclient.so" "${STEAMAPPDIR}/steamclient.so"
-fi
-
-if is_true "${FORCEUPDATE}"; then
-  echo "FORCEUPDATE variable is set, so the server will be updated right now"
-  bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" +login anonymous +app_update "${STEAMAPPID}" -beta "${STEAMAPPBRANCH}" validate +quit
-fi
-
-
-######################################
-#                                    #
-# Process the arguments in variables #
-#                                    #
-######################################
-ARGS=""
-
-# Set the server memory. Units are accepted (1024m=1Gig, 2048m=2Gig, 4096m=4Gig): Example: 1024m
-if [ -n "${MIN_MEMORY}" ] && [ -n "${MAX_MEMORY}" ]; then
-  ARGS="${ARGS} -Xms${MIN_MEMORY} -Xmx${MAX_MEMORY}"
-elif [ -n "${MEMORY}" ]; then
-  ARGS="${ARGS} -Xms${MEMORY} -Xmx${MEMORY}"
-fi
-
-# Option to perform a Soft Reset
-if is_true "${SOFTRESET}"; then
-  ARGS="${ARGS} -Dsoftreset"
-fi
-
-# End of Java arguments
-ARGS="${ARGS} -- "
-
-# Runs a coop server instead of a dedicated server. Disables the default admin from being accessible.
-# - Default: Disabled
-if is_true "${COOP}"; then
-  ARGS="${ARGS} -coop"
-fi
-
-# Disables Steam integration on server.
-# - Default: Enabled
-if is_true "${NOSTEAM}"; then
-  ARGS="${ARGS} -nosteam"
-fi
-
-# Sets the path for the game data cache dir.
-# - Default: ~/Zomboid
-# - Example: /server/Zomboid/data
-if [ -n "${CACHEDIR}" ]; then
-  ARGS="${ARGS} -cachedir=${CACHEDIR}"
-fi
-
-# Option to control where mods are loaded from and the order. Any of the 3 keywords may be left out and may appear in any order.
-# - Default: workshop,steam,mods
-# - Example: mods,steam
-if [ -n "${MODFOLDERS}" ]; then
-  ARGS="${ARGS} -modfolders ${MODFOLDERS}"
-fi
-
-# Launches the game in debug mode.
-# - Default: Disabled
-if is_true "${DEBUG}"; then
-  ARGS="${ARGS} -debug"
-fi
-
-if [ -n "${ADMINUSERNAME}" ]; then
-  ARGS="${ARGS} -adminusername ${ADMINUSERNAME}"
-fi
-
-
-# Option to bypasses the enter-a-password prompt when creating a server.
-ADMINPASSWORD_VALUE=""
-if [ -n "${ADMINPASSWORD_FILE}" ]; then
-  if [ -f "${ADMINPASSWORD_FILE}" ]; then
-    ADMINPASSWORD_VALUE=$(<"${ADMINPASSWORD_FILE}")
-  else
-    echo "Warning: ADMINPASSWORD_FILE is set but file not found: ${ADMINPASSWORD_FILE}" >&2
-  fi
-fi
-if [ -z "${ADMINPASSWORD_VALUE}" ] && [ -n "${ADMINPASSWORD}" ]; then
-  ADMINPASSWORD_VALUE="${ADMINPASSWORD}"
-fi
-
-# Only set admin password on first setup, otherwise update INI directly if changed
-if [ -n "${ADMINPASSWORD_VALUE}" ]; then
-  if [ ! -f "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini" ]; then
-    # First setup: pass as argument
-    ARGS="${ARGS} -adminpassword ${ADMINPASSWORD_VALUE}"
-    echo "*** INFO: Setting admin password via -adminpassword (first setup) ***"
-  else
-    # Check if password in INI matches
-    CURRENT_ADMINPASSWORD=$(awk -F '=' '/^Password[ \t]*=/ {gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2; exit}' "${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini")
-    if [ "${CURRENT_ADMINPASSWORD}" != "${ADMINPASSWORD_VALUE}" ]; then
-      echo "*** INFO: Admin password has changed, updating INI file directly ***"
-      export INI_Password="${ADMINPASSWORD_VALUE}"
-    fi
-  fi
-fi
-
 # You can choose a different servername by using this option when starting the server.
-if [ -n "${SERVERNAME}" ]; then
-  ARGS="${ARGS} -servername \"${SERVERNAME}\""
-else
+if [ -z "${SERVERNAME:-}" ]; then
   SERVERNAME="servertest"
 fi
 
-INI_FILE="${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+ARGS=""
 
+INI_FILE="$(resolve_ini_file)"
 
-set_ini_override() {
-  # $1 = key, $2 = value
-  local key="$1"
-  local value="$2"
-  local env_name="INI_${key}"
-  # List of keys managed by extra logic
-  case "$key" in
-    WorkshopItems|Mods|Map|AntiCheatProtectionType*|Password|RCONPassword)
-      if [ -n "${!env_name+x}" ]; then
-        case "$key" in
-          Password)
-            msg="Use PASSWORD or PASSWORD_FILE environment variables instead."
-            ;;
-          RCONPassword)
-            msg="Use RCONPASSWORD or RCONPASSWORD_FILE environment variables instead."
-            ;;
-          *)
-            msg="This key is managed by entry.sh logic."
-            ;;
-        esac
-        echo "ERROR: Do not set INI_${key}. $msg Remove INI_${key} from your environment to avoid breaking server setup." >&2
-        exit 10
+ENV_HOOKS_DIR="/server/scripts/env_hooks"
+if [ -d "${ENV_HOOKS_DIR}" ]; then
+  declare -A hook_files
+  declare -A hook_deps
+  declare -A hook_done
+
+  while IFS= read -r file; do
+    [ -f "${file}" ] || continue
+    name="$(basename "${file}" .sh)"
+    deps="$(awk -F= '$1=="DEPENDS_ON" {val=$2; gsub(/^[ \t]+|[ \t]+$/, "", val); gsub(/^"|"$|^\047|\047$/, "", val); print val; exit}' "${file}")"
+    hook_files["${name}"]="${file}"
+    hook_deps["${name}"]="${deps}"
+  done <<< "$(find "${ENV_HOOKS_DIR}" -type f -name '*.sh' | sort)"
+
+  run_hook() {
+    local hook_name="$1"
+    local hook_file="${hook_files[${hook_name}]}"
+    [ -f "${hook_file}" ] || return
+    . "${hook_file}"
+    if type manual_apply >/dev/null 2>&1; then
+      manual_apply
+      unset -f manual_apply
+    fi
+    unset DESCRIPTION REPLACES DEPENDS_ON
+  }
+
+  while true; do
+    progress=false
+    for hook_name in "${!hook_files[@]}"; do
+      [ -n "${hook_done[${hook_name}]+x}" ] && continue
+      deps="${hook_deps[${hook_name}]}"
+      ready=true
+      for dep in ${deps}; do
+        if [ -z "${hook_done[${dep}]+x}" ]; then
+          ready=false
+          break
+        fi
+      done
+      if [ "${ready}" = true ]; then
+        run_hook "${hook_name}"
+        hook_done["${hook_name}"]=1
+        progress=true
       fi
-      ;;
-    *)
-      export "${env_name}=${value}"
-      ;;
-  esac
-}
+    done
+    if [ "${progress}" != true ]; then
+      break
+    fi
+  done
 
-# If preset is set, then the config file is generated when it doesn't exists or SERVERPRESETREPLACE is set to True.
-if [ -n "${SERVERPRESET}" ]; then
-  # If preset file doesn't exists then show an error and exit
-  if [ ! -f "${STEAMAPPDIR}/media/lua/shared/Sandbox/${SERVERPRESET}.lua" ]; then
-    echo "*** ERROR: the preset ${SERVERPRESET} doesn't exists. Please fix the configuration before start the server ***"
-    exit 1
-  # If SandboxVars files doesn't exists or replace is true, copy the file
-  elif [ ! -f "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_SandboxVars.lua" ] || is_true "${SERVERPRESETREPLACE}"; then
-    echo "*** INFO: New server will be created using the preset ${SERVERPRESET} ***"
-    echo "*** Copying preset file from \"${STEAMAPPDIR}/media/lua/shared/Sandbox/${SERVERPRESET}.lua\" to \"${HOMEDIR}/Zomboid/Server/${SERVERNAME}_SandboxVars.lua\" ***"
-    mkdir -p "${HOMEDIR}/Zomboid/Server/"
-    cp -nf "${STEAMAPPDIR}/media/lua/shared/Sandbox/${SERVERPRESET}.lua" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_SandboxVars.lua"
-    sed -i "1s/return.*/SandboxVars = \{/" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_SandboxVars.lua"
-    # Remove carriage return
-    dos2unix "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_SandboxVars.lua"
-    # I have seen that the file is created in execution mode (755). Change the file mode for security reasons.
-    chmod 644 "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_SandboxVars.lua"
+  remaining=""
+  for hook_name in "${!hook_files[@]}"; do
+    if [ -z "${hook_done[${hook_name}]+x}" ]; then
+      remaining="${remaining}
+${hook_name}"
+    fi
+  done
+  if [ -n "${remaining}" ]; then
+    echo "Warning: Unresolved hook dependencies; running remaining hooks in name order." >&2
+    while IFS= read -r hook_name; do
+      [ -z "${hook_name}" ] && continue
+      run_hook "${hook_name}"
+    done <<< "$(printf '%s\n' "${remaining}" | sed '/^$/d' | sort)"
   fi
 fi
-# Apply SandboxVars overrides from environment
-SANDBOXVARS_FILE="${HOMEDIR}/Zomboid/Server/${SERVERNAME}_SandboxVars.lua"
-# Reserved keys managed by entry.sh logic (add to this list as needed)
-reserved_sandbox_keys=( )
-for reserved in "${reserved_sandbox_keys[@]}"; do
-  env_name="SANDBOXVARS_${reserved}"
-  if [ -n "${!env_name+x}" ]; then
-    echo "ERROR: Do not set ${env_name}. This key is managed by entry.sh logic. Remove ${env_name} from your environment to avoid breaking server setup." >&2
-    exit 11
-  fi
-done
-if [ -f "${SANDBOXVARS_FILE}" ] && [ -x /server/scripts/apply_lua_vars.sh ]; then
-  /server/scripts/apply_lua_vars.sh "${SANDBOXVARS_FILE}" "SANDBOXVARS_"
-fi
 
-# Option to handle multiple network cards. Example: 127.0.0.1
-# Use -ip only; passing a raw positional IP can cause unexpected arg parsing.
-if [ -n "${IP}" ]; then
-  ARGS="${ARGS} -ip ${IP}"
-fi
-
-# Set the DefaultPort for the server. Example: 16261
-if [ -n "${PORT}" ]; then
-  ARGS="${ARGS} -port ${PORT}"
-fi
-
-# Option to enable/disable VAC on Steam servers. On the server command-line use -steamvac true/false. In the server's INI file, use STEAMVAC=true/false.
-if [ -n "${STEAMVAC}" ] && { [ "${STEAMVAC,,}" == "true" ] || [ "${STEAMVAC,,}" == "false" ]; }; then
-  ARGS="${ARGS} -steamvac ${STEAMVAC,,}"
-fi
-
-# Steam servers require two additional ports to function (I'm guessing they are both UDP ports, but you may need TCP as well).
-# These are in addition to the DefaultPort= setting. These can be specified in two ways:
-#  - In the server's INI file as SteamPort1= and SteamPort2=.
-#  - Using STEAMPORT1 and STEAMPORT2 variables.
-if [ -n "${STEAMPORT1}" ]; then
-  ARGS="${ARGS} -steamport1 ${STEAMPORT1}"
-fi
-if [ -n "${STEAMPORT2}" ]; then
-  ARGS="${ARGS} -steamport2 ${STEAMPORT2}"
-fi
 
 ## Removed dedicated env var handling for Password, RCONPassword, Public, PublicName
 ## Use only INI_* for these keys
-
-if [ -n "${MOD_IDS}" ]; then
-  echo "*** INFO: Found Mods including ${MOD_IDS} ***"
-  set_ini_override "Mods" "${MOD_IDS}"
-else
-  echo "*** INFO: MOD_IDS is empty, clearing configuration ***"
-  set_ini_override "Mods" ""
-fi
-
-
-# Resolve all WORKSHOP_IDS (collections and direct mod IDs) to a flat list of mod IDs
-if [ -n "${WORKSHOP_IDS}" ]; then
-  echo "*** INFO: Resolving Workshop IDs and Collections: ${WORKSHOP_IDS} ***"
-  if [ -x /server/scripts/resolve_workshop_collection.sh ]; then
-    resolved_ids=$( /server/scripts/resolve_workshop_collection.sh "${WORKSHOP_IDS}" )
-    resolver_status=$?
-    if [ $resolver_status -ne 0 ] || [ -z "$resolved_ids" ]; then
-      echo "Warning: failed to resolve Workshop collections, leaving WorkshopItems unchanged." >&2
-      workshop_resolve_failed=true
-    else
-      # Join with semicolon for ini
-      resolved_ids_str=$(echo "$resolved_ids" | paste -sd ';' -)
-      workshop_ids_effective="${resolved_ids_str}"
-      set_ini_override "WorkshopItems" "${resolved_ids_str}"
-      echo "*** INFO: WorkshopItems resolved to: ${resolved_ids_str} ***"
-    fi
-  else
-    echo "Warning: resolve_workshop_collection.sh not found or not executable, leaving WorkshopItems unchanged." >&2
-    workshop_resolve_failed=true
-  fi
-else
-  echo "*** INFO: WORKSHOP_IDS is empty, clearing configuration ***"
-  set_ini_override "WorkshopItems" ""
-fi
-
-# Optional cleanup of unused workshop content
-if is_true "${CLEAN_WORKSHOP}" && [ -n "${WORKSHOP_IDS}" ] && [ -n "${workshop_ids_effective}" ] && [ "${workshop_resolve_failed}" != "true" ]; then
-  workshop_dir="${HOMEDIR}/pz-dedicated/steamapps/workshop/content/108600"
-  if [ -d "${workshop_dir}" ]; then
-    if is_true "${CLEAN_WORKSHOP_DRY_RUN}"; then
-      echo "*** INFO: CLEAN_WORKSHOP_DRY_RUN enabled, listing unused workshop items ***"
-    else
-      echo "*** INFO: CLEAN_WORKSHOP enabled, pruning unused workshop items ***"
-    fi
-    IFS=';' read -ra KEEP_IDS <<< "${workshop_ids_effective}"
-    keep_total=${#KEEP_IDS[@]}
-
-    if [ -n "${CLEAN_WORKSHOP_KEEP_FILE}" ]; then
-      mkdir -p "$(dirname "${CLEAN_WORKSHOP_KEEP_FILE}")"
-      printf '%s
-' "${KEEP_IDS[@]}" > "${CLEAN_WORKSHOP_KEEP_FILE}"
-      echo "*** INFO: Wrote workshop keep list to ${CLEAN_WORKSHOP_KEEP_FILE} ***"
-    fi
-
-    total_items=0
-    keep_found=0
-    for item_dir in "${workshop_dir}"/*; do
-      [ -d "${item_dir}" ] || continue
-      total_items=$((total_items + 1))
-      item_id=$(basename "${item_dir}")
-      for keep_id in "${KEEP_IDS[@]}"; do
-        if [ "${item_id}" == "${keep_id}" ]; then
-          keep_found=$((keep_found + 1))
-          break
-        fi
-      done
-    done
-    if [ "${total_items}" -gt 0 ] && [ "${keep_found}" -eq 0 ] && ! is_true "${CLEAN_WORKSHOP_ALLOW_REMOVE_ALL}"; then
-      echo "Warning: CLEAN_WORKSHOP would remove all workshop items; set CLEAN_WORKSHOP_ALLOW_REMOVE_ALL=true to allow." >&2
-    else
-    if [ "${keep_found}" -lt "${keep_total}" ]; then
-      echo "Warning: Some keep IDs were not found on disk (${keep_found}/${keep_total})." >&2
-    fi
-    removed_count=0
-    for item_dir in "${workshop_dir}"/*; do
-      [ -d "${item_dir}" ] || continue
-      item_id=$(basename "${item_dir}")
-      keep=false
-      for keep_id in "${KEEP_IDS[@]}"; do
-        if [ "${item_id}" == "${keep_id}" ]; then
-          keep=true
-          break
-        fi
-      done
-      if [ "${keep}" == "false" ]; then
-        if is_true "${CLEAN_WORKSHOP_DRY_RUN}"; then
-          echo "*** INFO: Would remove unused workshop item ${item_id} ***"
-        else
-          echo "*** INFO: Removing unused workshop item ${item_id} ***"
-          rm -rf "${item_dir}"
-        fi
-        removed_count=$((removed_count + 1))
-      fi
-    done
-    echo "*** INFO: Workshop cleanup summary: kept ${keep_found}/${total_items}, removed ${removed_count} ***"
-    fi
-  fi
-fi
-
-if [ -n "${DISABLE_ANTICHEAT}" ]; then
-  IFS=',' read -ra ITEMS <<< "$DISABLE_ANTICHEAT"
-  for ITEM in "${ITEMS[@]}"; do
-    if [[ "$ITEM" =~ ^([0-9]+)-([0-9]+)$ ]]; then
-      START=${BASH_REMATCH[1]}
-      END=${BASH_REMATCH[2]}
-      for ((i=START; i<=END; i++)); do
-        set_ini_override "AntiCheatProtectionType${i}" "false"
-      done
-    elif [[ "$ITEM" =~ ^[0-9]+$ ]]; then
-      set_ini_override "AntiCheatProtectionType${ITEM}" "false"
-    fi
-  done
-fi
-
-# Fixes EOL in script file for good measure
-sed -i 's/\r$//' /server/scripts/search_folder.sh
-# Check 'search_folder.sh' script for details
-if [ -e "${HOMEDIR}/pz-dedicated/steamapps/workshop/content/108600" ]; then
-
-  map_list=""
-  source /server/scripts/search_folder.sh "${HOMEDIR}/pz-dedicated/steamapps/workshop/content/108600"
-  if [ -f "${HOMEDIR}/maps.txt" ]; then
-    map_list=$(<"${HOMEDIR}/maps.txt")
-    rm "${HOMEDIR}/maps.txt"
-  fi
-
-  if [ -n "${map_list}" ]; then
-    echo "*** INFO: Added maps including ${map_list} ***"
-    set_ini_override "Map" "${map_list}Muldraugh, KY"
-
-    # Checks which added maps have spawnpoints.lua files and adds them to the spawnregions file if they aren't already added
-    IFS=";" read -ra strings <<< "$map_list"
-    for string in "${strings[@]}"; do
-        if [ -f "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_spawnregions.lua" ] && ! grep -q "$string" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_spawnregions.lua"; then
-          if [ -e "${HOMEDIR}/pz-dedicated/media/maps/$string/spawnpoints.lua" ]; then
-            result="{ name = \"$string\", file = \"media/maps/$string/spawnpoints.lua\" },"
-            sed -i "/function SpawnRegions()/,/return {/ {    /return {/ a\
-            \\\t\t$result
-            }" "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_spawnregions.lua"
-          fi
-        elif [ ! -f "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_spawnregions.lua" ]; then
-          echo "Warning: spawnregions file not found, skipping spawnpoints update" >&2
-        fi
-    done
-  fi 
-fi
-
-# Apply INI overrides from environment
-if [ -f "${INI_FILE}" ] && [ -x /server/scripts/apply_ini_vars.sh ]; then
-  /server/scripts/apply_ini_vars.sh "${INI_FILE}" "INI_"
-fi
 
 # Fix to a bug in start-server.sh that causes to no preload a library:
 # ERROR: ld.so: object 'libjsig.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.

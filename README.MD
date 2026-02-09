@@ -63,6 +63,8 @@ Use .env.template as a starting point for your `.env` file.
 
 Boolean options accept: `1`, `true`, `yes`, `y`, `on` and `0`, `false`, `no`, `n`, `off`.
 
+Generated env var references are published to the docs/env branch of this repository. The branch contains JSON files per tag for the full, runtime-derived list.
+
 The image supports the following environment variables:
 `ADMINUSERNAME:` Sets the administrator username, otherwise `admin` will be used.
 
@@ -85,16 +87,22 @@ The image supports the following environment variables:
 **Server configuration:**
 
 - Set all server INI options using `INI_*` environment variables. See below for examples.
+- Set all server Lua options using `LUA_*` environment variables. See below for examples.
 - For admin, server, and RCON passwords, use only `ADMINPASSWORD`, `ADMINPASSWORD_FILE`, `PASSWORD`, `PASSWORD_FILE`, `RCONPASSWORD`, or `RCONPASSWORD_FILE`.
 
 
-`INI_*:` Optional overrides for the server ini file (servertest.ini). Use `INI_Key=Value` for flat keys. For sectioned ini files, use `INI_Section__Key=Value` to target `[Section]` keys (double underscore separates section and key). **Note:** Direct use of `INI_Password` and `INI_RCONPassword` is blocked for security reasons. Use the dedicated environment variables (`PASSWORD`, `PASSWORD_FILE`, `RCONPASSWORD`, `RCONPASSWORD_FILE`) for these keys.
+`INI_*:` Overrides for any `.ini` under `Zomboid/Server`.
+
+- Default server INI (e.g., `servertest.ini`): `INI_Key=Value`
+- Sectioned INI: `INI_Section__Key=Value` (double underscore separates section and key)
+- Additional INI files: `INI_<file>__Section__Key=Value` or `INI_<file>__Key=Value`
+- If the filename starts with the server name, that prefix is removed from `<file>`.
+
+**Note:** Direct use of `INI_Password` and `INI_RCONPassword` is blocked for security reasons. Use `PASSWORD` / `PASSWORD_FILE` / `RCONPASSWORD` / `RCONPASSWORD_FILE`.
 
 `INI_CTRL_DRY_RUN:` If true, logs the changes that would be applied without modifying the ini file.
 
 `INI_CTRL_STRICT:` If true, exits with an error when an env var does not match any key in the ini file.
-
-Legacy: `INIVARS_*` and `INIVARS_CTRL_*` are still accepted for backward compatibility, but `INI_*` is preferred.
 
 Example INI overrides:
 
@@ -109,6 +117,31 @@ INI_ServerOptions__PublicName="My Server"
 
 # Password and RCONPassword must use the dedicated variables:
 # PASSWORD, PASSWORD_FILE, RCONPASSWORD, RCONPASSWORD_FILE
+```
+
+`LUA_*:` Overrides for any `.lua` under `Zomboid/Server`.
+
+- Default server Lua file (e.g., `servertest.lua`): `LUA_Path=Value`
+- Additional Lua files: `LUA_<file>__Path=Value`
+- If the filename starts with the server name, that prefix is removed from `<file>`.
+- `Path` uses `_` as path separator and `__` for a literal underscore.
+- The root Lua table is detected dynamically; the root name is not part of the env var path.
+
+`LUA_CTRL_DRY_RUN:` If true, logs the changes that would be applied without modifying the Lua file.
+
+`LUA_CTRL_STRICT:` If true, exits with an error when an env var does not match any key in the Lua file.
+
+`LUA_CTRL_CASE_SENSITIVE:` If true, matches Lua keys case-sensitively.
+
+Example Lua overrides:
+
+```bash
+# Example for <servername>_SandboxVars.lua
+LUA_SandboxVars__ZombieLore_Transmission=4
+LUA_SandboxVars__World_Event=2
+
+# Example for <servername>_othersettings.lua
+LUA_othersettings__SomeTable_SomeKey=true
 ```
 
 `CLEAN_WORKSHOP:` If true, removes workshop items on disk that are not listed in `WORKSHOP_IDS` (after collection resolution). This only runs when `WORKSHOP_IDS` is set and collection resolution succeeds to avoid wiping everything by accident.

@@ -67,7 +67,7 @@ jobs:
           if [ ! -f "$INI_PATH" ]; then
             echo "Warning: INI file not created for $TAG" >&2
           fi
-          ENV_SOURCES_DIR="docs/env_sources/stable" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
+          ENV_SOURCES_DIR="docs/env_sources/stable" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" bash scripts/generate_env_docs.sh
 
       - name: Extract env sources and generate docs (unstable)
         run: |
@@ -97,7 +97,7 @@ jobs:
           if [ ! -f "$INI_PATH" ]; then
             echo "Warning: INI file not created for $TAG" >&2
           fi
-          ENV_SOURCES_DIR="docs/env_sources/unstable" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
+          ENV_SOURCES_DIR="docs/env_sources/unstable" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" bash scripts/generate_env_docs.sh
 
       - name: Commit and push docs branch
         run: |
@@ -169,7 +169,7 @@ jobs:
           if [ ! -f "$INI_PATH" ]; then
             echo "Warning: INI file not created for $TAG" >&2
           fi
-          ENV_SOURCES_DIR="docs/env_sources/manual" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
+          ENV_SOURCES_DIR="docs/env_sources/manual" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" bash scripts/generate_env_docs.sh
 
       - name: Extract env sources and generate docs (manual tags)
         if: inputs.env_docs_tags != ''
@@ -207,7 +207,7 @@ jobs:
             if [ ! -f "$INI_PATH" ]; then
               echo "Warning: INI file not created for $TAG" >&2
             fi
-            ENV_SOURCES_DIR="$TAG_DIR" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" python3 scripts/generate_env_docs.py
+            ENV_SOURCES_DIR="$TAG_DIR" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" bash scripts/generate_env_docs.sh
           done
 
       - name: Commit and push docs branch

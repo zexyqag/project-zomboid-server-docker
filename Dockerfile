@@ -41,6 +41,9 @@ RUN set -x \
 COPY --chown=${USER}:${USER} scripts/entry.sh /server/scripts/entry.sh
 RUN chmod 550 /server/scripts/entry.sh
 
+# Copy runtime helpers
+COPY --chown=${USER}:${USER} scripts/lib /server/scripts/lib
+
 # Copy resolve_workshop_collection.sh
 COPY --chown=${USER}:${USER} scripts/resolve_workshop_collection.sh /server/scripts/resolve_workshop_collection.sh
 RUN chmod 550 /server/scripts/resolve_workshop_collection.sh
@@ -52,6 +55,9 @@ RUN chmod 550 /server/scripts/apply_lua_vars.sh
 # Copy INI vars helper
 COPY --chown=${USER}:${USER} scripts/apply_ini_vars.sh /server/scripts/apply_ini_vars.sh
 RUN chmod 550 /server/scripts/apply_ini_vars.sh
+
+# Copy env hooks
+COPY --chown=${USER}:${USER} scripts/env_hooks /server/scripts/env_hooks
 
 # Copy env source extractor for docs
 COPY --chown=${USER}:${USER} scripts/extract_env_sources.sh /server/scripts/extract_env_sources.sh
