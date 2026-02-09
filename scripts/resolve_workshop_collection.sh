@@ -44,8 +44,11 @@ while (( depth <= DEPTH_LIMIT )) && ((${#to_process[@]} > 0)); do
     exit 2
   fi
   if [ "$count" == "0" ]; then
-    echo "Error: no collection details returned from Steam API" >&2
-    exit 3
+    echo "Warning: no collection details returned; treating input IDs as direct mods." >&2
+    for id in "${to_process[@]}"; do
+      MODS[$id]=1
+    done
+    break
   fi
   for ((idx=0; idx<count; idx++)); do
     # Mark as visited

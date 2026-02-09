@@ -80,6 +80,37 @@ run_lua_load() {
   fi
 }
 
+run_env_docs_smoke() {
+  local env_dir="${TMP_DIR}/env_sources"
+  local out_json="${TMP_DIR}/env.json"
+  mkdir -p "${env_dir}/Server"
+  cp "${SCRIPT_DIR}/sample.ini" "${env_dir}/Server/sample.ini"
+  cp "${SCRIPT_DIR}/sample_sandbox.lua" "${env_dir}/Server/sample_SandboxVars.lua"
+
+  ENV_SOURCES_DIR="${env_dir}" OUTPUT_PATH="${out_json}" IMAGE_TAG="smoke" bash "${ROOT_DIR}/scripts/generate_env_docs.sh"
+
+  if [ ! -s "${out_json}" ]; then
+    echo "Env docs did not generate output" >&2
+    exit 1
+  fi
+  if ! grep -Eq '"env_name"[[:space:]]*:[[:space:]]*"INI_Public"' "${out_json}"; then
+    echo "Env docs missing INI_Public" >&2
+    exit 1
+  fi
+  if ! grep -Eq '"env_name"[[:space:]]*:[[:space:]]*"LUA_SandboxVars__ZombieLore_Transmission"' "${out_json}"; then
+    echo "Env docs missing LUA_SandboxVars__ZombieLore_Transmission" >&2
+    exit 1
+  fi
+  if ! grep -Eq '"env_hooks"[[:space:]]*:' "${out_json}"; then
+    echo "Env docs missing env_hooks section" >&2
+    exit 1
+  fi
+  if ! grep -Eq '"name"[[:space:]]*:[[:space:]]*"ADMINPASSWORD"' "${out_json}"; then
+    echo "Env docs missing env_hooks ADMINPASSWORD" >&2
+    exit 1
+  fi
+}
+
 echo "Running INI helper smoke tests..."
 run_ini_dry_run
 echo "INI dry-run ok"
@@ -91,5 +122,9 @@ run_lua_dry_run
 echo "Lua dry-run ok"
 run_lua_load
 echo "Lua apply ok"
+
+echo "Running env docs smoke test..."
+run_env_docs_smoke
+echo "Env docs ok"
 
 echo "Smoke tests passed."

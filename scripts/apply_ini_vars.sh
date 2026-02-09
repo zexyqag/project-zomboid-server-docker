@@ -71,7 +71,7 @@ BEGIN {
   current_section_lc=""
   dry_run_enabled=(dry_run ~ /^(1|true|yes|y|on)$/)
 }
-function trim(s) { sub(/^\s+/, "", s); sub(/\s+$/, "", s); return s }
+function trim(s) { sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s); return s }
 function flush_section(sec_lc, sec_label, emit_header,   keys, n, i, key_lc, mapkey, keyname, value, label) {
   if (flushed[sec_lc]) return
   if (!(sec_lc in keys_by_section)) return
@@ -101,23 +101,28 @@ function flush_section(sec_lc, sec_label, emit_header,   keys, n, i, key_lc, map
 }
 {
   line=$0
-  if (line ~ /^\s*[;#]/) {
+  if (line ~ /^[ \t]*[;#]/) {
     print line
     next
   }
 
-  if (match(line, /^\s*\[([^\]]+)\]\s*$/, m)) {
+  if (line ~ /^[ \t]*\[[^\]]+\][ \t]*$/) {
     flush_section(current_section_lc, current_section, 0)
-    current_section=trim(m[1])
+    current_section=line
+    sub(/^[ \t]*\[/, "", current_section)
+    sub(/\][ \t]*$/, "", current_section)
+    current_section=trim(current_section)
     current_section_lc=tolower(current_section)
     section_present[current_section_lc]=1
     print line
     next
   }
 
-  if (match(line, /^\s*([^=]+)\s*=\s*(.*)$/, m)) {
-    key=trim(m[1])
-    value=m[2]
+  if (line ~ /^[ \t]*[^=]+[ \t]*=.*/) {
+    eq_pos=index(line, "=")
+    key=substr(line, 1, eq_pos - 1)
+    value=substr(line, eq_pos + 1)
+    key=trim(key)
     key_lc=tolower(key)
     mapkey=current_section_lc SUBSEP key_lc
     if (mapkey in updates) {
@@ -127,8 +132,8 @@ function flush_section(sec_lc, sec_label, emit_header,   keys, n, i, key_lc, map
         print line
       } else {
         printf "APPLY: %s%s -> %s\n", (current_section_lc != "" ? "[" current_section "] " : ""), key, updates[mapkey] > "/dev/stderr"
-        match(line, /^\s*/, ind)
-        indent=substr(line, RSTART, RLENGTH)
+        indent=line
+        sub(/[^ \t].*$/, "", indent)
         print indent key "=" updates[mapkey]
       }
       next

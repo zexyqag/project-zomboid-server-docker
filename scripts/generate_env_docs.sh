@@ -10,8 +10,6 @@ image_tag="${IMAGE_TAG:-}"
 entry_sh="${repo_root}/scripts/entry.sh"
 env_template="${repo_root}/.env.template"
 env_hooks_dir="${repo_root}/scripts/env_hooks"
-apply_ini_script="${repo_root}/scripts/apply_ini_vars.sh"
-apply_lua_script="${repo_root}/scripts/apply_lua_vars.sh"
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT
@@ -20,11 +18,15 @@ ini_items_file="${tmp_dir}/ini_items.tsv"
 lua_items_file="${tmp_dir}/lua_items.tsv"
 handcrafted_file="${tmp_dir}/handcrafted.tsv"
 env_hooks_items_file="${tmp_dir}/env_hooks_items.tsv"
-: > "${env_hooks_items_file}"
+template_envs_file="${tmp_dir}/template_envs.txt"
 
-env_hooks_names=""
+: > "${ini_items_file}"
+: > "${lua_items_file}"
+: > "${handcrafted_file}"
+: > "${env_hooks_items_file}"
+: > "${template_envs_file}"
+
 env_hook_replaces=""
-control_envs=""
 
 extract_manual_value() {
   local key="$1"
@@ -42,73 +44,91 @@ if [ -d "${env_hooks_dir}" ]; then
   done <<< "$(find "${env_hooks_dir}" -type f -name '*.sh' | sort)"
 fi
 
-if [ -f "${env_hooks_items_file}" ]; then
-  env_hooks_names="$(awk -F '\t' '{print $1}' "${env_hooks_items_file}")"
+if [ -s "${env_hooks_items_file}" ]; then
   env_hook_replaces="$(awk -F '\t' '{print $3}' "${env_hooks_items_file}" | tr ' ' '\n' | sed '/^$/d' | sort -u | tr '\n' ' ')"
 fi
 
-  awk -v file="${file}" '
-  function encode(value,    out) {
-    out=value
-    gsub(/_/, "__", out)
-    return out
-  }
-  function join_path(key,    i, path) {
-    path=""
-    for (i=1; i<=depth; i++) {
-      if (path != "") path = path "."
-      path = path stack[i]
-    }
-    if (path != "") path = path "." key
-    else path = key
-    return path
-  }
-  BEGIN { in_table=0; depth=0 }
-  {
-    line=$0
-    sub(/^[ \t]+/, "", line)
-    sub(/[ \t]+$/, "", line)
-    if (line == "" || line ~ /^--/) next
-    if (!in_table) {
-      if (line ~ /^return[ \t]*\{$/) {
-        in_table=1
-        depth=0
-        next
-      }
-      if (match(line, /^([A-Za-z0-9_]+)[ \t]*=[ \t]*\{$/, m)) {
-        in_table=1
-        depth=0
-        next
-      }
-      next
-    }
-    if (line ~ /^}[ \t]*,?[ \t]*$/) {
-      if (depth == 0) {
-        in_table=0
-      } else {
-        depth--
-        delete stack[depth+1]
-      }
-      next
-    }
-    if (match(line, /^([A-Za-z0-9_]+)[ \t]*=[ \t]*\{$/, m)) {
-      depth++
-      stack[depth]=m[1]
-      next
-    }
-    if (match(line, /^([A-Za-z0-9_]+)[ \t]*=[ \t]*(.+?)(,?)[ \t]*$/, m)) {
-      key=m[1]
-      path=join_path(key)
-      n=split(path, parts, ".")
-      env="'"${env_prefix}"'"
-      for (i=1; i<=n; i++) {
-        env=env "_" encode(parts[i])
-      }
-      print env "\t" path "\t" file
-    }
-  }
-  ' "${file}" >> "${lua_items_file}"
-lua_files="$(find "${sources_root}" -type f -path '*Server*' -name '*.lua' | sort)"
+if [ -f "${env_template}" ]; then
+  grep -oE '^[[:space:]]*[A-Z][A-Z0-9_]*=' "${env_template}" \
+    | sed -e 's/^[[:space:]]*//' -e 's/=.*$//' \
+    | sort -u \
+    > "${template_envs_file}"
+fi
+
+is_documented() {
+  local key="$1"
+  if [ -s "${template_envs_file}" ] && grep -qx "${key}" "${template_envs_file}"; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+collect_handcrafted_envs() {
+  local refs_raw=""
+  local assigned_raw=""
+  local assigned_for_raw=""
+  local assigned_local_raw=""
+  local refs assigned assigned_for assigned_local
+  local -a scan_files=()
+
+  if [ -f "${entry_sh}" ]; then
+    scan_files+=("${entry_sh}")
+  fi
+  if [ -d "${env_hooks_dir}" ]; then
+    while IFS= read -r file; do
+      [ -z "${file}" ] && continue
+      scan_files+=("${file}")
+    done <<< "$(find "${env_hooks_dir}" -type f -name '*.sh' | sort)"
+  fi
+
+  if [ ${#scan_files[@]} -eq 0 ]; then
+    return
+  fi
+
+  for file in "${scan_files[@]}"; do
+    refs_raw="${refs_raw}
+$(grep -oE '\$\{[A-Z][A-Z0-9_]*\}|\$[A-Z][A-Z0-9_]*' "${file}" || true)"
+    assigned_raw="${assigned_raw}
+$(grep -oE '^[[:space:]]*[A-Z][A-Z0-9_]*=' "${file}" || true)"
+    assigned_for_raw="${assigned_for_raw}
+$(grep -oE '\bfor[[:space:]]+[A-Z][A-Z0-9_]*[[:space:]]+in\b' "${file}" || true)"
+    assigned_local_raw="${assigned_local_raw}
+$(grep -oE '\blocal[[:space:]]+[A-Z][A-Z0-9_]*\b' "${file}" || true)"
+  done
+
+  refs="$(printf '%s\n' "${refs_raw}" | sed -e 's/[${}]//g' | sed '/^$/d' | sort -u)"
+  assigned="$(printf '%s\n' "${assigned_raw}" | sed -e 's/^[[:space:]]*//' -e 's/=.*$//' | sed '/^$/d' | sort -u)"
+  assigned_for="$(printf '%s\n' "${assigned_for_raw}" | awk '{print $2}' | sed '/^$/d' | sort -u)"
+  assigned_local="$(printf '%s\n' "${assigned_local_raw}" | awk '{print $2}' | sed '/^$/d' | sort -u)"
+  assigned="$(printf '%s\n%s\n%s\n' "${assigned}" "${assigned_for}" "${assigned_local}" | sed '/^$/d' | sort -u)"
+
+  while IFS= read -r env_name; do
+    [ -z "${env_name}" ] && continue
+    case "${env_name}" in
+      INI_*|LUA_*) continue ;;
+    esac
+    documented="$(is_documented "${env_name}")"
+    handled_by=""
+    if [ -f "${env_hooks_dir}/${env_name}.sh" ]; then
+      handled_by="scripts/env_hooks/${env_name}.sh"
+    fi
+    printf '%s\t%s\t%s\n' "${env_name}" "${documented}" "${handled_by}" >> "${handcrafted_file}"
+  done <<< "$(comm -23 <(printf '%s\n' "${refs}" | sort -u) <(printf '%s\n' "${assigned}" | sort -u))"
+}
+
+ini_files=""
+lua_files=""
+if [ -n "${sources_root}" ] && [ -d "${sources_root}" ]; then
+  ini_files="$(find "${sources_root}" -type f -path '*Server*' -name '*.ini' | sort)"
+  lua_files="$(find "${sources_root}" -type f -path '*Server*' -name '*.lua' | sort)"
+else
+  if [ -z "${sources_root}" ]; then
+    echo "Info: ENV_SOURCES_DIR not set; skipping INI/Lua env discovery." >&2
+  else
+    echo "Info: ENV_SOURCES_DIR not found (${sources_root}); skipping INI/Lua env discovery." >&2
+  fi
+fi
 
 server_name="${SERVERNAME:-}"
 if [ -z "${server_name}" ]; then
@@ -140,18 +160,24 @@ while IFS= read -r file; do
   else
     env_prefix="INI_${file_id}__"
   fi
-  awk -v file="${file}" '
+  awk -v file="${file}" -v env_prefix="${env_prefix}" '
   BEGIN { section="" }
   {
     line=$0
     sub(/^[ \t]+/, "", line)
     sub(/[ \t]+$/, "", line)
     if (line == "" || line ~ /^[;#]/) next
-    if (match(line, /^\[([^\]]+)\]/, m)) { section=m[1]; next }
-    if (match(line, /^([^=]+)=(.*)/, m)) {
-      key=m[1]
+    if (line ~ /^\[[^\]]+\]/) {
+      section=line
+      sub(/^\[/, "", section)
+      sub(/\].*$/, "", section)
+      next
+    }
+    if (line ~ /^[^=]+=.*$/) {
+      key=line
+      sub(/=.*/, "", key)
       gsub(/^[ \t]+|[ \t]+$/, "", key)
-      env=(section=="" ? "'"${env_prefix}"'" key : "'"${env_prefix}"'" section "__" key)
+      env=(section=="" ? env_prefix key : env_prefix section "__" key)
       print env "\t" section "\t" key "\t" file
     }
   }
@@ -171,108 +197,67 @@ while IFS= read -r file; do
   if [ -z "${file_id}" ]; then
     env_prefix="LUA"
   else
-    env_prefix="LUA_${file_id}"
+    env_prefix="LUA_${file_id}_"
   fi
-  awk -v file="${file}" '
+  awk -v file="${file}" -v env_prefix="${env_prefix}" '
   function encode(value,    out) {
     out=value
     gsub(/_/, "__", out)
     return out
   }
   function join_path(key,    i, path) {
-    refs_raw=""
-    assigned_raw=""
-    assigned_for_raw=""
-    assigned_local_raw=""
-    scan_files=()
-    if [ -f "${entry_sh}" ]; then
-      scan_files+=("${entry_sh}")
-    fi
-    if [ -d "${env_hooks_dir}" ]; then
-      while IFS= read -r file; do
-        [ -z "${file}" ] && continue
-        scan_files+=("${file}")
-      done <<< "$(find "${env_hooks_dir}" -type f -name '*.sh' | sort)"
-    fi
-
-    for file in "${scan_files[@]}"; do
-      refs_raw="${refs_raw}
-    $(grep -oE '\$\{[A-Z][A-Z0-9_]*\}|\$[A-Z][A-Z0-9_]*' "${file}" || true)"
-      assigned_raw="${assigned_raw}
-        scan_files+=("${file}")
-      assigned_for_raw="${assigned_for_raw}
-      done <<< "$(find "${env_hooks_dir}" -type f -name '*.sh' | sort)"
-      assigned_local_raw="${assigned_local_raw}
-    fi
-    done
-
-    refs="$(printf '%s\n' "${refs_raw}" | sed -e 's/[${}]//g' | sed '/^$/d' | sort -u)"
-    assigned="$(printf '%s\n' "${assigned_raw}" | sed -e 's/^[[:space:]]*//' -e 's/=.*$//' | sed '/^$/d' | sort -u)"
-    assigned_for="$(printf '%s\n' "${assigned_for_raw}" | awk '{print $2}' | sed '/^$/d' | sort -u)"
-    assigned_local="$(printf '%s\n' "${assigned_local_raw}" | awk '{print $2}' | sed '/^$/d' | sort -u)"
-    assigned="$(printf '%s\n%s\n%s\n' "${assigned}" "${assigned_for}" "${assigned_local}" | sed '/^$/d' | sort -u)"
-
-    handcrafted_list="$(comm -23 <(printf '%s\n' "${refs}" | sort -u) <(printf '%s\n' "${assigned}" | sort -u))"
-
-    for file in "${scan_files[@]}"; do
-      refs_raw="${refs_raw}
-      while IFS= read -r file; do
-      assigned_raw="${assigned_raw}
-        [ -z "${file}" ] && continue
-      assigned_for_raw="${assigned_for_raw}
-        scan_files+=("${file}")
-      assigned_local_raw="${assigned_local_raw}
-      done <<< "$(find "${env_hooks_dir}" -type f -name '*.sh' | sort)"
-    done
-
-    refs="$(printf '%s\n' "${refs_raw}" | sed -e 's/[${}]//g' | sed '/^$/d' | sort -u)"
-    assigned="$(printf '%s\n' "${assigned_raw}" | sed -e 's/^[[:space:]]*//' -e 's/=.*$//' | sed '/^$/d' | sort -u)"
-    assigned_for="$(printf '%s\n' "${assigned_for_raw}" | awk '{print $2}' | sed '/^$/d' | sort -u)"
-    assigned_local="$(printf '%s\n' "${assigned_local_raw}" | awk '{print $2}' | sed '/^$/d' | sort -u)"
-    assigned="$(printf '%s\n%s\n%s\n' "${assigned}" "${assigned_for}" "${assigned_local}" | sed '/^$/d' | sort -u)"
-    fi
-
-    for file in "${scan_files[@]}"; do
-      refs_raw="${refs_raw}
-  BEGIN { in_sandbox=0; depth=0 }
-      assigned_raw="${assigned_raw}
+    path=""
+    for (i=1; i<=depth; i++) {
+      if (path != "") path = path "."
+      path = path stack[i]
+    }
+    if (path != "") path = path "." key
+    else path = key
+    return path
+  }
+  BEGIN { in_table=0; depth=0 }
   {
-      assigned_for_raw="${assigned_for_raw}
     line=$0
-      assigned_local_raw="${assigned_local_raw}
     sub(/^[ \t]+/, "", line)
-    done
-
-    refs="$(printf '%s\n' "${refs_raw}" | sed -e 's/[${}]//g' | sed '/^$/d' | sort -u)"
-    assigned="$(printf '%s\n' "${assigned_raw}" | sed -e 's/^[[:space:]]*//' -e 's/=.*$//' | sed '/^$/d' | sort -u)"
-    assigned_for="$(printf '%s\n' "${assigned_for_raw}" | awk '{print $2}' | sed '/^$/d' | sort -u)"
-    assigned_local="$(printf '%s\n' "${assigned_local_raw}" | awk '{print $2}' | sed '/^$/d' | sort -u)"
-    assigned="$(printf '%s\n%s\n%s\n' "${assigned}" "${assigned_for}" "${assigned_local}" | sed '/^$/d' | sort -u)"
     sub(/[ \t]+$/, "", line)
     if (line == "" || line ~ /^--/) next
-    if (!in_sandbox) {
-      if (line ~ /^SandboxVars[ \t]*=[ \t]*\{$/ || line ~ /^return[ \t]*\{$/) {
-        in_sandbox=1
-        depth=1
+    if (!in_table) {
+      if (line ~ /^return[ \t]*\{$/) {
+        in_table=1
+        depth=0
+        next
+      }
+      if (line ~ /^[A-Za-z0-9_]+[ \t]*=[ \t]*\{$/) {
+        in_table=1
+        depth=0
+        next
       }
       next
     }
     if (line ~ /^}[ \t]*,?[ \t]*$/) {
-      depth--
-      if (depth <= 0) { in_sandbox=0; depth=0 }
-      else delete stack[depth+1]
+      if (depth == 0) {
+        in_table=0
+      } else {
+        depth--
+        delete stack[depth+1]
+      }
       next
     }
-    if (match(line, /^([A-Za-z0-9_]+)[ \t]*=[ \t]*\{$/, m)) {
+    if (line ~ /^[A-Za-z0-9_]+[ \t]*=[ \t]*\{$/) {
       depth++
-      stack[depth]=m[1]
+      key=line
+      sub(/^[ \t]*/, "", key)
+      sub(/[ \t]*=.*$/, "", key)
+      stack[depth]=key
       next
     }
-    if (match(line, /^([A-Za-z0-9_]+)[ \t]*=[ \t]*(.+?)(,?)[ \t]*$/, m)) {
-      key=m[1]
+    if (line ~ /^[A-Za-z0-9_]+[ \t]*=[ \t]*.+$/) {
+      key=line
+      sub(/^[ \t]*/, "", key)
+      sub(/[ \t]*=.*$/, "", key)
       path=join_path(key)
       n=split(path, parts, ".")
-      env="'"${env_prefix}"'"
+      env=env_prefix
       for (i=1; i<=n; i++) {
         env=env "_" encode(parts[i])
       }
@@ -281,6 +266,8 @@ while IFS= read -r file; do
   }
   ' "${file}" >> "${lua_items_file}"
 done <<< "${lua_files}"
+
+collect_handcrafted_envs
 
 ini_json="$(awk -F '\t' '
   {
@@ -300,7 +287,8 @@ ini_json="$(awk -F '\t' '
   | map(select(length>0)
     | split("\t")
     | {env_name:.[0],section:.[1],key:.[2],sources:(.[3]|split("\n")|map(select(length>0)))}
-    | select((list($manual_replaces) | index(.env_name)) | not)
+    | . as $row
+    | select((list($manual_replaces) | index($row.env_name)) | not)
   )
 ')"
 
@@ -322,16 +310,17 @@ lua_json="$(awk -F '\t' '
   | map(select(length>0)
     | split("\t")
     | {env_name:.[0],path:.[1],sources:(.[2]|split("\n")|map(select(length>0)))}
-    | select((list($manual_replaces) | index(.env_name)) | not)
+    | . as $row
+    | select((list($manual_replaces) | index($row.env_name)) | not)
   )
 ')"
 
 handcrafted_json="$(jq -R -s '
   split("\n")
   | map(select(length>0)
-    | split("\t")
-    | {name:.[0],source:"scripts/entry.sh",documented:(.[1]=="true")}
-    | (if (.[2] != "") then . + {handled_by:.[2]} else . end)
+    | split("\t") as $parts
+    | {name:$parts[0],source:"scripts/entry.sh",documented:($parts[1]=="true")}
+    | (if ($parts[2] != "") then . + {handled_by:$parts[2]} else . end)
   )
 ' "${handcrafted_file}")"
 

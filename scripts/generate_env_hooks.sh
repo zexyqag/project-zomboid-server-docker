@@ -64,9 +64,17 @@ if [ -f "${env_template}" ]; then
 fi
 
 if [ -n "${sources_root}" ] && [ -d "${sources_root}" ]; then
+  server_name="${SERVERNAME:-}"
+  if [ -z "${server_name}" ]; then
+    first_sandbox="$(find "${sources_root}" -type f -path '*Server*' -name '*_SandboxVars.lua' | sort | head -n 1)"
+    if [ -n "${first_sandbox}" ]; then
+      sandbox_base="$(basename "${first_sandbox}" .lua)"
+      server_name="${sandbox_base%_SandboxVars}"
+    fi
+  fi
   while IFS= read -r file; do
     [ -z "${file}" ] && continue
-    awk '
+    awk -v env_prefix="${env_prefix}" '
     BEGIN { section="" }
     {
       line=$0
@@ -86,6 +94,19 @@ if [ -n "${sources_root}" ] && [ -d "${sources_root}" ]; then
 
   while IFS= read -r file; do
     [ -z "${file}" ] && continue
+    base_name="$(basename "${file}" .lua)"
+    if [ -n "${server_name}" ] && [ "${base_name}" = "${server_name}" ]; then
+      file_id=""
+    elif [ -n "${server_name}" ] && [[ "${base_name}" == "${server_name}_"* ]]; then
+      file_id="${base_name#${server_name}_}"
+    else
+      file_id="${base_name}"
+    fi
+    if [ -z "${file_id}" ]; then
+      env_prefix="LUA"
+    else
+      env_prefix="LUA_${file_id}_"
+    fi
     awk '
     function encode(value,    out) {
       out=value
@@ -130,7 +151,7 @@ if [ -n "${sources_root}" ] && [ -d "${sources_root}" ]; then
         key=m[1]
         path=join_path(key)
         n=split(path, parts, ".")
-        env="SANDBOXVARS"
+        env=env_prefix
         for (i=1; i<=n; i++) {
           env=env "_" encode(parts[i])
         }
@@ -166,7 +187,7 @@ replacement_map_key() {
 description_for() {
   case "$1" in
     INI_*) echo "INI override (auto-generated key)." ;;
-    SANDBOXVARS_*) echo "SandboxVars override (auto-generated key)." ;;
+    LUA_*) echo "Lua override (auto-generated key)." ;;
     *_FILE) echo "Read value from a file." ;;
     *) echo "TODO: describe ${1}." ;;
   esac

@@ -69,7 +69,7 @@ BEGIN {
   }
   depth=0
 }
-function trim(s) { sub(/^\s+/, "", s); sub(/\s+$/, "", s); return s }
+function trim(s) { sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s); return s }
 function join_path(k,   i, start, path) {
   path=""
   start=1
@@ -89,40 +89,52 @@ function join_path(k,   i, start, path) {
 {
   line=$0
   # skip comment-only lines
-  if (line ~ /^\s*--/) {
+  if (line ~ /^[ \t]*--/) {
     print line
     next
   }
 
   # table start: Key = {
-  if (match(line, /^\s*([A-Za-z0-9_]+)\s*=\s*\{\s*$/, m)) {
+  if (line ~ /^[ \t]*[A-Za-z0-9_]+[ \t]*=[ \t]*\{[ \t]*$/) {
     depth++
-    stack[depth]=m[1]
+    key=line
+    sub(/^[ \t]*/, "", key)
+    sub(/[ \t]*=.*$/, "", key)
+    stack[depth]=key
     print line
     next
   }
 
   # table end: }
-  if (match(line, /^\s*}\s*,?\s*$/)) {
+  if (line ~ /^[ \t]*}[ \t]*,?[ \t]*$/) {
     if (depth > 0) depth--
     print line
     next
   }
 
   # assignment: Key = value,
-  if (match(line, /^\s*([A-Za-z0-9_]+)\s*=\s*(.+?)(,?)\s*$/, m)) {
-    key=m[1]
-    value=m[2]
-    comma=m[3]
+  if (line ~ /^[ \t]*[A-Za-z0-9_]+[ \t]*=[ \t]*.+,?[ \t]*$/) {
+    key=line
+    sub(/^[ \t]*/, "", key)
+    sub(/[ \t]*=.*$/, "", key)
+    value=line
+    sub(/^[^=]*=/, "", value)
+    sub(/^[ \t]+/, "", value)
+    sub(/[ \t]+$/, "", value)
+    comma=""
+    if (value ~ /,[ \t]*$/) {
+      comma=","
+      sub(/,[ \t]*$/, "", value)
+      sub(/[ \t]+$/, "", value)
+    }
     path=join_path(key)
     if (root_prefix != "") {
       path = root_prefix "." path
     }
     path_key = (case_sensitive_enabled ? path : tolower(path))
     if (path_key in updates) {
-      indent=""
-      match(line, /^\s*/, ind)
-      indent=substr(line, RSTART, RLENGTH)
+      indent=line
+      sub(/[^ \t].*$/, "", indent)
       newval=updates[path_key]
       seen[path_key]=1
       if (dry_run ~ /^(1|true|yes|y|on)$/) {

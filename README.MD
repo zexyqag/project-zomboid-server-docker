@@ -64,6 +64,7 @@ Use .env.template as a starting point for your `.env` file.
 Boolean options accept: `1`, `true`, `yes`, `y`, `on` and `0`, `false`, `no`, `n`, `off`.
 
 Generated env var references are published to the docs/env branch of this repository. The branch contains JSON files per tag for the full, runtime-derived list.
+You can browse them at https://github.com/zexyqag/project-zomboid-server-docker/tree/docs/env/docs/env.
 
 The image supports the following environment variables:
 `ADMINUSERNAME:` Sets the administrator username, otherwise `admin` will be used.
