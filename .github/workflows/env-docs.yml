@@ -140,7 +140,7 @@ jobs:
           ENV_SOURCES_DIR="${TAG_DIR}" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" bash scripts/generate_env_docs.sh
 
       - name: Upload env docs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: env-docs-${{ matrix.safe }}
           path: docs/env/${{ matrix.tag }}.json
@@ -158,7 +158,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download env docs
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: ./env-docs
 
