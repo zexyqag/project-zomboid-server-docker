@@ -57,10 +57,11 @@ jobs:
           matrix=$(printf '%s\n' "${tags[@]}" | jq -R -s '
             split("\n")
             | map(select(length>0) | {tag:., safe:(gsub("[^A-Za-z0-9_.-]"; "_"))})
+            | {include:.}
           ')
           if [ "${#tags[@]}" -eq 0 ]; then
             echo "has_tags=false" >> "$GITHUB_OUTPUT"
-            echo "matrix=[]" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"include\":[]}" >> "$GITHUB_OUTPUT"
           else
             echo "has_tags=true" >> "$GITHUB_OUTPUT"
             {
