@@ -35,42 +35,31 @@ jobs:
           echo "Running smoke tests for script changes"
           bash smoke/run_smoke.sh
 
-  build:
+  prepare:
     if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.force_rebuild == 'true')
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      has_builds: ${{ steps.set-matrix.outputs.has_builds }}
+      repo_name_lc: ${{ steps.set-matrix.outputs.repo_name_lc }}
+      repo_version: ${{ steps.set-matrix.outputs.repo_version }}
+      latest_stable: ${{ steps.set-matrix.outputs.latest_stable }}
+      latest_unstable: ${{ steps.set-matrix.outputs.latest_unstable }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set lowercase repository name
+      - name: Decide build matrix
+        id: set-matrix
         run: |
-          REPO_NAME=${{ github.repository }}
-          echo "REPO_NAME_LC=${REPO_NAME,,}" >>${GITHUB_ENV}
+          set -euo pipefail
+          REPO_NAME_LC="${{ github.repository }}"
+          REPO_NAME_LC="${REPO_NAME_LC,,}"
+          REPO_VERSION="${GITHUB_SHA::7}"
 
-      - name: Set repo version
-        run: |
-          echo "REPO_VERSION=${GITHUB_SHA::7}" >>${GITHUB_ENV}
-
-      - name: Get latest Project Zomboid versions
-        run: |
           chmod +x scripts/get_latest_versions.sh
-          scripts/get_latest_versions.sh >> ${GITHUB_ENV}
+          eval "$(scripts/get_latest_versions.sh)"
 
-      - name: Decide which images to build (push = rebuild both, schedule/manual = build missing)
-        run: |
           BUILD_STABLE=false
           BUILD_UNSTABLE=false
 
@@ -104,11 +93,57 @@ jobs:
             BUILD_UNSTABLE=true
           fi
 
-          echo "BUILD_STABLE=${BUILD_STABLE}" >> ${GITHUB_ENV}
-          echo "BUILD_UNSTABLE=${BUILD_UNSTABLE}" >> ${GITHUB_ENV}
+          channels=()
+          if [ "$BUILD_STABLE" = "true" ]; then
+            channels+=("stable")
+          fi
+          if [ "$BUILD_UNSTABLE" = "true" ]; then
+            channels+=("unstable")
+          fi
 
-      - name: Build and push stable Docker image (retry)
-        if: env.BUILD_STABLE == 'true'
+          matrix=$(printf '%s\n' "${channels[@]}" | jq -R -s '
+            split("\n")
+            | map(select(length>0) | {channel:., branch:(if . == "unstable" then "unstable" else "" end)})
+          ')
+
+          if [ "${#channels[@]}" -eq 0 ]; then
+            echo "has_builds=false" >> "$GITHUB_OUTPUT"
+            echo "matrix=[]" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_builds=true" >> "$GITHUB_OUTPUT"
+            echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "repo_name_lc=${REPO_NAME_LC}" >> "$GITHUB_OUTPUT"
+          echo "repo_version=${REPO_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "latest_stable=${LATEST_STABLE_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "latest_unstable=${LATEST_UNSTABLE_VERSION}" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: prepare
+    if: needs.prepare.outputs.has_builds == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image (retry)
         uses: nick-invision/retry@v3
         env:
           # Pass Steam credentials if available
@@ -118,65 +153,37 @@ jobs:
           timeout_minutes: 60
           max_attempts: 5
           command: |
-            # If STEAM_USERNAME is set, use it for build-args, else fallback to anonymous
-            if [ -n "$STEAM_USERNAME" ] && [ -n "$STEAM_PASSWORD" ]; then
-              echo "Using Steam credentials for build"
-              docker buildx build \
-                --build-arg STEAM_USERNAME="$STEAM_USERNAME" \
-                --build-arg STEAM_PASSWORD="$STEAM_PASSWORD" \
-                --cache-from type=gha \
-                --cache-to type=gha,mode=max \
-                --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }} \
-                --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }}-${{ env.REPO_VERSION }} \
-                --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable \
-                --push \
-                .
+            if [ "${{ matrix.channel }}" = "stable" ]; then
+              VERSION="${{ needs.prepare.outputs.latest_stable }}"
+              BRANCH_ARG=""
             else
-              echo "No Steam credentials, using anonymous login"
-              docker buildx build \
-                --cache-from type=gha \
-                --cache-to type=gha,mode=max \
-                --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }} \
-                --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable-${{ env.LATEST_STABLE_VERSION }}-${{ env.REPO_VERSION }} \
-                --tag ghcr.io/${{ env.REPO_NAME_LC }}:stable \
-                --push \
-                .
+              VERSION="${{ needs.prepare.outputs.latest_unstable }}"
+              BRANCH_ARG="--build-arg STEAMAPPBRANCH=unstable"
             fi
 
-      - name: Build and push unstable Docker image (retry)
-        if: env.BUILD_UNSTABLE == 'true'
-        uses: nick-invision/retry@v3
-        env:
-          # Pass Steam credentials if available
-          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
-          STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
-        with:
-          timeout_minutes: 60
-          max_attempts: 5
-          command: |
             # If STEAM_USERNAME is set, use it for build-args, else fallback to anonymous
             if [ -n "$STEAM_USERNAME" ] && [ -n "$STEAM_PASSWORD" ]; then
               echo "Using Steam credentials for build"
               docker buildx build \
-                --build-arg STEAMAPPBRANCH=unstable \
+                $BRANCH_ARG \
                 --build-arg STEAM_USERNAME="$STEAM_USERNAME" \
                 --build-arg STEAM_PASSWORD="$STEAM_PASSWORD" \
                 --cache-from type=gha \
                 --cache-to type=gha,mode=max \
-                --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }} \
-                --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }}-${{ env.REPO_VERSION }} \
-                --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable \
+                --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }}-${VERSION} \
+                --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }}-${VERSION}-${{ needs.prepare.outputs.repo_version }} \
+                --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }} \
                 --push \
                 .
             else
               echo "No Steam credentials, using anonymous login"
               docker buildx build \
-                --build-arg STEAMAPPBRANCH=unstable \
+                $BRANCH_ARG \
                 --cache-from type=gha \
                 --cache-to type=gha,mode=max \
-                --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }} \
-                --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable-${{ env.LATEST_UNSTABLE_VERSION }}-${{ env.REPO_VERSION }} \
-                --tag ghcr.io/${{ env.REPO_NAME_LC }}:unstable \
+                --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }}-${VERSION} \
+                --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }}-${VERSION}-${{ needs.prepare.outputs.repo_version }} \
+                --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }} \
                 --push \
                 .
             fi
