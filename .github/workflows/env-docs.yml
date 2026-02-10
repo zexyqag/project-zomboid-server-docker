@@ -63,7 +63,11 @@ jobs:
             echo "matrix=[]" >> "$GITHUB_OUTPUT"
           else
             echo "has_tags=true" >> "$GITHUB_OUTPUT"
-            echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
+            {
+              echo "matrix<<EOF"
+              echo "$matrix"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
           fi
 
   generate:
