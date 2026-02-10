@@ -104,14 +104,19 @@ jobs:
           matrix=$(printf '%s\n' "${channels[@]}" | jq -R -s '
             split("\n")
             | map(select(length>0) | {channel:., branch:(if . == "unstable" then "unstable" else "" end)})
+            | {include:.}
           ')
 
           if [ "${#channels[@]}" -eq 0 ]; then
             echo "has_builds=false" >> "$GITHUB_OUTPUT"
-            echo "matrix=[]" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"include\":[]}" >> "$GITHUB_OUTPUT"
           else
             echo "has_builds=true" >> "$GITHUB_OUTPUT"
-            echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
+            {
+              echo "matrix<<EOF"
+              echo "$matrix"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
           fi
 
           echo "repo_name_lc=${REPO_NAME_LC}" >> "$GITHUB_OUTPUT"
