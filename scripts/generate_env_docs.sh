@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+if [ "${ENV_DOCS_TRACE:-}" = "1" ]; then
+  set -x
+fi
+
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 output_path="${OUTPUT_PATH:-${repo_root}/docs/env.json}"
 sources_root="${ENV_SOURCES_DIR:-${repo_root}/docs/env_sources}"

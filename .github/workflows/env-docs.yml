@@ -138,7 +138,7 @@ jobs:
         run: |
           mkdir -p docs/env
           LOG_FILE="${RUNNER_TEMP}/env-docs-${TAG_SAFE}.log"
-          if ! ENV_SOURCES_DIR="${TAG_DIR}" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" bash scripts/generate_env_docs.sh >"${LOG_FILE}" 2>&1; then
+          if ! ENV_DOCS_TRACE=1 ENV_SOURCES_DIR="${TAG_DIR}" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${TAG}" bash scripts/generate_env_docs.sh >"${LOG_FILE}" 2>&1; then
             echo "generate_env_docs.sh failed; log output:" >&2
             cat "${LOG_FILE}" >&2
             exit 1
