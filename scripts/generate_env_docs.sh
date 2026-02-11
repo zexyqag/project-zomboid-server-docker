@@ -135,19 +135,6 @@ else
 fi
 
 server_name="${SERVERNAME:-}"
-if [ -z "${server_name}" ]; then
-  first_sandbox="$(printf '%s\n' "${lua_files}" | grep -E '_SandboxVars\.lua$' | head -n 1)"
-  if [ -n "${first_sandbox}" ]; then
-    sandbox_base="$(basename "${first_sandbox}" .lua)"
-    server_name="${sandbox_base%_SandboxVars}"
-  fi
-fi
-if [ -z "${server_name}" ]; then
-  first_ini="$(printf '%s\n' "${ini_files}" | head -n 1)"
-  if [ -n "${first_ini}" ]; then
-    server_name="$(basename "${first_ini}" .ini)"
-  fi
-fi
 
 while IFS= read -r file; do
   [ -z "${file}" ] && continue

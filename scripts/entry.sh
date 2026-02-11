@@ -5,10 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 cd ${STEAMAPPDIR}
 
-# You can choose a different servername by using this option when starting the server.
-if [ -z "${SERVERNAME:-}" ]; then
-  SERVERNAME="servertest"
-fi
+SERVERNAME="pzserver"
 
 ARGS=""
 

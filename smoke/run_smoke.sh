@@ -84,10 +84,10 @@ run_env_docs_smoke() {
   local env_dir="${TMP_DIR}/env_sources"
   local out_json="${TMP_DIR}/env.json"
   mkdir -p "${env_dir}/Server"
-  cp "${SCRIPT_DIR}/sample.ini" "${env_dir}/Server/sample.ini"
-  cp "${SCRIPT_DIR}/sample_sandbox.lua" "${env_dir}/Server/sample_SandboxVars.lua"
+  cp "${SCRIPT_DIR}/sample.ini" "${env_dir}/Server/pzserver.ini"
+  cp "${SCRIPT_DIR}/sample_sandbox.lua" "${env_dir}/Server/pzserver_SandboxVars.lua"
 
-  ENV_SOURCES_DIR="${env_dir}" OUTPUT_PATH="${out_json}" IMAGE_TAG="smoke" bash "${ROOT_DIR}/scripts/generate_env_docs.sh"
+  SERVERNAME=pzserver ENV_SOURCES_DIR="${env_dir}" OUTPUT_PATH="${out_json}" IMAGE_TAG="smoke" bash "${ROOT_DIR}/scripts/generate_env_docs.sh"
 
   if [ ! -s "${out_json}" ]; then
     echo "Env docs did not generate output" >&2

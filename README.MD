@@ -89,12 +89,13 @@ The image supports the following environment variables:
 
 - Set all server INI options using `INI_*` environment variables. See below for examples.
 - Set all server Lua options using `LUA_*` environment variables. See below for examples.
+- The default server name is fixed to `pzserver` to keep env var prefixes consistent.
 - For admin, server, and RCON passwords, use only `ADMINPASSWORD`, `ADMINPASSWORD_FILE`, `PASSWORD`, `PASSWORD_FILE`, `RCONPASSWORD`, or `RCONPASSWORD_FILE`.
 
 
 `INI_*:` Overrides for any `.ini` under `Zomboid/Server`.
 
-- Default server INI (e.g., `servertest.ini`): `INI_Key=Value`
+- Default server INI (e.g., `pzserver.ini`): `INI_Key=Value`
 - Sectioned INI: `INI_Section__Key=Value` (double underscore separates section and key)
 - Additional INI files: `INI_<file>__Section__Key=Value` or `INI_<file>__Key=Value`
 - If the filename starts with the server name, that prefix is removed from `<file>`.
@@ -122,7 +123,7 @@ INI_ServerOptions__PublicName="My Server"
 
 `LUA_*:` Overrides for any `.lua` under `Zomboid/Server`.
 
-- Default server Lua file (e.g., `servertest.lua`): `LUA_Path=Value`
+- Default server Lua file (e.g., `pzserver.lua`): `LUA_Path=Value`
 - Additional Lua files: `LUA_<file>__Path=Value`
 - If the filename starts with the server name, that prefix is removed from `<file>`.
 - `Path` uses `_` as path separator and `__` for a literal underscore.
@@ -153,7 +154,7 @@ LUA_othersettings__SomeTable_SomeKey=true
 
 `CLEAN_WORKSHOP_KEEP_FILE:` Optional path to write the resolved workshop keep list (one ID per line).
 
-`MOD_IDS:` Semicolon separated list of Mod IDs to install to the server. NOTE - B42 changes the way mod IDs must be supplied (\mod1;\mod2 inside the servertest.ini file) when defining this variable, precede each mod id with two backslashes (\\) to escape the backslash into the ini file. Leaving this empty will clear any existing Mods value.
+`MOD_IDS:` Semicolon separated list of Mod IDs to install to the server. NOTE - B42 changes the way mod IDs must be supplied (\mod1;\mod2 inside the pzserver.ini file) when defining this variable, precede each mod id with two backslashes (\\) to escape the backslash into the ini file. Leaving this empty will clear any existing Mods value.
 
 `MAP_SCAN_VERBOSE:` If true, logs per-item progress during workshop map scanning.
 
