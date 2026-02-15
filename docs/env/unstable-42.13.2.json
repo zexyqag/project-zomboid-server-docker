@@ -1,0 +1,3267 @@
+{
+  "generated_at": "2026-02-15",
+  "sources": {
+    "entry": "scripts/entry.sh",
+    "env_template": ".env.template",
+    "source_mode": "image_extract",
+    "ini_files": [
+      "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+    ],
+    "lua_files": [
+      "docs/env_sources/unstable-42.13.2/lua/media/lua/server/Foraging/forageServer.lua",
+      "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua",
+      "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_spawnpoints.lua",
+      "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_spawnregions.lua"
+    ]
+  },
+  "image_tag": "unstable-42.13.2",
+  "handcrafted_env": [
+    {
+      "name": "ADMINPASSWORD",
+      "source": "scripts/entry.sh",
+      "documented": true,
+      "handled_by": "scripts/env_hooks/ADMINPASSWORD.sh"
+    },
+    {
+      "name": "ADMINPASSWORD_FILE",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "ADMINUSERNAME",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "CACHEDIR",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "CLEAN_WORKSHOP_KEEP_FILE",
+      "source": "scripts/entry.sh",
+      "documented": true
+    },
+    {
+      "name": "DISABLE_ANTICHEAT",
+      "source": "scripts/entry.sh",
+      "documented": false,
+      "handled_by": "scripts/env_hooks/DISABLE_ANTICHEAT.sh"
+    },
+    {
+      "name": "HOMEDIR",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "IP",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "LANG",
+      "source": "scripts/entry.sh",
+      "documented": true
+    },
+    {
+      "name": "LD_LIBRARY_PATH",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "MAX_MEMORY",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "MEMORY",
+      "source": "scripts/entry.sh",
+      "documented": true
+    },
+    {
+      "name": "MIN_MEMORY",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "MODFOLDERS",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "MOD_IDS",
+      "source": "scripts/entry.sh",
+      "documented": true,
+      "handled_by": "scripts/env_hooks/MOD_IDS.sh"
+    },
+    {
+      "name": "PORT",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "SERVERPRESET",
+      "source": "scripts/entry.sh",
+      "documented": false,
+      "handled_by": "scripts/env_hooks/SERVERPRESET.sh"
+    },
+    {
+      "name": "STEAMAPPBRANCH",
+      "source": "scripts/entry.sh",
+      "documented": true
+    },
+    {
+      "name": "STEAMAPPDIR",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "STEAMAPPID",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "STEAMCMDDIR",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "STEAMPORT1",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "STEAMPORT2",
+      "source": "scripts/entry.sh",
+      "documented": false
+    },
+    {
+      "name": "WORKSHOP_IDS",
+      "source": "scripts/entry.sh",
+      "documented": true,
+      "handled_by": "scripts/env_hooks/WORKSHOP_IDS.sh"
+    }
+  ],
+  "ini_env": [
+    {
+      "env_name": "INI_AdminSafehouse",
+      "section": "",
+      "key": "AdminSafehouse",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AllowCoop",
+      "section": "",
+      "key": "AllowCoop",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AllowDestructionBySledgehammer",
+      "section": "",
+      "key": "AllowDestructionBySledgehammer",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AllowNonAsciiUsername",
+      "section": "",
+      "key": "AllowNonAsciiUsername",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AnnounceAnimalDeath",
+      "section": "",
+      "key": "AnnounceAnimalDeath",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AnnounceDeath",
+      "section": "",
+      "key": "AnnounceDeath",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatChecksum",
+      "section": "",
+      "key": "AntiCheatChecksum",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatFire",
+      "section": "",
+      "key": "AntiCheatFire",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatHit",
+      "section": "",
+      "key": "AntiCheatHit",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatItem",
+      "section": "",
+      "key": "AntiCheatItem",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatMovement",
+      "section": "",
+      "key": "AntiCheatMovement",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatPacket",
+      "section": "",
+      "key": "AntiCheatPacket",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatPermission",
+      "section": "",
+      "key": "AntiCheatPermission",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatPlayer",
+      "section": "",
+      "key": "AntiCheatPlayer",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatRecipe",
+      "section": "",
+      "key": "AntiCheatRecipe",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatSafeHouse",
+      "section": "",
+      "key": "AntiCheatSafeHouse",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatSafety",
+      "section": "",
+      "key": "AntiCheatSafety",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatServerCustomization",
+      "section": "",
+      "key": "AntiCheatServerCustomization",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AntiCheatXP",
+      "section": "",
+      "key": "AntiCheatXP",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_AutoCreateUserInWhiteList",
+      "section": "",
+      "key": "AutoCreateUserInWhiteList",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BackupsCount",
+      "section": "",
+      "key": "BackupsCount",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BackupsOnStart",
+      "section": "",
+      "key": "BackupsOnStart",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BackupsOnVersionChange",
+      "section": "",
+      "key": "BackupsOnVersionChange",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BackupsPeriod",
+      "section": "",
+      "key": "BackupsPeriod",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BadWordListFile",
+      "section": "",
+      "key": "BadWordListFile",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BadWordPolicy",
+      "section": "",
+      "key": "BadWordPolicy",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BadWordReplacement",
+      "section": "",
+      "key": "BadWordReplacement",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BanKickGlobalSound",
+      "section": "",
+      "key": "BanKickGlobalSound",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_BloodSplatLifespanDays",
+      "section": "",
+      "key": "BloodSplatLifespanDays",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_CarEngineAttractionModifier",
+      "section": "",
+      "key": "CarEngineAttractionModifier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ChatMessageCharacterLimit",
+      "section": "",
+      "key": "ChatMessageCharacterLimit",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ChatMessageSlowModeTime",
+      "section": "",
+      "key": "ChatMessageSlowModeTime",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ChatStreams",
+      "section": "",
+      "key": "ChatStreams",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ClientActionLogs",
+      "section": "",
+      "key": "ClientActionLogs",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ClientCommandFilter",
+      "section": "",
+      "key": "ClientCommandFilter",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DefaultPort",
+      "section": "",
+      "key": "DefaultPort",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DenyLoginOnOverloadedServer",
+      "section": "",
+      "key": "DenyLoginOnOverloadedServer",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableBurntTowing",
+      "section": "",
+      "key": "DisableBurntTowing",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableRadioAdmin",
+      "section": "",
+      "key": "DisableRadioAdmin",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableRadioGM",
+      "section": "",
+      "key": "DisableRadioGM",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableRadioInvisible",
+      "section": "",
+      "key": "DisableRadioInvisible",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableRadioModerator",
+      "section": "",
+      "key": "DisableRadioModerator",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableRadioOverseer",
+      "section": "",
+      "key": "DisableRadioOverseer",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableRadioStaff",
+      "section": "",
+      "key": "DisableRadioStaff",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableSafehouseWhenPlayerConnected",
+      "section": "",
+      "key": "DisableSafehouseWhenPlayerConnected",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableScoreboard",
+      "section": "",
+      "key": "DisableScoreboard",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableTrailerTowing",
+      "section": "",
+      "key": "DisableTrailerTowing",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisableVehicleTowing",
+      "section": "",
+      "key": "DisableVehicleTowing",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DiscordChannel",
+      "section": "",
+      "key": "DiscordChannel",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DiscordChannelID",
+      "section": "",
+      "key": "DiscordChannelID",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DiscordEnable",
+      "section": "",
+      "key": "DiscordEnable",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DiscordToken",
+      "section": "",
+      "key": "DiscordToken",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DisplayUserName",
+      "section": "",
+      "key": "DisplayUserName",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DoLuaChecksum",
+      "section": "",
+      "key": "DoLuaChecksum",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_DropOffWhiteListAfterDeath",
+      "section": "",
+      "key": "DropOffWhiteListAfterDeath",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_Faction",
+      "section": "",
+      "key": "Faction",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_FactionDaySurvivedToCreate",
+      "section": "",
+      "key": "FactionDaySurvivedToCreate",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_FactionPlayersRequiredForTag",
+      "section": "",
+      "key": "FactionPlayersRequiredForTag",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_FastForwardMultiplier",
+      "section": "",
+      "key": "FastForwardMultiplier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_GlobalChat",
+      "section": "",
+      "key": "GlobalChat",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_GoodWordListFile",
+      "section": "",
+      "key": "GoodWordListFile",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_HideAdminsInPlayerList",
+      "section": "",
+      "key": "HideAdminsInPlayerList",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_HideDisguisedUserName",
+      "section": "",
+      "key": "HideDisguisedUserName",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_HidePlayersBehindYou",
+      "section": "",
+      "key": "HidePlayersBehindYou",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ItemNumbersLimitPerContainer",
+      "section": "",
+      "key": "ItemNumbersLimitPerContainer",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_KnockedDownAllowed",
+      "section": "",
+      "key": "KnockedDownAllowed",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_LoginQueueConnectTimeout",
+      "section": "",
+      "key": "LoginQueueConnectTimeout",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_LoginQueueEnabled",
+      "section": "",
+      "key": "LoginQueueEnabled",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_Map",
+      "section": "",
+      "key": "Map",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_MapRemotePlayerVisibility",
+      "section": "",
+      "key": "MapRemotePlayerVisibility",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_MaxAccountsPerUser",
+      "section": "",
+      "key": "MaxAccountsPerUser",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_MaxPlayers",
+      "section": "",
+      "key": "MaxPlayers",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_MaxSafezoneSize",
+      "section": "",
+      "key": "MaxSafezoneSize",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_MouseOverToSeeDisplayName",
+      "section": "",
+      "key": "MouseOverToSeeDisplayName",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_MultiplayerStatisticsPeriod",
+      "section": "",
+      "key": "MultiplayerStatisticsPeriod",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_NoFire",
+      "section": "",
+      "key": "NoFire",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_Open",
+      "section": "",
+      "key": "Open",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PVP",
+      "section": "",
+      "key": "PVP",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PVPFirearmDamageModifier",
+      "section": "",
+      "key": "PVPFirearmDamageModifier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PVPLogToolChat",
+      "section": "",
+      "key": "PVPLogToolChat",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PVPLogToolFile",
+      "section": "",
+      "key": "PVPLogToolFile",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PVPMeleeDamageModifier",
+      "section": "",
+      "key": "PVPMeleeDamageModifier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PVPMeleeWhileHitReaction",
+      "section": "",
+      "key": "PVPMeleeWhileHitReaction",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PauseEmpty",
+      "section": "",
+      "key": "PauseEmpty",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PerkLogs",
+      "section": "",
+      "key": "PerkLogs",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PingLimit",
+      "section": "",
+      "key": "PingLimit",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PlayerBumpPlayer",
+      "section": "",
+      "key": "PlayerBumpPlayer",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PlayerRespawnWithOther",
+      "section": "",
+      "key": "PlayerRespawnWithOther",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PlayerRespawnWithSelf",
+      "section": "",
+      "key": "PlayerRespawnWithSelf",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PlayerSafehouse",
+      "section": "",
+      "key": "PlayerSafehouse",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_Public",
+      "section": "",
+      "key": "Public",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PublicDescription",
+      "section": "",
+      "key": "PublicDescription",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_PublicName",
+      "section": "",
+      "key": "PublicName",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_RCONPort",
+      "section": "",
+      "key": "RCONPort",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_RemovePlayerCorpsesOnCorpseRemoval",
+      "section": "",
+      "key": "RemovePlayerCorpsesOnCorpseRemoval",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ResetID",
+      "section": "",
+      "key": "ResetID",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafeHouseRemovalTime",
+      "section": "",
+      "key": "SafeHouseRemovalTime",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehouseAllowFire",
+      "section": "",
+      "key": "SafehouseAllowFire",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehouseAllowLoot",
+      "section": "",
+      "key": "SafehouseAllowLoot",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehouseAllowNonResidential",
+      "section": "",
+      "key": "SafehouseAllowNonResidential",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehouseAllowRespawn",
+      "section": "",
+      "key": "SafehouseAllowRespawn",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehouseAllowTrepass",
+      "section": "",
+      "key": "SafehouseAllowTrepass",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehouseDaySurvivedToClaim",
+      "section": "",
+      "key": "SafehouseDaySurvivedToClaim",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehouseDisableDisguises",
+      "section": "",
+      "key": "SafehouseDisableDisguises",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafehousePreventsLootRespawn",
+      "section": "",
+      "key": "SafehousePreventsLootRespawn",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafetyCooldownTimer",
+      "section": "",
+      "key": "SafetyCooldownTimer",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafetyDisconnectDelay",
+      "section": "",
+      "key": "SafetyDisconnectDelay",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafetySystem",
+      "section": "",
+      "key": "SafetySystem",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SafetyToggleTimer",
+      "section": "",
+      "key": "SafetyToggleTimer",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SaveWorldEveryMinutes",
+      "section": "",
+      "key": "SaveWorldEveryMinutes",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_Seed",
+      "section": "",
+      "key": "Seed",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ServerImageIcon",
+      "section": "",
+      "key": "ServerImageIcon",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ServerImageLoadingScreen",
+      "section": "",
+      "key": "ServerImageLoadingScreen",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ServerImageLoginScreen",
+      "section": "",
+      "key": "ServerImageLoginScreen",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ServerPlayerID",
+      "section": "",
+      "key": "ServerPlayerID",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ServerWelcomeMessage",
+      "section": "",
+      "key": "ServerWelcomeMessage",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ShowFirstAndLastName",
+      "section": "",
+      "key": "ShowFirstAndLastName",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_ShowSafety",
+      "section": "",
+      "key": "ShowSafety",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SledgehammerOnlyInSafehouse",
+      "section": "",
+      "key": "SledgehammerOnlyInSafehouse",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SleepAllowed",
+      "section": "",
+      "key": "SleepAllowed",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SleepNeeded",
+      "section": "",
+      "key": "SleepNeeded",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SneakModeHideFromOtherPlayers",
+      "section": "",
+      "key": "SneakModeHideFromOtherPlayers",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SpawnItems",
+      "section": "",
+      "key": "SpawnItems",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SpawnPoint",
+      "section": "",
+      "key": "SpawnPoint",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SpeedLimit",
+      "section": "",
+      "key": "SpeedLimit",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SteamScoreboard",
+      "section": "",
+      "key": "SteamScoreboard",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SteamVAC",
+      "section": "",
+      "key": "SteamVAC",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_SwitchZombiesOwnershipEachUpdate",
+      "section": "",
+      "key": "SwitchZombiesOwnershipEachUpdate",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_TrashDeleteAll",
+      "section": "",
+      "key": "TrashDeleteAll",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_UDPPort",
+      "section": "",
+      "key": "UDPPort",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_UPnP",
+      "section": "",
+      "key": "UPnP",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_UltraSpeedDoesnotAffectToAnimals",
+      "section": "",
+      "key": "UltraSpeedDoesnotAffectToAnimals",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_UsePhysicsHitReaction",
+      "section": "",
+      "key": "UsePhysicsHitReaction",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_UsernameDisguises",
+      "section": "",
+      "key": "UsernameDisguises",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_Voice3D",
+      "section": "",
+      "key": "Voice3D",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_VoiceEnable",
+      "section": "",
+      "key": "VoiceEnable",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_VoiceMaxDistance",
+      "section": "",
+      "key": "VoiceMaxDistance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_VoiceMinDistance",
+      "section": "",
+      "key": "VoiceMinDistance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_WarDuration",
+      "section": "",
+      "key": "WarDuration",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_WarSafehouseHitPoints",
+      "section": "",
+      "key": "WarSafehouseHitPoints",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_WarStartDelay",
+      "section": "",
+      "key": "WarStartDelay",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_WebhookAddress",
+      "section": "",
+      "key": "WebhookAddress",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    },
+    {
+      "env_name": "INI_server_browser_announced_ip",
+      "section": "",
+      "key": "server_browser_announced_ip",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver.ini"
+      ]
+    }
+  ],
+  "lua_env": [
+    {
+      "env_name": "LUA_SandboxVars__AbundantLootFactor",
+      "path": "AbundantLootFactor",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__Alarm",
+      "path": "Alarm",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AlarmDecay",
+      "path": "AlarmDecay",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AlarmDecayModifier",
+      "path": "AlarmDecayModifier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AllClothesUnlocked",
+      "path": "AllClothesUnlocked",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AllowExteriorGenerator",
+      "path": "AllowExteriorGenerator",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AmmoLootNew",
+      "path": "AmmoLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnimalAgeModifier",
+      "path": "AnimalAgeModifier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnimalEggHatch",
+      "path": "AnimalEggHatch",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnimalGrassRegrowTime",
+      "path": "AnimalGrassRegrowTime",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnimalMatingSeason",
+      "path": "AnimalMatingSeason",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnimalMetaPredator",
+      "path": "AnimalMetaPredator",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnimalMetaStatsModifier",
+      "path": "AnimalMetaStatsModifier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnimalMilkIncModifier",
+      "path": "AnimalMilkIncModifier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnimalPathChance",
+      "path": "AnimalPathChance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnimalPregnancyTime",
+      "path": "AnimalPregnancyTime",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnimalRanchChance",
+      "path": "AnimalRanchChance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnimalSoundAttractZombies",
+      "path": "AnimalSoundAttractZombies",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnimalStatsModifier",
+      "path": "AnimalStatsModifier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnimalTrackChance",
+      "path": "AnimalTrackChance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnimalWoolIncModifier",
+      "path": "AnimalWoolIncModifier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AnnotatedMapChance",
+      "path": "AnnotatedMapChance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__AttackBlockMovements",
+      "path": "AttackBlockMovements",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__Basement_SpawnFrequency",
+      "path": "Basement.SpawnFrequency",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__BloodLevel",
+      "path": "BloodLevel",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__BloodSplatLifespanDays",
+      "path": "BloodSplatLifespanDays",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__BoneFracture",
+      "path": "BoneFracture",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__CannedFoodLootNew",
+      "path": "CannedFoodLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__CarAlarm",
+      "path": "CarAlarm",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__CarDamageOnImpact",
+      "path": "CarDamageOnImpact",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__CarGasConsumption",
+      "path": "CarGasConsumption",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__CarGeneralCondition",
+      "path": "CarGeneralCondition",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__CarSpawnRate",
+      "path": "CarSpawnRate",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ChanceHasGas",
+      "path": "ChanceHasGas",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__CharacterFreePoints",
+      "path": "CharacterFreePoints",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ClayLakeChance",
+      "path": "ClayLakeChance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ClayRiverChance",
+      "path": "ClayRiverChance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ClimateCycle",
+      "path": "ClimateCycle",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ClothingDegradation",
+      "path": "ClothingDegradation",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ClothingLootNew",
+      "path": "ClothingLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__CommonLootFactor",
+      "path": "CommonLootFactor",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__CompostTime",
+      "path": "CompostTime",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ConstructionBonusPoints",
+      "path": "ConstructionBonusPoints",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ConstructionPreventsLootRespawn",
+      "path": "ConstructionPreventsLootRespawn",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ContainerLootNew",
+      "path": "ContainerLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__CookwareLootNew",
+      "path": "CookwareLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__DamageToPlayerFromHitByACar",
+      "path": "DamageToPlayerFromHitByACar",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__DayLength",
+      "path": "DayLength",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__DayNightCycle",
+      "path": "DayNightCycle",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__DaysForRottenFoodRemoval",
+      "path": "DaysForRottenFoodRemoval",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__DaysUntilMaximumDiminishedLoot",
+      "path": "DaysUntilMaximumDiminishedLoot",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__DaysUntilMaximumLooted",
+      "path": "DaysUntilMaximumLooted",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__DaysUntilMaximumRatIndex",
+      "path": "DaysUntilMaximumRatIndex",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__DecayingCorpseHealthImpact",
+      "path": "DecayingCorpseHealthImpact",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__DiscomfortFactor",
+      "path": "DiscomfortFactor",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__Distribution",
+      "path": "Distribution",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__EasyClimbing",
+      "path": "EasyClimbing",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ElecShut",
+      "path": "ElecShut",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ElecShutModifier",
+      "path": "ElecShutModifier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__EnablePoisoning",
+      "path": "EnablePoisoning",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__EnableSnowOnGround",
+      "path": "EnableSnowOnGround",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__EnableTaintedWaterText",
+      "path": "EnableTaintedWaterText",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__EnableVehicles",
+      "path": "EnableVehicles",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__EndRegen",
+      "path": "EndRegen",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ErosionDays",
+      "path": "ErosionDays",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ErosionSpeed",
+      "path": "ErosionSpeed",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ExtremeLootFactor",
+      "path": "ExtremeLootFactor",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__Farming",
+      "path": "Farming",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FarmingAmountNew",
+      "path": "FarmingAmountNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FarmingLootNew",
+      "path": "FarmingLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FarmingSpeedNew",
+      "path": "FarmingSpeedNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FireSpread",
+      "path": "FireSpread",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FirearmHeadGearEffect",
+      "path": "FirearmHeadGearEffect",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FirearmJamMultiplier",
+      "path": "FirearmJamMultiplier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FirearmMoodleMultiplier",
+      "path": "FirearmMoodleMultiplier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FirearmNoiseMultiplier",
+      "path": "FirearmNoiseMultiplier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FirearmUseDamageChance",
+      "path": "FirearmUseDamageChance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FirearmWeatherMultiplier",
+      "path": "FirearmWeatherMultiplier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FishAbundance",
+      "path": "FishAbundance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FogCycle",
+      "path": "FogCycle",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FoodLootNew",
+      "path": "FoodLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FoodRotSpeed",
+      "path": "FoodRotSpeed",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FridgeFactor",
+      "path": "FridgeFactor",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FuelStationGasEmptyChance",
+      "path": "FuelStationGasEmptyChance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FuelStationGasInfinite",
+      "path": "FuelStationGasInfinite",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FuelStationGasMax",
+      "path": "FuelStationGasMax",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__FuelStationGasMin",
+      "path": "FuelStationGasMin",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__GeneratorFuelConsumption",
+      "path": "GeneratorFuelConsumption",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__GeneratorSpawning",
+      "path": "GeneratorSpawning",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__GeneratorTileRange",
+      "path": "GeneratorTileRange",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__GeneratorVerticalPowerRange",
+      "path": "GeneratorVerticalPowerRange",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__Helicopter",
+      "path": "Helicopter",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__HoursForCorpseRemoval",
+      "path": "HoursForCorpseRemoval",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__HoursForLootRespawn",
+      "path": "HoursForLootRespawn",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__HoursForWorldItemRemoval",
+      "path": "HoursForWorldItemRemoval",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__InitialGas",
+      "path": "InitialGas",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__InjurySeverity",
+      "path": "InjurySeverity",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__InsaneLootFactor",
+      "path": "InsaneLootFactor",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ItemRemovalListBlacklistToggle",
+      "path": "ItemRemovalListBlacklistToggle",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__KeyLootNew",
+      "path": "KeyLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__KillInsideCrops",
+      "path": "KillInsideCrops",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__LevelForDismantleXPCutoff",
+      "path": "LevelForDismantleXPCutoff",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__LevelForMediaXPCutoff",
+      "path": "LevelForMediaXPCutoff",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__LightBulbLifespan",
+      "path": "LightBulbLifespan",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__LiteratureCooldown",
+      "path": "LiteratureCooldown",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__LiteratureLootNew",
+      "path": "LiteratureLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__LockedCar",
+      "path": "LockedCar",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__LockedHouses",
+      "path": "LockedHouses",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__LootItemRemovalList",
+      "path": "LootItemRemovalList",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MaggotSpawn",
+      "path": "MaggotSpawn",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__Map_AllowMiniMap",
+      "path": "Map.AllowMiniMap",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__Map_AllowWorldMap",
+      "path": "Map.AllowWorldMap",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__Map_MapAllKnown",
+      "path": "Map.MapAllKnown",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__Map_MapNeedsLight",
+      "path": "Map.MapNeedsLight",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MaterialLootNew",
+      "path": "MaterialLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MaxFogIntensity",
+      "path": "MaxFogIntensity",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MaxItemsForLootRespawn",
+      "path": "MaxItemsForLootRespawn",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MaxRainFxIntensity",
+      "path": "MaxRainFxIntensity",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MaximumDiminishedLoot",
+      "path": "MaximumDiminishedLoot",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MaximumFireFuelHours",
+      "path": "MaximumFireFuelHours",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MaximumLooted",
+      "path": "MaximumLooted",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MaximumLootedBuildingRooms",
+      "path": "MaximumLootedBuildingRooms",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MaximumRatIndex",
+      "path": "MaximumRatIndex",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MechanicsLootNew",
+      "path": "MechanicsLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MediaLootNew",
+      "path": "MediaLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MedicalLootNew",
+      "path": "MedicalLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MementoLootNew",
+      "path": "MementoLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MetaEvent",
+      "path": "MetaEvent",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MetaKnowledge",
+      "path": "MetaKnowledge",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MinutesPerPage",
+      "path": "MinutesPerPage",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiHitZombies",
+      "path": "MultiHitZombies",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Aiming",
+      "path": "MultiplierConfig.Aiming",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Axe",
+      "path": "MultiplierConfig.Axe",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Blacksmith",
+      "path": "MultiplierConfig.Blacksmith",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Blunt",
+      "path": "MultiplierConfig.Blunt",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Butchering",
+      "path": "MultiplierConfig.Butchering",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Carving",
+      "path": "MultiplierConfig.Carving",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Cooking",
+      "path": "MultiplierConfig.Cooking",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Doctor",
+      "path": "MultiplierConfig.Doctor",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Electricity",
+      "path": "MultiplierConfig.Electricity",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Farming",
+      "path": "MultiplierConfig.Farming",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Fishing",
+      "path": "MultiplierConfig.Fishing",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Fitness",
+      "path": "MultiplierConfig.Fitness",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_FlintKnapping",
+      "path": "MultiplierConfig.FlintKnapping",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Glassmaking",
+      "path": "MultiplierConfig.Glassmaking",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Global",
+      "path": "MultiplierConfig.Global",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_GlobalToggle",
+      "path": "MultiplierConfig.GlobalToggle",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Husbandry",
+      "path": "MultiplierConfig.Husbandry",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Lightfoot",
+      "path": "MultiplierConfig.Lightfoot",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_LongBlade",
+      "path": "MultiplierConfig.LongBlade",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Maintenance",
+      "path": "MultiplierConfig.Maintenance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Masonry",
+      "path": "MultiplierConfig.Masonry",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Mechanics",
+      "path": "MultiplierConfig.Mechanics",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_MetalWelding",
+      "path": "MultiplierConfig.MetalWelding",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Nimble",
+      "path": "MultiplierConfig.Nimble",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_PlantScavenging",
+      "path": "MultiplierConfig.PlantScavenging",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Pottery",
+      "path": "MultiplierConfig.Pottery",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Reloading",
+      "path": "MultiplierConfig.Reloading",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_SmallBlade",
+      "path": "MultiplierConfig.SmallBlade",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_SmallBlunt",
+      "path": "MultiplierConfig.SmallBlunt",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Sneak",
+      "path": "MultiplierConfig.Sneak",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Spear",
+      "path": "MultiplierConfig.Spear",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Sprinting",
+      "path": "MultiplierConfig.Sprinting",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Strength",
+      "path": "MultiplierConfig.Strength",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Tailoring",
+      "path": "MultiplierConfig.Tailoring",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Tracking",
+      "path": "MultiplierConfig.Tracking",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Trapping",
+      "path": "MultiplierConfig.Trapping",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MultiplierConfig_Woodwork",
+      "path": "MultiplierConfig.Woodwork",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__MuscleStrainFactor",
+      "path": "MuscleStrainFactor",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__NatureAbundance",
+      "path": "NatureAbundance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__NegativeTraitsPenalty",
+      "path": "NegativeTraitsPenalty",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__NightDarkness",
+      "path": "NightDarkness",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__NightLength",
+      "path": "NightLength",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__NoBlackClothes",
+      "path": "NoBlackClothes",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__NormalLootFactor",
+      "path": "NormalLootFactor",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__Nutrition",
+      "path": "Nutrition",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__OtherLootNew",
+      "path": "OtherLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__PlaceDirtAboveground",
+      "path": "PlaceDirtAboveground",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__PlantAbundance",
+      "path": "PlantAbundance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__PlantGrowingSeasons",
+      "path": "PlantGrowingSeasons",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__PlantResilience",
+      "path": "PlantResilience",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__PlayerDamageFromCrash",
+      "path": "PlayerDamageFromCrash",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__Rain",
+      "path": "Rain",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__RangedWeaponLootNew",
+      "path": "RangedWeaponLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__RareLootFactor",
+      "path": "RareLootFactor",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__RearVulnerability",
+      "path": "RearVulnerability",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__RecentlySurvivorVehicles",
+      "path": "RecentlySurvivorVehicles",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__RemoveStoryLoot",
+      "path": "RemoveStoryLoot",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__RemoveZombieLoot",
+      "path": "RemoveZombieLoot",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__RollsMultiplier",
+      "path": "RollsMultiplier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__RuralLooted",
+      "path": "RuralLooted",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__SeeNotLearntRecipe",
+      "path": "SeeNotLearntRecipe",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__SeenHoursPreventLootRespawn",
+      "path": "SeenHoursPreventLootRespawn",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__SirenEffectsZombies",
+      "path": "SirenEffectsZombies",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__SirenShutoffHours",
+      "path": "SirenShutoffHours",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__SleepingEvent",
+      "path": "SleepingEvent",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__StartDay",
+      "path": "StartDay",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__StartMonth",
+      "path": "StartMonth",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__StartTime",
+      "path": "StartTime",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__StartYear",
+      "path": "StartYear",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__StarterKit",
+      "path": "StarterKit",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__StatsDecrease",
+      "path": "StatsDecrease",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__SurvivalGearsLootNew",
+      "path": "SurvivalGearsLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__SurvivorHouseChance",
+      "path": "SurvivorHouseChance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__Temperature",
+      "path": "Temperature",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__TimeSinceApo",
+      "path": "TimeSinceApo",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ToolLootNew",
+      "path": "ToolLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__TrafficJam",
+      "path": "TrafficJam",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__VERSION",
+      "path": "VERSION",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__VehicleEasyUse",
+      "path": "VehicleEasyUse",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__VehicleStoryChance",
+      "path": "VehicleStoryChance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__WaterShut",
+      "path": "WaterShut",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__WaterShutModifier",
+      "path": "WaterShutModifier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__WeaponLootNew",
+      "path": "WeaponLootNew",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__WorldItemRemovalList",
+      "path": "WorldItemRemovalList",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__WoundInfectionFactor",
+      "path": "WoundInfectionFactor",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieAttractionMultiplier",
+      "path": "ZombieAttractionMultiplier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_FollowSoundDistance",
+      "path": "ZombieConfig.FollowSoundDistance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_PopulationMultiplier",
+      "path": "ZombieConfig.PopulationMultiplier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_PopulationPeakDay",
+      "path": "ZombieConfig.PopulationPeakDay",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_PopulationPeakMultiplier",
+      "path": "ZombieConfig.PopulationPeakMultiplier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_PopulationStartMultiplier",
+      "path": "ZombieConfig.PopulationStartMultiplier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_RallyGroupRadius",
+      "path": "ZombieConfig.RallyGroupRadius",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_RallyGroupSeparation",
+      "path": "ZombieConfig.RallyGroupSeparation",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_RallyGroupSize",
+      "path": "ZombieConfig.RallyGroupSize",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_RallyGroupSizeVariance",
+      "path": "ZombieConfig.RallyGroupSizeVariance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_RallyTravelDistance",
+      "path": "ZombieConfig.RallyTravelDistance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_RedistributeHours",
+      "path": "ZombieConfig.RedistributeHours",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_RespawnHours",
+      "path": "ZombieConfig.RespawnHours",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_RespawnMultiplier",
+      "path": "ZombieConfig.RespawnMultiplier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_RespawnUnseenHours",
+      "path": "ZombieConfig.RespawnUnseenHours",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieConfig_ZombiesCountBeforeDelete",
+      "path": "ZombieConfig.ZombiesCountBeforeDelete",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieHealthImpact",
+      "path": "ZombieHealthImpact",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_ActiveOnly",
+      "path": "ZombieLore.ActiveOnly",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_ChanceOfAttachedWeapon",
+      "path": "ZombieLore.ChanceOfAttachedWeapon",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_Cognition",
+      "path": "ZombieLore.Cognition",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_CrawlUnderVehicle",
+      "path": "ZombieLore.CrawlUnderVehicle",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_DisableFakeDead",
+      "path": "ZombieLore.DisableFakeDead",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_FenceDamageMultiplier",
+      "path": "ZombieLore.FenceDamageMultiplier",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_FenceThumpersRequired",
+      "path": "ZombieLore.FenceThumpersRequired",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_Hearing",
+      "path": "ZombieLore.Hearing",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_Memory",
+      "path": "ZombieLore.Memory",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_Mortality",
+      "path": "ZombieLore.Mortality",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_PlayerSpawnZombieRemoval",
+      "path": "ZombieLore.PlayerSpawnZombieRemoval",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_Reanimate",
+      "path": "ZombieLore.Reanimate",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_Sight",
+      "path": "ZombieLore.Sight",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_Speed",
+      "path": "ZombieLore.Speed",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_SpottedLogic",
+      "path": "ZombieLore.SpottedLogic",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_SprinterPercentage",
+      "path": "ZombieLore.SprinterPercentage",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_Strength",
+      "path": "ZombieLore.Strength",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_ThumpNoChasing",
+      "path": "ZombieLore.ThumpNoChasing",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_ThumpOnConstruction",
+      "path": "ZombieLore.ThumpOnConstruction",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_Toughness",
+      "path": "ZombieLore.Toughness",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_Transmission",
+      "path": "ZombieLore.Transmission",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_TriggerHouseAlarm",
+      "path": "ZombieLore.TriggerHouseAlarm",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_ZombiesArmorFactor",
+      "path": "ZombieLore.ZombiesArmorFactor",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_ZombiesCrawlersDragDown",
+      "path": "ZombieLore.ZombiesCrawlersDragDown",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_ZombiesDragDown",
+      "path": "ZombieLore.ZombiesDragDown",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_ZombiesFallDamage",
+      "path": "ZombieLore.ZombiesFallDamage",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_ZombiesFenceLunge",
+      "path": "ZombieLore.ZombiesFenceLunge",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieLore_ZombiesMaxDefense",
+      "path": "ZombieLore.ZombiesMaxDefense",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieMigrate",
+      "path": "ZombieMigrate",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombiePopLootEffect",
+      "path": "ZombiePopLootEffect",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieRespawn",
+      "path": "ZombieRespawn",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZombieVoronoiNoise",
+      "path": "ZombieVoronoiNoise",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__Zombies",
+      "path": "Zombies",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    },
+    {
+      "env_name": "LUA_SandboxVars__ZoneStoryChance",
+      "path": "ZoneStoryChance",
+      "sources": [
+        "docs/env_sources/unstable-42.13.2/zomboid/Server/pzserver_SandboxVars.lua"
+      ]
+    }
+  ],
+  "patterns": [
+    {
+      "prefix": "INI_",
+      "description": "Override server INI keys from the runtime Server INI. Use INI_Key=Value or INI_Section__Key=Value."
+    },
+    {
+      "prefix": "LUA_",
+      "description": "Override Lua files. Use LUA_<file>__Path where Path uses _ as separators and __ for a literal underscore."
+    }
+  ],
+  "env_hooks": {
+    "env_vars": [
+      {
+        "name": "ADMINPASSWORD",
+        "description": "Admin password for first setup; updates INI_Password if changed.",
+        "replaces": [
+          "INI_Password"
+        ]
+      },
+      {
+        "name": "CLEAN_WORKSHOP",
+        "description": "Clean unused workshop content for resolved WORKSHOP_IDS.",
+        "replaces": []
+      },
+      {
+        "name": "DISABLE_ANTICHEAT",
+        "description": "Disable AntiCheatProtectionType entries by index or ranges.",
+        "replaces": []
+      },
+      {
+        "name": "FORCESTEAMCLIENTSOUPDATE",
+        "description": "Update steamclient.so in the server installation before launch.",
+        "replaces": []
+      },
+      {
+        "name": "FORCEUPDATE",
+        "description": "Force update the server before launch.",
+        "replaces": []
+      },
+      {
+        "name": "INI_LOAD",
+        "description": "Load INI_ overrides from environment using apply_ini_vars.sh.",
+        "replaces": []
+      },
+      {
+        "name": "LUA_LOAD",
+        "description": "Load Lua overrides from environment using apply_lua_vars.sh.",
+        "replaces": []
+      },
+      {
+        "name": "MAP_SCAN_VERBOSE",
+        "description": "Verbose output while scanning workshop maps.",
+        "replaces": []
+      },
+      {
+        "name": "MOD_IDS",
+        "description": "Mod IDs for the server; replaces INI_Mods.",
+        "replaces": [
+          "INI_Mods"
+        ]
+      },
+      {
+        "name": "PASSWORD",
+        "description": "Server password (preferred over INI_Password).",
+        "replaces": [
+          "INI_Password"
+        ]
+      },
+      {
+        "name": "RCONPASSWORD",
+        "description": "RCON password (preferred over INI_RCONPassword).",
+        "replaces": [
+          "INI_RCONPassword"
+        ]
+      },
+      {
+        "name": "SERVERPRESET",
+        "description": "Preset name for SandboxVars; copies preset on first run or when SERVERPRESETREPLACE is true.",
+        "replaces": []
+      },
+      {
+        "name": "WORKSHOP_IDS",
+        "description": "Workshop IDs and collections; replaces INI_WorkshopItems.",
+        "replaces": [
+          "INI_WorkshopItems"
+        ]
+      },
+      {
+        "name": "ARGS_JAVA",
+        "description": "Builds JVM arguments for server launch.",
+        "replaces": []
+      },
+      {
+        "name": "ARGS_NETWORK",
+        "description": "Builds network arguments for launch.",
+        "replaces": []
+      },
+      {
+        "name": "ARGS_SERVER",
+        "description": "Builds server arguments for launch.",
+        "replaces": []
+      }
+    ],
+    "source": "scripts/env_hooks"
+  }
+}
