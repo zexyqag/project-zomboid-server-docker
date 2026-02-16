@@ -93,20 +93,119 @@ run_env_docs_smoke() {
     echo "Env docs did not generate output" >&2
     exit 1
   fi
-  if ! grep -Eq '"env_name"[[:space:]]*:[[:space:]]*"INI_Public"' "${out_json}"; then
+  if ! grep -Eq '"name"[[:space:]]*:[[:space:]]*"INI_Public"' "${out_json}"; then
     echo "Env docs missing INI_Public" >&2
     exit 1
   fi
-  if ! grep -Eq '"env_name"[[:space:]]*:[[:space:]]*"LUA_SandboxVars__ZombieLore_Transmission"' "${out_json}"; then
+  if ! grep -Eq '"name"[[:space:]]*:[[:space:]]*"LUA_SandboxVars__ZombieLore_Transmission"' "${out_json}"; then
     echo "Env docs missing LUA_SandboxVars__ZombieLore_Transmission" >&2
     exit 1
   fi
-  if ! grep -Eq '"env_hooks"[[:space:]]*:' "${out_json}"; then
-    echo "Env docs missing env_hooks section" >&2
+}
+
+run_env_docs_rich_smoke() {
+  local env_dir="${TMP_DIR}/env_sources_rich"
+  local out_json="${TMP_DIR}/env-rich.json"
+  mkdir -p "${env_dir}/Server"
+
+  cat > "${env_dir}/Server/pzserver.ini" <<'EOF'
+# Global options
+Public=true
+PublicName=Rich Server
+
+[ServerOptions]
+# PvP flag
+PVP=false
+MaxPlayers=24 ; max players inline
+
+[Steam]
+SteamVAC=true
+EOF
+
+  cat > "${env_dir}/Server/pzserver_spawnregions.ini" <<'EOF'
+[WestPoint]
+# points to lua region file
+file=media/maps/West Point, KY/spawnpoints.lua
+
+[Muldraugh]
+file=media/maps/Muldraugh, KY/spawnpoints.lua
+EOF
+
+  cat > "${env_dir}/Server/pzserver_SandboxVars.lua" <<'EOF'
+SandboxVars = {
+  ZombieLore = {
+    -- spread mode
+    Transmission = 2,
+    Mortality = 5,
+  },
+  World = {
+    Event = 3,
+    Temperature = 4,
+  },
+  Farming = {
+    Abundance = 2,
+  },
+}
+EOF
+
+  cat > "${env_dir}/Server/pzserver_MapSettings.lua" <<'EOF'
+MapSettings = {
+  Zones = {
+    Forest = {
+      Loot = 2,
+      Threat = 1,
+    },
+    City = {
+      Loot = 4,
+      Threat = 4,
+    }
+  },
+  Weather = {
+    Rain = 3,
+  }
+}
+EOF
+
+  SERVERNAME=pzserver ENV_SOURCES_DIR="${env_dir}" OUTPUT_PATH="${out_json}" IMAGE_TAG="smoke-rich" bash "${ROOT_DIR}/scripts/generate_env_docs.sh"
+
+  if [ ! -s "${out_json}" ]; then
+    echo "Rich env docs did not generate output" >&2
     exit 1
   fi
-  if ! grep -Eq '"name"[[:space:]]*:[[:space:]]*"ADMINPASSWORD"' "${out_json}"; then
-    echo "Env docs missing env_hooks ADMINPASSWORD" >&2
+
+  if [ "$(jq -r '.handcrafted_env | has("env_hooks")' "${out_json}")" != "true" ]; then
+    echo "Rich env docs missing handcrafted_env.env_hooks" >&2
+    exit 1
+  fi
+  if [ "$(jq -r '.handcrafted_env.env_hooks | has("args") and has("env_hooks") and has("vars")' "${out_json}")" != "true" ]; then
+    echo "Rich env docs missing nested handcrafted groups under env_hooks" >&2
+    exit 1
+  fi
+
+  if [ "$(jq -r '.ini_env["'"${env_dir}"'/Server/pzserver.ini"] | has("INI") and has("ServerOptions") and has("Steam")' "${out_json}")" != "true" ]; then
+    echo "Rich env docs missing expected INI sections for pzserver.ini" >&2
+    exit 1
+  fi
+  if [ "$(jq -r '.ini_env["'"${env_dir}"'/Server/pzserver_spawnregions.ini"] | has("WestPoint") and has("Muldraugh")' "${out_json}")" != "true" ]; then
+    echo "Rich env docs missing expected INI sections for spawnregions" >&2
+    exit 1
+  fi
+
+  if [ "$(jq -r '.lua_env["'"${env_dir}"'/Server/pzserver_SandboxVars.lua"]["SandboxVars"] | has("ZombieLore") and has("World") and has("Farming")' "${out_json}")" != "true" ]; then
+    echo "Rich env docs missing expected Lua groups for SandboxVars" >&2
+    exit 1
+  fi
+  if [ "$(jq -r '.lua_env["'"${env_dir}"'/Server/pzserver_MapSettings.lua"]["MapSettings"] | has("Zones") and has("Weather")' "${out_json}")" != "true" ]; then
+    echo "Rich env docs missing expected Lua groups for MapSettings" >&2
+    exit 1
+  fi
+
+  if [ "$(jq -r '.ini_env["'"${env_dir}"'/Server/pzserver.ini"].ServerOptions[] | select(.name=="INI_ServerOptions__MaxPlayers") | .description' "${out_json}")" != "max players inline" ]; then
+    echo "Rich env docs missing inline INI description extraction" >&2
+    exit 1
+  fi
+  if [ "$(jq -r '.lua_env["'"${env_dir}"'/Server/pzserver_SandboxVars.lua"]["SandboxVars"].ZombieLore[] | select(.name=="LUA_SandboxVars__ZombieLore_Transmission") | .description' "${out_json}")" != "spread mode" ]; then
+    echo "Rich env docs missing Lua comment description extraction" >&2
     exit 1
   fi
 }
@@ -126,5 +225,9 @@ echo "Lua apply ok"
 echo "Running env docs smoke test..."
 run_env_docs_smoke
 echo "Env docs ok"
+
+echo "Running rich env docs smoke test..."
+run_env_docs_rich_smoke
+echo "Rich env docs ok"
 
 echo "Smoke tests passed."

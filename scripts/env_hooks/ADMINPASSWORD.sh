@@ -1,6 +1,6 @@
 DESCRIPTION="Admin password for first setup; updates INI_Password if changed."
 REPLACES="INI_Password"
-DEPENDS_ON="ARGS_SERVER"
+DEPENDS_ON="ARGS_SERVER_END"
 
 manual_apply() {
   local admin_value=""

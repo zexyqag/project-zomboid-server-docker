@@ -23,7 +23,7 @@ if [ -d "${ENV_HOOKS_DIR}" ]; then
     deps="$(awk -F= '$1=="DEPENDS_ON" {val=$2; gsub(/^[ \t]+|[ \t]+$/, "", val); gsub(/^"|"$|^\047|\047$/, "", val); print val; exit}' "${file}")"
     hook_files["${name}"]="${file}"
     hook_deps["${name}"]="${deps}"
-  done <<< "$(find "${ENV_HOOKS_DIR}" -type f -name '*.sh' | sort)"
+  done <<< "$(find "${ENV_HOOKS_DIR}" -type d -name vars -prune -o -type f -name '*.sh' -print | sort)"
 
   run_hook() {
     local hook_name="$1"

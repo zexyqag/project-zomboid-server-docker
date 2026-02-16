@@ -150,10 +150,6 @@ jobs:
 
       - name: Build and push Docker image (retry)
         uses: nick-invision/retry@v3
-        env:
-          # Pass Steam credentials if available
-          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
-          STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
         with:
           timeout_minutes: 60
           max_attempts: 5
@@ -166,29 +162,12 @@ jobs:
               BRANCH_ARG="--build-arg STEAMAPPBRANCH=unstable"
             fi
 
-            # If STEAM_USERNAME is set, use it for build-args, else fallback to anonymous
-            if [ -n "$STEAM_USERNAME" ] && [ -n "$STEAM_PASSWORD" ]; then
-              echo "Using Steam credentials for build"
-              docker buildx build \
-                $BRANCH_ARG \
-                --build-arg STEAM_USERNAME="$STEAM_USERNAME" \
-                --build-arg STEAM_PASSWORD="$STEAM_PASSWORD" \
-                --cache-from type=gha \
-                --cache-to type=gha,mode=max \
-                --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }}-${VERSION} \
-                --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }}-${VERSION}-${{ needs.prepare.outputs.repo_version }} \
-                --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }} \
-                --push \
-                .
-            else
-              echo "No Steam credentials, using anonymous login"
-              docker buildx build \
-                $BRANCH_ARG \
-                --cache-from type=gha \
-                --cache-to type=gha,mode=max \
-                --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }}-${VERSION} \
-                --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }}-${VERSION}-${{ needs.prepare.outputs.repo_version }} \
-                --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }} \
-                --push \
-                .
-            fi
+            docker buildx build \
+              $BRANCH_ARG \
+              --cache-from type=gha \
+              --cache-to type=gha,mode=max \
+              --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }}-${VERSION} \
+              --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }}-${VERSION}-${{ needs.prepare.outputs.repo_version }} \
+              --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }} \
+              --push \
+              .
