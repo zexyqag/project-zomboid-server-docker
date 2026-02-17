@@ -371,7 +371,7 @@ ini_json="$(awk -F '\t' '
   split("\n")
   | map(select(length>0)
     | split("\t")
-    | {name:.[0],group:.[1],description:.[3],sources:(.[2]|split("\n")|map(select(length>0)))}
+    | {name:(.[0] // ""),group:(.[1] // ""),description:(.[3] // ""),sources:((.[2] // "")|tostring|split("\n")|map(select(length>0)))}
     | . as $row
     | select((list($manual_replaces) | index($row.name)) | not)
   )
@@ -401,7 +401,7 @@ lua_json="$(awk -F '\t' '
   split("\n")
   | map(select(length>0)
     | split("\t")
-    | {name:.[0],group:.[1],subgroup:.[2],description:.[4],sources:(.[3]|split("\n")|map(select(length>0)))}
+    | {name:(.[0] // ""),group:(.[1] // ""),subgroup:(.[2] // ""),description:(.[4] // ""),sources:((.[3] // "")|tostring|split("\n")|map(select(length>0)))}
     | . as $row
     | select((list($manual_replaces) | index($row.name)) | not)
   )
@@ -416,8 +416,9 @@ handcrafted_json="$(jq -R -s '
   split("\n")
   | map(select(length>0)
     | split("\t") as $parts
-    | {name:$parts[0],description:$parts[3],sources:([$parts[1]]),group:$parts[2]}
+    | {name:($parts[0] // ""),description:($parts[3] // ""),sources:[($parts[1] // "")],group:($parts[2] // "")}
   )
+  | map(select(.name != "" and .group != ""))
   | sort_by(.group, .name)
   | group_by(.group)
   | map({(.[0].group): (map({name,description,sources}) | sort_by(.name))})
