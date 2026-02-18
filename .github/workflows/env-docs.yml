@@ -172,6 +172,7 @@ jobs:
         run: |
           mkdir -p docs/env
           find ./env-docs -type f -name '*.json' -exec cp -f {} docs/env/ \;
+          bash scripts/generate_env_index.sh docs/env docs/env/index.json
 
       - name: Commit and push docs branch
         run: |

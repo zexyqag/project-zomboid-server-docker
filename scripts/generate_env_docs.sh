@@ -452,3 +452,5 @@ jq -n \
     ini_env: $ini_env,
     lua_env: $lua_env
   }' > "${output_path}"
+
+bash "${repo_root}/scripts/generate_env_index.sh" "$(dirname "${output_path}")" "$(dirname "${output_path}")/index.json"

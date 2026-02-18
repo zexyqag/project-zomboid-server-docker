@@ -83,6 +83,7 @@ run_lua_load() {
 run_env_docs_smoke() {
   local env_dir="${TMP_DIR}/env_sources"
   local out_json="${TMP_DIR}/env.json"
+  local index_json="${TMP_DIR}/index.json"
   mkdir -p "${env_dir}/Server"
   cp "${SCRIPT_DIR}/sample.ini" "${env_dir}/Server/pzserver.ini"
   cp "${SCRIPT_DIR}/sample_sandbox.lua" "${env_dir}/Server/pzserver_SandboxVars.lua"
@@ -101,11 +102,20 @@ run_env_docs_smoke() {
     echo "Env docs missing LUA_SandboxVars__ZombieLore_Transmission" >&2
     exit 1
   fi
+  if [ ! -s "${index_json}" ]; then
+    echo "Env docs index did not generate output" >&2
+    exit 1
+  fi
+  if [ "$(jq -r '.files[] | select(.file=="env.json") | .file' "${index_json}" | head -n1)" != "env.json" ]; then
+    echo "Env docs index missing env.json" >&2
+    exit 1
+  fi
 }
 
 run_env_docs_rich_smoke() {
   local env_dir="${TMP_DIR}/env_sources_rich"
   local out_json="${TMP_DIR}/env-rich.json"
+  local index_json="${TMP_DIR}/index.json"
   mkdir -p "${env_dir}/Server"
 
   cat > "${env_dir}/Server/pzserver.ini" <<'EOF'
@@ -206,6 +216,14 @@ EOF
   fi
   if [ "$(jq -r '.lua_env["'"${env_dir}"'/Server/pzserver_SandboxVars.lua"]["SandboxVars"].ZombieLore[] | select(.name=="LUA_SandboxVars__ZombieLore_Transmission") | .description' "${out_json}")" != "spread mode" ]; then
     echo "Rich env docs missing Lua comment description extraction" >&2
+    exit 1
+  fi
+  if [ ! -s "${index_json}" ]; then
+    echo "Rich env docs index did not generate output" >&2
+    exit 1
+  fi
+  if [ "$(jq -r '.files[] | select(.file=="env-rich.json") | .file' "${index_json}" | head -n1)" != "env-rich.json" ]; then
+    echo "Rich env docs index missing env-rich.json" >&2
     exit 1
   fi
 }
