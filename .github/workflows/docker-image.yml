@@ -14,6 +14,7 @@ on:
       - 'smoke/**'
       - 'Dockerfile'
       - '.github/workflows/docker-image.yml'
+      - '.github/workflows/env-docs.yml'
   schedule:
     - cron: "0 0 * * *" # daily at midnight UTC
   workflow_dispatch:
@@ -34,6 +35,55 @@ jobs:
         run: |
           echo "Running smoke tests for script changes"
           bash smoke/run_smoke.sh
+
+  env_docs_parser_check:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run env-doc parser contract check
+        run: |
+          set -euo pipefail
+          tmpd="$(mktemp -d)"
+          trap 'rm -rf "$tmpd"' EXIT
+
+          mkdir -p "$tmpd/Server"
+
+          cat > "$tmpd/Server/pzserver.ini" <<'EOF'
+          Public=true
+
+          [ServerOptions]
+          MaxPlayers=24 ; inline ini comment
+          EOF
+
+          cat > "$tmpd/Server/pzserver_SandboxVars.lua" <<'EOF'
+          return {
+            Zones = {
+              ["A\"B"] = 2, -- escaped quote key
+              ['A\'B'] = 3, -- escaped single quote key
+              [42] = 7, -- numeric key
+            },
+            ArrayLike = {
+              10,
+              20,
+            },
+          }
+          EOF
+
+          SERVERNAME=pzserver \
+          ENV_SOURCES_DIR="$tmpd" \
+          OUTPUT_PATH="$tmpd/env.json" \
+          IMAGE_TAG="ci-parser-check" \
+          ENV_DOCS_FAIL_ON_DUPLICATES=true \
+          bash scripts/generate_env_docs.sh >/dev/null
+
+          jq -e '.env.generated.ini.pzserver.ServerOptions[] | select(.name=="ini__pzserver__ServerOptions__MaxPlayers" and .description=="inline ini comment")' "$tmpd/env.json" >/dev/null
+          jq -e '.env.generated.lua.pzserver_SandboxVars[""].Zones[] | select(.name=="lua__pzserver_SandboxVars__Zones__A\"B")' "$tmpd/env.json" >/dev/null
+          jq -e '.env.generated.lua.pzserver_SandboxVars[""].Zones[] | select(.name=="lua__pzserver_SandboxVars__Zones__A'"'"'B")' "$tmpd/env.json" >/dev/null
+          jq -e '.env.generated.lua.pzserver_SandboxVars[""].Zones[] | select(.name=="lua__pzserver_SandboxVars__Zones__42")' "$tmpd/env.json" >/dev/null
+          jq -e '((.env.generated.lua.pzserver_SandboxVars[""].ArrayLike // []) | length) == 0' "$tmpd/env.json" >/dev/null
 
   prepare:
     if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.force_rebuild == 'true')

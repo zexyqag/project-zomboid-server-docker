@@ -1,6 +1,9 @@
-DESCRIPTION="Load INI_ overrides from environment using apply_ini_vars.sh."
+DESCRIPTION="Load docs-style INI overrides from environment using apply_ini_vars.sh."
 REPLACES=""
 DEPENDS_ON="ADMINPASSWORD PASSWORD RCONPASSWORD MOD_IDS WORKSHOP_IDS DISABLE_ANTICHEAT MAP_SCAN_VERBOSE"
+
+hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${hook_dir}/../lib/env_name_codec.sh"
 
 manual_apply() {
   if [ -n "${INI_LOAD_DONE:-}" ]; then
@@ -14,20 +17,9 @@ manual_apply() {
 
   for ini_file in "${ini_files[@]}"; do
     [ -f "${ini_file}" ] || continue
-    base_name="$(basename "${ini_file}" .ini)"
-    if [ -n "${SERVERNAME:-}" ] && [ "${base_name}" = "${SERVERNAME}" ]; then
-      file_id=""
-    elif [ -n "${SERVERNAME:-}" ] && [[ "${base_name}" == "${SERVERNAME}_"* ]]; then
-      file_id="${base_name#${SERVERNAME}_}"
-    else
-      file_id="${base_name}"
-    fi
-
-    if [ -z "${file_id}" ]; then
-      env_prefix="INI_"
-    else
-      env_prefix="INI_${file_id}__"
-    fi
+    base_name="$(env_name_base_from_path "${ini_file}" ".ini")"
+    file_id="$(env_name_file_id_from_base "${base_name}" "${SERVERNAME:-}")"
+    env_prefix="$(legacy_ini_env_prefix "${file_id}")"
 
     /server/scripts/apply_ini_vars.sh "${ini_file}" "${env_prefix}"
   done

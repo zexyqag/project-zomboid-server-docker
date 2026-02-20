@@ -1,14 +1,17 @@
 #!/bin/bash
 
 # Apply env-driven updates to an INI file
-# Usage: apply_ini_vars.sh <ini_file> [ENV_PREFIX]
+# Usage: apply_ini_vars.sh <ini_file>
 
 set -euo pipefail
 
 INI_FILE="${1:-}"
-ENV_PREFIX="${2:-INI_}"
 DRY_RUN_ENV="INI_CTRL_DRY_RUN"
 STRICT_ENV="INI_CTRL_STRICT"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/env_name_codec.sh"
+FILE_KEY="$(env_name_file_key "${INI_FILE}" ".ini")"
 
 if [ -z "${INI_FILE}" ] || [ ! -f "${INI_FILE}" ]; then
   echo "Error: INI file not found: ${INI_FILE}" >&2
@@ -23,8 +26,16 @@ while IFS='=' read -r name value; do
     ${DRY_RUN_ENV}|${STRICT_ENV})
       continue
       ;;
-    ${ENV_PREFIX}*)
-      raw="${name#${ENV_PREFIX}}"
+    ${DOCS_INI_PREFIX}*)
+      raw_docs="${name#${DOCS_INI_PREFIX}}"
+      case "${raw_docs}" in
+        ${FILE_KEY}__*)
+          raw="${raw_docs#${FILE_KEY}__}"
+          ;;
+        *)
+          continue
+          ;;
+      esac
       section=""
       key="$raw"
       if [[ "$raw" == *"__"* ]]; then

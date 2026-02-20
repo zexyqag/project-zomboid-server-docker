@@ -8,6 +8,8 @@ entry_sh="${repo_root}/scripts/entry.sh"
 env_template="${repo_root}/.env.template"
 sources_root="${ENV_SOURCES_DIR:-}"
 
+source "${repo_root}/scripts/lib/env_name_codec.sh"
+
 mkdir -p "${env_hooks_dir}"
 
 tmp_dir="$(mktemp -d)"
@@ -94,14 +96,8 @@ if [ -n "${sources_root}" ] && [ -d "${sources_root}" ]; then
 
   while IFS= read -r file; do
     [ -z "${file}" ] && continue
-    base_name="$(basename "${file}" .lua)"
-    if [ -n "${server_name}" ] && [ "${base_name}" = "${server_name}" ]; then
-      file_id=""
-    elif [ -n "${server_name}" ] && [[ "${base_name}" == "${server_name}_"* ]]; then
-      file_id="${base_name#${server_name}_}"
-    else
-      file_id="${base_name}"
-    fi
+    base_name="$(env_name_base_from_path "${file}" ".lua")"
+    file_id="$(env_name_file_id_from_base "${base_name}" "${server_name}")"
     if [ -z "${file_id}" ]; then
       env_prefix="LUA"
     else

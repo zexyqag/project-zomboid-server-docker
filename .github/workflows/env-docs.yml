@@ -120,9 +120,10 @@ jobs:
             -e SERVERNAME=pzserver \
             -v "$PWD/${TAG_DIR}/zomboid:/home/steam/Zomboid" \
             ghcr.io/${REPO_NAME_LC}:${TAG})
-          INI_PATH="${TAG_DIR}/zomboid/Server/envdocs.ini"
+          INI_PATH_PRIMARY="${TAG_DIR}/zomboid/Server/pzserver.ini"
+          INI_PATH_FALLBACK="${TAG_DIR}/zomboid/Server/envdocs.ini"
           for i in {1..120}; do
-            if [ -f "$INI_PATH" ]; then
+            if [ -f "$INI_PATH_PRIMARY" ] || [ -f "$INI_PATH_FALLBACK" ]; then
               break
             fi
             sleep 2
@@ -130,7 +131,7 @@ jobs:
           docker stop "$CID" >/dev/null 2>&1 || true
           docker rm -f "$CID" >/dev/null 2>&1 || true
           sudo chown -R "$(id -u):$(id -g)" "${TAG_DIR}"
-          if [ ! -f "$INI_PATH" ]; then
+          if [ ! -f "$INI_PATH_PRIMARY" ] && [ ! -f "$INI_PATH_FALLBACK" ]; then
             echo "Warning: INI file not created for $TAG" >&2
           fi
 
@@ -139,7 +140,7 @@ jobs:
           mkdir -p docs/env
           LOG_FILE="${RUNNER_TEMP}/env-docs-${TAG_SAFE}.log"
           IMAGE_TAG_VALUE="${TAG}-${GITHUB_SHA:0:7}"
-          if ! SERVERNAME=pzserver ENV_SOURCES_DIR="${TAG_DIR}" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${IMAGE_TAG_VALUE}" bash scripts/generate_env_docs.sh >"${LOG_FILE}" 2>&1; then
+          if ! SERVERNAME=pzserver ENV_SOURCES_DIR="${TAG_DIR}" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${IMAGE_TAG_VALUE}" ENV_DOCS_FAIL_ON_DUPLICATES=true bash scripts/generate_env_docs.sh >"${LOG_FILE}" 2>&1; then
             echo "generate_env_docs.sh failed; log output:" >&2
             cat "${LOG_FILE}" >&2
             exit 1

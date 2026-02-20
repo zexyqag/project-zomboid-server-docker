@@ -1,6 +1,9 @@
-DESCRIPTION="Load Lua overrides from environment using apply_lua_vars.sh."
+DESCRIPTION="Load docs-style Lua overrides from environment using apply_lua_vars.sh."
 REPLACES=""
 DEPENDS_ON="SERVERPRESET"
+
+hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${hook_dir}/../lib/env_name_codec.sh"
 
 manual_apply() {
   if [ -n "${LUA_LOAD_DONE:-}" ]; then
@@ -14,32 +17,11 @@ manual_apply() {
 
   for lua_file in "${lua_files[@]}"; do
     [ -f "${lua_file}" ] || continue
-    base_name="$(basename "${lua_file}" .lua)"
+    base_name="$(env_name_base_from_path "${lua_file}" ".lua")"
+    root_prefix="$(lua_detect_root_prefix "${lua_file}")"
 
-    root_prefix="$(awk '
-      {
-        line=$0
-        sub(/^[ \t]+/, "", line)
-        if (line ~ /^--/) next
-        if (line ~ /^return[ \t]*\{[ \t]*$/) { print ""; exit }
-        if (match(line, /^([A-Za-z0-9_]+)[ \t]*=[ \t]*\{[ \t]*$/, m)) { print m[1]; exit }
-      }
-      END { if (NR == 0) print "" }
-    ' "${lua_file}")"
-
-    if [ -n "${SERVERNAME:-}" ] && [ "${base_name}" = "${SERVERNAME}" ]; then
-      file_id=""
-    elif [ -n "${SERVERNAME:-}" ] && [[ "${base_name}" == "${SERVERNAME}_"* ]]; then
-      file_id="${base_name#${SERVERNAME}_}"
-    else
-      file_id="${base_name}"
-    fi
-
-    if [ -z "${file_id}" ]; then
-      env_prefix="LUA_"
-    else
-      env_prefix="LUA_${file_id}__"
-    fi
+    file_id="$(env_name_file_id_from_base "${base_name}" "${SERVERNAME:-}")"
+    env_prefix="$(legacy_lua_env_prefix "${file_id}")"
 
     /server/scripts/apply_lua_vars.sh "${lua_file}" "${env_prefix}" "${root_prefix}"
   done

@@ -1,17 +1,20 @@
 #!/bin/bash
 
 # Apply env-driven updates to a Lua table file
-# Usage: apply_lua_vars.sh <lua_file> [ENV_PREFIX] [ROOT_PREFIX]
+# Usage: apply_lua_vars.sh <lua_file> [ROOT_PREFIX]
 
 set -euo pipefail
 
 LUA_FILE="${1:-}"
-ENV_PREFIX="${2:-LUA_}"
-ROOT_PREFIX="${3:-}"
+ROOT_PREFIX="${2:-}"
 DRY_RUN_ENV="LUA_CTRL_DRY_RUN"
 STRICT_ENV="LUA_CTRL_STRICT"
 CASE_SENSITIVE_ENV="LUA_CTRL_CASE_SENSITIVE"
 ESC_UNDERSCORE_PLACEHOLDER="__ESC_UNDERSCORE__"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/env_name_codec.sh"
+FILE_KEY="$(env_name_file_key "${LUA_FILE}" ".lua")"
 
 if [ -z "${LUA_FILE}" ] || [ ! -f "${LUA_FILE}" ]; then
   echo "Error: Lua file not found: ${LUA_FILE}" >&2
@@ -27,17 +30,20 @@ while IFS='=' read -r name value; do
     ${DRY_RUN_ENV}|${STRICT_ENV}|${CASE_SENSITIVE_ENV})
       continue
       ;;
-    ${ENV_PREFIX}*)
-      key="${name#${ENV_PREFIX}}"
-      # _ is a path separator, __ is a literal underscore
-      key_placeholder="${key//__/${ESC_UNDERSCORE_PLACEHOLDER}}"
-      key_placeholder="${key_placeholder//_/.}"
-      key="${key_placeholder//${ESC_UNDERSCORE_PLACEHOLDER}/_}"
-      # Build full path under the root table (if provided)
-      if [ -n "${ROOT_PREFIX}" ]; then
-        full_path="${ROOT_PREFIX}.${key}"
-      else
-        full_path="${key}"
+    ${DOCS_LUA_PREFIX}*)
+      raw_docs="${name#${DOCS_LUA_PREFIX}}"
+      case "${raw_docs}" in
+        ${FILE_KEY}__*)
+          raw="${raw_docs#${FILE_KEY}__}"
+          ;;
+        *)
+          continue
+          ;;
+      esac
+      key="${raw//__/.}"
+      full_path="${key}"
+      if [ -n "${ROOT_PREFIX}" ] && [[ "${full_path}" != "${ROOT_PREFIX}" && "${full_path}" != "${ROOT_PREFIX}."* ]]; then
+        full_path="${ROOT_PREFIX}.${full_path}"
       fi
       printf '%s=%s\n' "${full_path}" "$value" >> "$MAP_FILE"
       ;;
