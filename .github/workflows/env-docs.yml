@@ -1,5 +1,9 @@
 name: Generate Env Docs
 
+concurrency:
+  group: env-docs-${{ github.repository }}
+  cancel-in-progress: false
+
 on:
   workflow_run:
     workflows:

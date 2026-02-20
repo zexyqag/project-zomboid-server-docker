@@ -192,8 +192,16 @@ $(grep -oE '\blocal[[:space:]]+[A-Z][A-Z0-9_]*\b' "${file}" || true)"
 ini_files=""
 lua_files=""
 if [ -n "${sources_root}" ] && [ -d "${sources_root}" ]; then
-  ini_files="$(find "${sources_root}" -type f -name '*.ini' | sort)"
-  lua_files="$(find "${sources_root}" -type f -name '*.lua' | sort)"
+  ini_files="$(find "${sources_root}" -type f -path '*/Server/*' -name '*.ini' | sort)"
+  lua_files="$(find "${sources_root}" -type f -path '*/Server/*' -name '*.lua' | sort)"
+
+  # Fallback for source layouts that do not have a Server path.
+  if [ -z "${ini_files}" ]; then
+    ini_files="$(find "${sources_root}" -type f -name '*.ini' | sort)"
+  fi
+  if [ -z "${lua_files}" ]; then
+    lua_files="$(find "${sources_root}" -type f -name '*.lua' | sort)"
+  fi
 else
   if [ -z "${sources_root}" ]; then
     echo "Info: ENV_SOURCES_DIR not set; skipping INI/Lua env discovery." >&2
