@@ -284,7 +284,7 @@ while IFS= read -r file; do
       if (section != "") env_new=env_new "__" section
       env_new=env_new "__" key
       env_legacy=(section=="" ? legacy_prefix key : legacy_prefix section "__" key)
-      print env_new "\t" file_key "\t" group "\t" source_id "\t" file "\t" desc "\t" env_legacy "\t" env_new
+      print key "\t" env_new "\t" file_key "\t" group "\t" source_id "\t" file "\t" desc "\t" env_legacy
       comment_block=""
     }
   }
@@ -442,7 +442,13 @@ while IFS= read -r file; do
       else env_legacy_root=legacy_prefix "_" encode(current_group) "_" path_token
       subgroup=path
       sub(/\..*$/, "", subgroup)
-      print env_new "\t" file_key "\t" current_group "\t" subgroup "\t" source_id "\t" file "\t" desc "\t" env_legacy "\t" env_new_root "\t" env_legacy_root
+      logical_name=path
+      if (subgroup != "" && logical_name ~ ("^" subgroup "\\.")) {
+        sub("^" subgroup "\\.", "", logical_name)
+      }
+      gsub(/\./, "__", logical_name)
+      if (logical_name == "") logical_name=key
+      print logical_name "\t" env_new_root "\t" file_key "\t" current_group "\t" subgroup "\t" source_id "\t" file "\t" desc "\t" env_legacy "\t" env_legacy_root
       comment_block=""
     }
   }
@@ -457,6 +463,7 @@ handcrafted_rows_json="$(jq -R -s '
     | split("\t") as $parts
     | {
         name: ($parts[0] // ""),
+        env_name: ($parts[0] // ""),
         source_path: ($parts[1] // ""),
         group: ($parts[2] // ""),
         description: ($parts[3] // ""),
@@ -477,17 +484,18 @@ ini_rows_json="$(jq -R -s --argjson replacement_map "${replacement_map_json}" '
   | map(select(length>0)
     | split("\t")
     | {
-        name: (.[7] // (.[0] // "")),
-        file_key: (.[1] // ""),
-        section: (.[2] // "INI"),
-        source_id: (.[3] // ""),
-        source_path: (.[4] // ""),
-        description: (.[5] // ""),
-        legacy_name: (.[6] // "")
+        name: (.[0] // ""),
+        env_name: (.[1] // ""),
+        file_key: (.[2] // ""),
+        section: (.[3] // "INI"),
+        source_id: (.[4] // ""),
+        source_path: (.[5] // ""),
+        description: (.[6] // ""),
+        legacy_name: (.[7] // "")
       }
     | . as $row
     | .replaced_by = (
-        [ $row.name, $row.legacy_name ]
+        [ $row.env_name, $row.legacy_name ]
         | map(select(length>0) | ($replacement_map[.] // []))
         | add
         | unique
@@ -500,19 +508,20 @@ lua_rows_json="$(jq -R -s --argjson replacement_map "${replacement_map_json}" '
   | map(select(length>0)
     | split("\t")
     | {
-        name: (.[8] // (.[0] // "")),
-        file_key: (.[1] // ""),
-        group: (.[2] // ""),
-        subgroup: (.[3] // ""),
-        source_id: (.[4] // ""),
-        source_path: (.[5] // ""),
-        description: (.[6] // ""),
-        legacy_name: (.[7] // ""),
+        name: (.[0] // ""),
+        env_name: (.[1] // ""),
+        file_key: (.[2] // ""),
+        group: (.[3] // ""),
+        subgroup: (.[4] // ""),
+        source_id: (.[5] // ""),
+        source_path: (.[6] // ""),
+        description: (.[7] // ""),
+        legacy_name: (.[8] // ""),
         legacy_name_root: (.[9] // "")
       }
     | . as $row
     | .replaced_by = (
-        [ $row.name, $row.legacy_name, $row.legacy_name_root ]
+        [ $row.env_name, $row.legacy_name, $row.legacy_name_root ]
         | map(select(length>0) | ($replacement_map[.] // []))
         | add
         | unique
@@ -524,18 +533,18 @@ warn_duplicate_generated_names() {
   local kind="$1"
   local rows_json="$2"
   jq -r --arg kind "${kind}" '
-    group_by(.name)
+    group_by(.env_name)
     | map(select(length > 1))
-    | sort_by(.[0].name)
+    | sort_by(.[0].env_name)
     | .[]
-    | "Warning: duplicate " + $kind + " generated env name " + .[0].name + " (occurrences=" + (length|tostring) + ")"
+    | "Warning: duplicate " + $kind + " generated env name " + .[0].env_name + " (occurrences=" + (length|tostring) + ")"
   ' <<< "${rows_json}" >&2 || true
 }
 
 count_duplicate_generated_names() {
   local rows_json="$1"
   jq -r '
-    group_by(.name)
+    group_by(.env_name)
     | map(select(length > 1))
     | length
   ' <<< "${rows_json}" 2>/dev/null || echo 0
@@ -564,12 +573,17 @@ jq -n \
     rows
     | group_by(.name)
     | map({
-        name: .[0].name,
-        description: ((map(select(.description != "") | .description) | first) // ""),
-        source_ids: (map(.source_id) | map(select(length > 0)) | unique),
-        replaced_by: (map(.replaced_by // []) | add | unique)
+        key: .[0].name,
+        value: {
+          name: .[0].name,
+          env_name: ((map(select(.env_name != "") | .env_name) | first) // ""),
+          description: ((map(select(.description != "") | .description) | first) // ""),
+          source_ids: (map(.source_id) | map(select(length > 0)) | unique),
+          replaced_by: (map(.replaced_by // []) | add | unique)
+        }
       })
-    | sort_by(.name);
+    | sort_by(.key)
+    | from_entries;
 
   def by_section(rows):
     rows

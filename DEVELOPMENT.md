@@ -52,7 +52,7 @@ Related directories:
 
 ## Configuration model
 
-The runtime supports generated env names (docs-style) and legacy names.
+The runtime uses docs-style generated env names.
 
 - INI docs prefix: `ini__`
 - Lua docs prefix: `lua__`
@@ -72,6 +72,19 @@ Core scripts:
 - `scripts/generate_env_index.sh`
 
 Generated entries include `replaced_by` per env item when a custom hook replaces that generated entry.
+
+Current env docs JSON shape (`scripts/generate_env_docs.sh`):
+
+- Entries are objects keyed by logical setting name (not single-item arrays).
+- Each entry includes:
+	- `name`: logical key within its group/section
+	- `env_name`: full environment variable name to export
+	- `description`
+	- `source_ids`
+	- `replaced_by`
+- `env.custom.args`, `env.custom.hooks`, and `env.custom.vars` follow the same entry shape.
+- `env.generated.ini` is grouped as `<file_key> -> <section> -> <name> -> entry`.
+- `env.generated.lua` is grouped as `<file_key> -> ... -> <name> -> entry`, with logical names using subgroup-relative path segments joined by `__` when needed for uniqueness.
 
 Preview data checked into repo:
 
@@ -109,6 +122,6 @@ bash smoke/run_smoke.sh
 
 - Keep operator UX simple in `README.MD`.
 - Add/adjust hooks with `DESCRIPTION` and correct dependencies.
-- Preserve backward compatibility for existing envs unless intentionally breaking.
+- Keep schema and naming contracts consistent with smoke tests.
 - Update smoke tests when changing parsing or naming contracts.
 - Validate with `bash smoke/run_smoke.sh` before opening PRs.
