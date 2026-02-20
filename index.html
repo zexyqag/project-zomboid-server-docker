@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Project Zomboid Server Docker • Env Reference</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0b1020;
+      --card: #111a33;
+      --text: #e8eeff;
+      --muted: #9fb0dd;
+      --line: #29365e;
+      --accent: #7ba2ff;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f5f7ff;
+        --card: #ffffff;
+        --text: #0f1730;
+        --muted: #4a5a8f;
+        --line: #d7def5;
+        --accent: #2d5bdb;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 1.5rem;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: .95rem;
+      margin-bottom: 16px;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    @media (min-width: 760px) {
+      .controls {
+        grid-template-columns: 180px 260px 1fr auto;
+      }
+    }
+
+    .toggle-control {
+      display: flex;
+      align-items: flex-end;
+      margin-bottom: 16px;
+      gap: 8px;
+      color: var(--muted);
+      font-size: .9rem;
+      white-space: nowrap;
+    }
+
+    .toggle-control input {
+      width: auto;
+      margin: 0;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--card);
+      color: var(--text);
+      font-size: .95rem;
+    }
+
+    option {
+      color: var(--text);
+      background: var(--card);
+    }
+
+    .stats {
+      color: var(--muted);
+      font-size: .9rem;
+      margin-bottom: 12px;
+    }
+
+    .section {
+      margin: 14px 0 0;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .section h2 {
+      margin: 0;
+      padding: 10px 12px;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in oklab, var(--card), var(--line) 18%);
+    }
+
+    .subsection {
+      border-top: 1px solid var(--line);
+    }
+
+    .subsection:first-of-type {
+      border-top: 0;
+    }
+
+    .subsection h3 {
+      margin: 0;
+      padding: 10px 12px;
+      font-size: .92rem;
+      color: var(--muted);
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in oklab, var(--card), var(--line) 10%);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+      font-size: .92rem;
+      word-wrap: break-word;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .name {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .9rem;
+    }
+
+    .source {
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .82rem;
+      white-space: pre-wrap;
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 18px 12px;
+    }
+
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>Project Zomboid Server Docker • Env Reference</h1>
+
+      <div class="controls">
+        <label>
+          <span class="meta">Channel</span>
+          <select id="channelSelect" aria-label="Select channel"></select>
+        </label>
+        <label>
+          <span class="meta">Version</span>
+          <select id="versionSelect" aria-label="Select version"></select>
+        </label>
+        <label>
+          <span class="meta">Search</span>
+          <input id="searchInput" type="search" placeholder="Filter by variable name, description, section, or source…" />
+        </label>
+        <label class="toggle-control" for="toggleSources">
+          <input id="toggleSources" type="checkbox" />
+          <span>Show sources</span>
+        </label>
+      </div>
+
+      <div class="stats" id="stats"></div>
+      <div id="content"></div>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      datasets: [],
+      current: null,
+      selectedChannel: null,
+      search: '',
+      showSources: false
+    };
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function normalizeDataset(file, json, imageTagOverride) {
+      const fileName = String(file || '').split('/').pop() || String(file || '');
+      const stem = fileName.replace(/\.json$/i, '');
+
+      let channel = 'other';
+      let version = stem;
+      if (stem.startsWith('stable-')) {
+        channel = 'stable';
+        version = stem.slice('stable-'.length);
+      } else if (stem.startsWith('unstable-')) {
+        channel = 'unstable';
+        version = stem.slice('unstable-'.length);
+      }
+
+      return {
+        file,
+        fileName,
+        channel,
+        version,
+        imageTag: imageTagOverride || json?.image_tag || file,
+        data: json
+      };
+    }
+
+    function toChannelLabel(channel) {
+      if (channel === 'stable') return 'Stable';
+      if (channel === 'unstable') return 'Unstable';
+      return 'Other';
+    }
+
+    function compareVersionStringsDesc(leftVersion, rightVersion) {
+      const leftParts = String(leftVersion || '')
+        .split('.')
+        .map((part) => Number.parseInt(part, 10));
+      const rightParts = String(rightVersion || '')
+        .split('.')
+        .map((part) => Number.parseInt(part, 10));
+
+      const maxLen = Math.max(leftParts.length, rightParts.length);
+      for (let index = 0; index < maxLen; index += 1) {
+        const leftValue = Number.isFinite(leftParts[index]) ? leftParts[index] : 0;
+        const rightValue = Number.isFinite(rightParts[index]) ? rightParts[index] : 0;
+        if (leftValue !== rightValue) {
+          return rightValue - leftValue;
+        }
+      }
+
+      return String(rightVersion || '').localeCompare(String(leftVersion || ''));
+    }
+
+    function updateBuildSelectors() {
+      const channelSelect = document.getElementById('channelSelect');
+      const versionSelect = document.getElementById('versionSelect');
+
+      const channels = [];
+      const seenChannels = new Set();
+      for (const dataset of state.datasets) {
+        if (!seenChannels.has(dataset.channel)) {
+          seenChannels.add(dataset.channel);
+          channels.push(dataset.channel);
+        }
+      }
+
+      if (!channels.length) {
+        channelSelect.innerHTML = '';
+        versionSelect.innerHTML = '';
+        return;
+      }
+
+      if (!state.selectedChannel || !channels.includes(state.selectedChannel)) {
+        state.selectedChannel = channels.includes('stable') ? 'stable' : channels[0];
+      }
+
+      channelSelect.innerHTML = channels
+        .map((channel) => `<option value="${escapeHtml(channel)}">${escapeHtml(toChannelLabel(channel))}</option>`)
+        .join('');
+      channelSelect.value = state.selectedChannel;
+
+      const versions = state.datasets
+        .filter((dataset) => dataset.channel === state.selectedChannel)
+        .slice()
+        .sort((left, right) => compareVersionStringsDesc(left.version, right.version));
+
+      if (!state.current || state.current.channel !== state.selectedChannel) {
+        state.current = versions[0] ?? null;
+      }
+
+      versionSelect.innerHTML = versions
+        .map((dataset) => {
+          const label = `${dataset.version} (${dataset.imageTag})`;
+          return `<option value="${escapeHtml(dataset.file)}">${escapeHtml(label)}</option>`;
+        })
+        .join('');
+
+      if (state.current) {
+        versionSelect.value = state.current.file;
+      }
+    }
+
+    function isObject(value) {
+      return value !== null && typeof value === 'object' && !Array.isArray(value);
+    }
+
+    function flattenText(value) {
+      if (value == null) return '';
+      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        return String(value);
+      }
+      if (Array.isArray(value)) {
+        return value.map(flattenText).join(' ');
+      }
+      if (isObject(value)) {
+        return Object.values(value).map(flattenText).join(' ');
+      }
+      return '';
+    }
+
+    function collectArraySections(node, path = [], output = []) {
+      if (Array.isArray(node)) {
+        if (node.length > 0) {
+          output.push({ path: [...path], rows: node });
+        }
+
+        // Do not recurse into array items to avoid noisy sections like
+        // "... / [0] / sources", "... / [1] / sources", etc.
+        // Array item internals are still visible within table cells.
+        return output;
+      }
+
+      if (isObject(node)) {
+        for (const [key, value] of Object.entries(node)) {
+          collectArraySections(value, [...path, key], output);
+        }
+      }
+
+      return output;
+    }
+
+    function rowMatches(row, sectionPath, query) {
+      if (!query) return true;
+      const q = query.toLowerCase();
+      const cleanPath = sectionPath.filter((part) => String(part ?? '').trim() !== '');
+      const text = `${cleanPath.join(' / ')} ${flattenText(row)}`.toLowerCase();
+      return text.includes(q);
+    }
+
+    function resolveSourceText(row) {
+      if (Array.isArray(row.sources)) return row.sources.join('\n');
+      if (typeof row.sources === 'string') return row.sources;
+
+      if (Array.isArray(row.source_ids)) {
+        const sourceMap = state.current?.data?.meta?.sources ?? {};
+        return row.source_ids
+          .map((id) => sourceMap[id] || id)
+          .join('\n');
+      }
+
+      return '';
+    }
+
+    function renderRowsTable(rows) {
+      const objectRows = rows.filter((row) => isObject(row));
+      const hasNamedShape = objectRows.some((row) => 'name' in row || 'description' in row || 'sources' in row || 'source_ids' in row);
+
+      if (!objectRows.length) {
+        const body = rows
+          .map((row) => `<tr><td>${escapeHtml(flattenText(row))}</td></tr>`)
+          .join('');
+
+        return `
+          <table>
+            <thead><tr><th>Value</th></tr></thead>
+            <tbody>${body}</tbody>
+          </table>
+        `;
+      }
+
+      if (hasNamedShape) {
+        const showReplacedBy = objectRows.some((row) => Array.isArray(row.replaced_by) && row.replaced_by.length > 0);
+
+        const body = objectRows
+          .map((row) => {
+            const name = row.name ?? '';
+            const description = row.description ?? '';
+            const sources = resolveSourceText(row);
+            const replacedBy = Array.isArray(row.replaced_by) ? row.replaced_by.join('\n') : '';
+            return `
+              <tr>
+                <td class="name">${escapeHtml(name)}</td>
+                <td>${escapeHtml(description)}</td>
+                ${showReplacedBy ? `<td class="source">${escapeHtml(replacedBy)}</td>` : ''}
+                ${state.showSources ? `<td class="source">${escapeHtml(sources)}</td>` : ''}
+              </tr>
+            `;
+          })
+          .join('');
+
+        const nameWidth = showReplacedBy ? (state.showSources ? '20%' : '25%') : (state.showSources ? '25%' : '35%');
+        const descWidth = showReplacedBy ? (state.showSources ? '35%' : '45%') : (state.showSources ? '45%' : '65%');
+        const replacedWidth = showReplacedBy ? (state.showSources ? '20%' : '30%') : '';
+        const sourcesWidth = state.showSources ? (showReplacedBy ? '25%' : '30%') : '';
+
+        return `
+          <table>
+            <thead>
+              <tr>
+                <th style="width: ${nameWidth}">Name</th>
+                <th style="width: ${descWidth}">Description</th>
+                ${showReplacedBy ? `<th style="width: ${replacedWidth}">Replaced by</th>` : ''}
+                ${state.showSources ? `<th style="width: ${sourcesWidth}">Sources</th>` : ''}
+              </tr>
+            </thead>
+            <tbody>${body}</tbody>
+          </table>
+        `;
+      }
+
+      const columnSet = new Set();
+      objectRows.forEach((row) => Object.keys(row).forEach((key) => columnSet.add(key)));
+      const columns = Array.from(columnSet).slice(0, 8);
+
+      const head = columns.map((column) => `<th>${escapeHtml(column)}</th>`).join('');
+      const body = objectRows
+        .map((row) => {
+          const cells = columns
+            .map((column) => `<td>${escapeHtml(flattenText(row[column]))}</td>`)
+            .join('');
+          return `<tr>${cells}</tr>`;
+        })
+        .join('');
+
+      return `
+        <table>
+          <thead><tr>${head}</tr></thead>
+          <tbody>${body}</tbody>
+        </table>
+      `;
+    }
+
+    function render() {
+      const contentEl = document.getElementById('content');
+      const statsEl = document.getElementById('stats');
+
+      if (!state.current) {
+        contentEl.innerHTML = '<div class="empty">No dataset loaded. Ensure docs/env/index.json exists and lists valid JSON files.</div>';
+        statsEl.textContent = '';
+        return;
+      }
+
+      const query = state.search.trim();
+      const sections = collectArraySections(state.current.data || {});
+      let total = 0;
+      let visible = 0;
+
+      const html = sections
+        .map((section) => {
+          const filteredRows = section.rows.filter((row) => rowMatches(row, section.path, query));
+          total += section.rows.length;
+          visible += filteredRows.length;
+
+          if (!filteredRows.length) return '';
+
+          const cleanPath = section.path.filter((part) => String(part ?? '').trim() !== '');
+          const heading = cleanPath[0] || 'root';
+          const subheadingParts = cleanPath.slice(1);
+
+          return {
+            heading,
+            subheading: subheadingParts.join(' / '),
+            rows: filteredRows
+          };
+        })
+        .filter(Boolean);
+
+      const grouped = new Map();
+      for (const section of html) {
+        if (!grouped.has(section.heading)) {
+          grouped.set(section.heading, []);
+        }
+
+        const groupSections = grouped.get(section.heading);
+        const existing = groupSections.find((item) => item.subheading === section.subheading);
+        if (existing) {
+          existing.rows.push(...section.rows);
+        } else {
+          groupSections.push({
+            subheading: section.subheading,
+            rows: [...section.rows]
+          });
+        }
+      }
+
+      const groupedHtml = Array.from(grouped.entries())
+        .map(([heading, groupSections]) => {
+          const totalGroupRows = groupSections.reduce((sum, item) => sum + item.rows.length, 0);
+
+          if (groupSections.length === 1) {
+            const only = groupSections[0];
+            const combinedHeading = only.subheading ? `${heading} / ${only.subheading}` : heading;
+            return `
+              <section class="section">
+                <h2>${escapeHtml(combinedHeading)} (${only.rows.length})</h2>
+                ${renderRowsTable(only.rows)}
+              </section>
+            `;
+          }
+
+          const subSectionsHtml = groupSections
+            .map((item) => {
+              return `
+                <div class="subsection">
+                  ${item.subheading ? `<h3>${escapeHtml(item.subheading)} (${item.rows.length})</h3>` : ''}
+                  ${renderRowsTable(item.rows)}
+                </div>
+              `;
+            })
+            .join('');
+
+          return `
+            <section class="section">
+              <h2>${escapeHtml(heading)} (${totalGroupRows})</h2>
+              ${subSectionsHtml}
+            </section>
+          `;
+        })
+        .join('');
+
+      statsEl.textContent = `${state.current.imageTag} • ${visible} of ${total} entries shown`;
+      contentEl.innerHTML = groupedHtml || '<div class="empty">No entries match the current filter.</div>';
+    }
+
+    function bindEvents() {
+      const channelSelect = document.getElementById('channelSelect');
+      const versionSelect = document.getElementById('versionSelect');
+      const searchInput = document.getElementById('searchInput');
+      const toggleSources = document.getElementById('toggleSources');
+
+      channelSelect.addEventListener('change', (event) => {
+        state.selectedChannel = event.target.value;
+        updateBuildSelectors();
+        render();
+      });
+
+      versionSelect.addEventListener('change', (event) => {
+        const selectedFile = event.target.value;
+        const selected = state.datasets.find((item) => item.file === selectedFile) ?? null;
+        state.current = selected;
+        if (selected) {
+          state.selectedChannel = selected.channel;
+        }
+        render();
+      });
+
+      searchInput.addEventListener('input', (event) => {
+        state.search = event.target.value;
+        render();
+      });
+
+      toggleSources.addEventListener('change', (event) => {
+        state.showSources = event.target.checked;
+        render();
+      });
+    }
+
+    async function discoverFiles() {
+      try {
+        const response = await fetch('docs/env/index.json', { cache: 'no-store' });
+        if (!response.ok) return [];
+
+        const payload = await response.json();
+        const discovered = Array.isArray(payload?.files)
+          ? payload.files
+              .filter((entry) => typeof entry?.file === 'string' && entry.file.endsWith('.json'))
+              .map((entry) => ({
+                filePath: `docs/env/${entry.file}`,
+                imageTag: entry.image_tag
+              }))
+          : [];
+
+        return discovered;
+      } catch (error) {
+        console.error('Unable to load docs/env/index.json', error);
+        return [];
+      }
+    }
+
+    async function loadDatasets() {
+      const loaded = [];
+      const files = await discoverFiles();
+
+      for (const fileEntry of files) {
+        try {
+          const response = await fetch(fileEntry.filePath, { cache: 'no-store' });
+          if (!response.ok) continue;
+          const json = await response.json();
+          loaded.push(normalizeDataset(fileEntry.filePath, json, fileEntry.imageTag));
+        } catch (error) {
+          console.error(`Unable to load ${fileEntry.filePath}`, error);
+        }
+      }
+
+      state.datasets = loaded;
+      state.current = loaded[0] ?? null;
+      state.selectedChannel = state.current?.channel ?? null;
+      updateBuildSelectors();
+    }
+
+    async function init() {
+      bindEvents();
+      await loadDatasets();
+      render();
+    }
+
+    init();
+  </script>
+</body>
+</html>
