@@ -29,8 +29,6 @@ if [ -d "${SERVER_DIR}" ]; then
   while IFS= read -r -d '' file; do
     copy_with_parents "${file}" "${ZOMBOID_DIR}" "${OUT_DIR}"
   done < <(find "${SERVER_DIR}" -type f \( -name "*.ini" -o -name "*.lua" \) -print0)
-  echo "Env sources extracted from ${SERVER_DIR} to ${OUT_DIR}"
-  exit 0
 fi
 
 # Collect INI files from media directories.
@@ -54,4 +52,8 @@ if [ -d "${STEAM_DIR}/media/lua/server" ]; then
   done < <(find "${STEAM_DIR}/media/lua/server" -type f -name "*.lua" -print0)
 fi
 
-echo "Env sources extracted to ${OUT_DIR}"
+if [ -d "${SERVER_DIR}" ]; then
+  echo "Env sources extracted from ${SERVER_DIR} and media sources to ${OUT_DIR}"
+else
+  echo "Env sources extracted to ${OUT_DIR}"
+fi

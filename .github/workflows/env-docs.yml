@@ -161,6 +161,7 @@ jobs:
           CID=$(docker run -d --name "pz-envdocs-${TAG_SAFE}" \
             -e ADMINPASSWORD=envdocs \
             -e SERVERNAME=pzserver \
+            -e SERVERPRESET=Survival \
             -v "$PWD/${TAG_DIR}/zomboid:/home/steam/Zomboid" \
             ghcr.io/${REPO_NAME_LC}:${TAG})
           INI_PATH_PRIMARY="${TAG_DIR}/zomboid/Server/pzserver.ini"
