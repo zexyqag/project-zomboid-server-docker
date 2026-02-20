@@ -35,23 +35,62 @@ jobs:
         run: |
           set -euo pipefail
           tags=()
+          need_latest_versions=false
+
+          normalize_tag() {
+            local input_tag="$1"
+            case "${input_tag}" in
+              stable|unstable)
+                need_latest_versions=true
+                ;;
+            esac
+          }
+
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
             chmod +x scripts/get_latest_versions.sh
             eval "$(scripts/get_latest_versions.sh)"
             tags+=("stable-${LATEST_STABLE_VERSION}")
             tags+=("unstable-${LATEST_UNSTABLE_VERSION}")
           else
+            raw_inputs=()
             if [ -n "${{ inputs.env_docs_tag }}" ]; then
-              tags+=("${{ inputs.env_docs_tag }}")
+              raw_inputs+=("${{ inputs.env_docs_tag }}")
             fi
             if [ -n "${{ inputs.env_docs_tags }}" ]; then
               IFS=',' read -ra raw_tags <<< "${{ inputs.env_docs_tags }}"
               for raw_tag in "${raw_tags[@]}"; do
                 tag="$(echo "$raw_tag" | xargs)"
                 [ -z "$tag" ] && continue
-                tags+=("$tag")
+                raw_inputs+=("$tag")
               done
             fi
+
+            for input_tag in "${raw_inputs[@]}"; do
+              normalize_tag "${input_tag}"
+            done
+
+            if [ "${need_latest_versions}" = "true" ]; then
+              chmod +x scripts/get_latest_versions.sh
+              eval "$(scripts/get_latest_versions.sh)"
+            fi
+
+            for input_tag in "${raw_inputs[@]}"; do
+              case "${input_tag}" in
+                stable)
+                  tags+=("stable-${LATEST_STABLE_VERSION}")
+                  ;;
+                unstable)
+                  tags+=("unstable-${LATEST_UNSTABLE_VERSION}")
+                  ;;
+                *)
+                  tags+=("${input_tag}")
+                  ;;
+              esac
+            done
+          fi
+
+          if [ ${#tags[@]} -gt 0 ]; then
+            mapfile -t tags < <(printf '%s\n' "${tags[@]}" | sed '/^$/d' | sort -u)
           fi
 
           matrix=$(printf '%s\n' "${tags[@]}" | jq -R -s '
@@ -169,14 +208,40 @@ jobs:
         with:
           path: ./env-docs
 
-      - name: Stage env docs
+      - name: Commit and push docs branch incrementally
         run: |
-          mkdir -p docs/env
-          find ./env-docs -type f -name '*.json' -exec cp -f {} docs/env/ \;
-          bash scripts/generate_env_index.sh docs/env docs/env/index.json
+          set -euo pipefail
 
-      - name: Commit and push docs branch
-        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          tmp_dir="$(mktemp -d)"
+          mkdir -p "$tmp_dir/new"
+          find ./env-docs -type f -name '*.json' -exec cp -f {} "$tmp_dir/new/" \;
+
+          if git ls-remote --exit-code --heads origin docs/env >/dev/null 2>&1; then
+            git fetch origin docs/env:refs/remotes/origin/docs/env
+            git checkout -B docs-env-sync origin/docs/env
+          else
+            git checkout --orphan docs-env-sync
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+
+          mkdir -p docs/env
+          find "$tmp_dir/new" -maxdepth 1 -type f -name '*.json' -exec cp -f {} docs/env/ \;
+
+          files_json="$(
+            find docs/env -maxdepth 1 -type f -name '*.json' ! -name 'index.json' -print | sort \
+              | while IFS= read -r file; do
+                  [ -z "${file}" ] && continue
+                  file_name="$(basename "${file}")"
+                  image_tag="$(jq -r '.image_tag // ""' "${file}" 2>/dev/null || echo "")"
+                  jq -cn --arg file "${file_name}" --arg image_tag "${image_tag}" '{file:$file,image_tag:$image_tag}'
+                done \
+              | jq -s 'sort_by(.file)'
+          )"
+          jq -n --argjson files "${files_json}" '{files:$files}' > docs/env/index.json
+
           git add docs/env
 
           if git diff --cached --quiet; then
@@ -184,16 +249,5 @@ jobs:
             exit 0
           fi
 
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          tmp_dir="$(mktemp -d)"
-          cp -r docs/env "$tmp_dir/env"
-
-          git checkout --orphan docs/env
-          git rm -rf .
-          mkdir -p docs
-          cp -r "$tmp_dir/env" docs/env
-          git add docs/env
           git commit -m "chore: update env docs"
-          git push --force origin docs/env
+          git push origin HEAD:docs/env
