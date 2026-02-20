@@ -1,0 +1,12 @@
+{
+  "files": [
+    {
+      "file": "stable.json",
+      "image_tag": "stable-fb6e650"
+    },
+    {
+      "file": "unstable.json",
+      "image_tag": "unstable-fb6e650"
+    }
+  ]
+}
