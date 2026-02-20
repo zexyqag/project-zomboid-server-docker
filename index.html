@@ -175,6 +175,15 @@
       white-space: pre-wrap;
     }
 
+    .cell-link {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .cell-link:hover {
+      text-decoration: underline;
+    }
+
     .empty {
       color: var(--muted);
       padding: 18px 12px;
@@ -251,6 +260,13 @@
         imageTag: imageTagOverride || json?.image_tag || file,
         data: json
       };
+    }
+
+    function slugify(value) {
+      return String(value ?? '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
     }
 
     function toChannelLabel(channel) {
@@ -389,7 +405,54 @@
       return '';
     }
 
-    function renderRowsTable(rows) {
+    function buildRowAnchorMaps(sections) {
+      const rowAnchors = new WeakMap();
+      const nameToAnchor = new Map();
+      const slugCounts = new Map();
+
+      for (const section of sections) {
+        for (const row of section.rows) {
+          if (!isObject(row)) continue;
+
+          const rawName = typeof row.name === 'string' ? row.name.trim() : '';
+          if (!rawName) continue;
+
+          const baseSlug = slugify(rawName) || 'entry';
+          const count = (slugCounts.get(baseSlug) ?? 0) + 1;
+          slugCounts.set(baseSlug, count);
+
+          const anchorId = `entry-${baseSlug}-${count}`;
+          rowAnchors.set(row, anchorId);
+
+          if (!nameToAnchor.has(rawName)) {
+            nameToAnchor.set(rawName, anchorId);
+          }
+        }
+      }
+
+      return { rowAnchors, nameToAnchor };
+    }
+
+    function renderReplacedByCell(row, nameToAnchor) {
+      if (!Array.isArray(row.replaced_by)) return '';
+
+      return row.replaced_by
+        .map((entry) => {
+          const label = String(entry ?? '').trim();
+          if (!label) return '';
+
+          const anchorId = nameToAnchor.get(label);
+          if (!anchorId) {
+            return escapeHtml(label);
+          }
+
+          return `<a class="cell-link" href="#${escapeHtml(anchorId)}">${escapeHtml(label)}</a>`;
+        })
+        .filter(Boolean)
+        .join('<br>');
+    }
+
+    function renderRowsTable(rows, rowAnchors, nameToAnchor) {
       const objectRows = rows.filter((row) => isObject(row));
       const hasNamedShape = objectRows.some((row) => 'name' in row || 'description' in row || 'sources' in row || 'source_ids' in row);
 
@@ -414,12 +477,13 @@
             const name = row.name ?? '';
             const description = row.description ?? '';
             const sources = resolveSourceText(row);
-            const replacedBy = Array.isArray(row.replaced_by) ? row.replaced_by.join('\n') : '';
+            const replacedBy = renderReplacedByCell(row, nameToAnchor);
+            const rowId = rowAnchors.get(row);
             return `
-              <tr>
+              <tr${rowId ? ` id="${escapeHtml(rowId)}"` : ''}>
                 <td class="name">${escapeHtml(name)}</td>
                 <td>${escapeHtml(description)}</td>
-                ${showReplacedBy ? `<td class="source">${escapeHtml(replacedBy)}</td>` : ''}
+                ${showReplacedBy ? `<td class="source">${replacedBy}</td>` : ''}
                 ${state.showSources ? `<td class="source">${escapeHtml(sources)}</td>` : ''}
               </tr>
             `;
@@ -480,6 +544,7 @@
 
       const query = state.search.trim();
       const sections = collectArraySections(state.current.data || {});
+      const { rowAnchors, nameToAnchor } = buildRowAnchorMaps(sections);
       let total = 0;
       let visible = 0;
 
@@ -531,7 +596,7 @@
             return `
               <section class="section">
                 <h2>${escapeHtml(combinedHeading)} (${only.rows.length})</h2>
-                ${renderRowsTable(only.rows)}
+                ${renderRowsTable(only.rows, rowAnchors, nameToAnchor)}
               </section>
             `;
           }
@@ -541,7 +606,7 @@
               return `
                 <div class="subsection">
                   ${item.subheading ? `<h3>${escapeHtml(item.subheading)} (${item.rows.length})</h3>` : ''}
-                  ${renderRowsTable(item.rows)}
+                  ${renderRowsTable(item.rows, rowAnchors, nameToAnchor)}
                 </div>
               `;
             })
