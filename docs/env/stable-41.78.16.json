@@ -1,0 +1,1359 @@
+{
+  "image_tag": "stable-41.78.16-894e9fe",
+  "meta": {
+    "sources": {
+      "hooks_args": "scripts/env_hooks/args",
+      "hooks": "scripts/env_hooks",
+      "hooks_vars": "scripts/env_hooks/vars",
+      "ini_pzserver": "docs/env_sources/stable-41.78.16/zomboid/Server/pzserver.ini"
+    }
+  },
+  "env": {
+    "custom": {
+      "args": [
+        {
+          "name": "ADMINUSERNAME",
+          "description": "Admin username for the server.",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "CACHEDIR",
+          "description": "Override the data cache directory.",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "IP",
+          "description": "Bind address for the server (-ip).",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "MAX_MEMORY",
+          "description": "Set JVM maximum heap size (e.g., 4096m).",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "MEMORY",
+          "description": "Set JVM min/max heap size (e.g., 2048m).",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "MIN_MEMORY",
+          "description": "Set JVM minimum heap size (e.g., 1024m).",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "MODFOLDERS",
+          "description": "Mod folder order/source list (e.g., workshop,steam,mods).",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "PORT",
+          "description": "Default server port (-port).",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "STEAMPORT1",
+          "description": "Steam server port 1.",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "STEAMPORT2",
+          "description": "Steam server port 2.",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        }
+      ],
+      "hooks": [
+        {
+          "name": "ADMINPASSWORD",
+          "description": "Admin password for first setup; updates INI_Password if changed.",
+          "source_ids": [
+            "hooks"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "DISABLE_ANTICHEAT",
+          "description": "Disable AntiCheatProtectionType entries by index or ranges.",
+          "source_ids": [
+            "hooks"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "MOD_IDS",
+          "description": "Mod IDs for the server; replaces INI_Mods.",
+          "source_ids": [
+            "hooks"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "SERVERPRESET",
+          "description": "Preset name for SandboxVars; copies preset on first run or when SERVERPRESETREPLACE is true.",
+          "source_ids": [
+            "hooks"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "WORKSHOP_IDS",
+          "description": "Workshop IDs and collections; replaces INI_WorkshopItems.",
+          "source_ids": [
+            "hooks"
+          ],
+          "replaced_by": []
+        }
+      ],
+      "vars": [
+        {
+          "name": "ADMINPASSWORD_FILE",
+          "description": "Path to a file containing the admin password.",
+          "source_ids": [
+            "hooks_vars"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "CLEAN_WORKSHOP_ALLOW_REMOVE_ALL",
+          "description": "Allow cleanup to remove all items if none match.",
+          "source_ids": [
+            "hooks_vars"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "CLEAN_WORKSHOP_DRY_RUN",
+          "description": "List items that would be removed during workshop cleanup.",
+          "source_ids": [
+            "hooks_vars"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "CLEAN_WORKSHOP_KEEP_FILE",
+          "description": "Write resolved workshop IDs to this file.",
+          "source_ids": [
+            "hooks_vars"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "LANG",
+          "description": "Locale for the server process.",
+          "source_ids": [
+            "hooks_vars"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "MAP_SCAN_DRY_RUN",
+          "description": "Scan maps without writing files.",
+          "source_ids": [
+            "hooks_vars"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "PASSWORD_FILE",
+          "description": "Path to a file containing the server password.",
+          "source_ids": [
+            "hooks_vars"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "RCONPASSWORD_FILE",
+          "description": "Path to a file containing the RCON password.",
+          "source_ids": [
+            "hooks_vars"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "SERVERPRESETREPLACE",
+          "description": "Replace existing SandboxVars with preset when true.",
+          "source_ids": [
+            "hooks_vars"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "STEAMAPPBRANCH",
+          "description": "Steam branch to install/update (e.g., stable, unstable).",
+          "source_ids": [
+            "hooks_vars"
+          ],
+          "replaced_by": []
+        },
+        {
+          "name": "STEAM_API_KEY",
+          "description": "Steam Web API key for resolving collections.",
+          "source_ids": [
+            "hooks_vars"
+          ],
+          "replaced_by": []
+        }
+      ]
+    },
+    "generated": {
+      "ini": {
+        "pzserver": {
+          "": [
+            {
+              "name": "ini__pzserver__AdminSafehouse",
+              "description": "Only admins can claim safehouses",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AllowCoop",
+              "description": "Allow co-op/splitscreen players",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AllowDestructionBySledgehammer",
+              "description": "Allow players to destroy world objects with sledgehammers",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AllowNonAsciiUsername",
+              "description": "Allow use of non-ASCII (cyrillic etc) characters in usernames",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AnnounceDeath",
+              "description": "If checked, every time a player dies a global message will be displayed in the chat",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType1",
+              "description": "Disables anti-cheat protection for type 1.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType10",
+              "description": "Disables anti-cheat protection for type 10.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType11",
+              "description": "Disables anti-cheat protection for type 11.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType12",
+              "description": "Disables anti-cheat protection for type 12.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType13",
+              "description": "Disables anti-cheat protection for type 13.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType14",
+              "description": "Disables anti-cheat protection for type 14.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType15",
+              "description": "Disables anti-cheat protection for type 15.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType15ThresholdMultiplier",
+              "description": "Threshold value multiplier for anti-cheat protection: type 15.\\nMinimum=1.00 Maximum=10.00 Default=1.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType16",
+              "description": "Disables anti-cheat protection for type 16.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType17",
+              "description": "Disables anti-cheat protection for type 17.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType18",
+              "description": "Disables anti-cheat protection for type 18.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType19",
+              "description": "Disables anti-cheat protection for type 19.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType2",
+              "description": "Disables anti-cheat protection for type 2.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType20",
+              "description": "Disables anti-cheat protection for type 20.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType20ThresholdMultiplier",
+              "description": "Threshold value multiplier for anti-cheat protection: type 20.\\nMinimum=1.00 Maximum=10.00 Default=1.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType21",
+              "description": "",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType22",
+              "description": "",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType22ThresholdMultiplier",
+              "description": "Minimum=1.00 Maximum=10.00 Default=1.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType23",
+              "description": "",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType24",
+              "description": "",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType24ThresholdMultiplier",
+              "description": "Minimum=1.00 Maximum=10.00 Default=6.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType2ThresholdMultiplier",
+              "description": "Threshold value multiplier for anti-cheat protection: type 2.\\nMinimum=1.00 Maximum=10.00 Default=3.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType3",
+              "description": "Disables anti-cheat protection for type 3.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType3ThresholdMultiplier",
+              "description": "Threshold value multiplier for anti-cheat protection: type 3.\\nMinimum=1.00 Maximum=10.00 Default=1.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType4",
+              "description": "Disables anti-cheat protection for type 4.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType4ThresholdMultiplier",
+              "description": "Threshold value multiplier for anti-cheat protection: type 4.\\nMinimum=1.00 Maximum=10.00 Default=1.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType5",
+              "description": "Disables anti-cheat protection for type 5.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType6",
+              "description": "Disables anti-cheat protection for type 6.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType7",
+              "description": "Disables anti-cheat protection for type 7.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType8",
+              "description": "Disables anti-cheat protection for type 8.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType9",
+              "description": "Disables anti-cheat protection for type 9.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AntiCheatProtectionType9ThresholdMultiplier",
+              "description": "Threshold value multiplier for anti-cheat protection: type 9.\\nMinimum=1.00 Maximum=10.00 Default=1.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__AutoCreateUserInWhiteList",
+              "description": "Add unknown usernames to the whitelist when players join. Clients will supply their own username/password on joining. (This is for Open=true servers)",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__BackupsCount",
+              "description": "Minimum=1 Maximum=300 Default=5",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__BackupsOnStart",
+              "description": "",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__BackupsOnVersionChange",
+              "description": "",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__BackupsPeriod",
+              "description": "Minimum=0 Maximum=1500 Default=0",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__BanKickGlobalSound",
+              "description": "",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__BloodSplatLifespanDays",
+              "description": "Number of days before old blood splats are removed.\\nRemoval happens when map chunks are loaded.\\nZero means they will never disappear\\nMinimum=0 Maximum=365 Default=0",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__CarEngineAttractionModifier",
+              "description": "Modify the range of zombie attraction to cars. (Lower values can help with lag.)\\nMinimum=0.00 Maximum=10.00 Default=0.50",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__ChatStreams",
+              "description": "",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__ClientActionLogs",
+              "description": "ISExitVehicle;ISTakeEngineParts;",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__ClientCommandFilter",
+              "description": "+vehicle.damageWindow;+vehicle.fixPart;+vehicle.installPart;+vehicle.uninstallPart",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__ConstructionPreventsLootRespawn",
+              "description": "Items will not respawn in buildings that players have barricaded or built in",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DefaultPort",
+              "description": "Default starting port for player data. If UDP, this is this one of two ports used.\\nMinimum=0 Maximum=65535 Default=16261",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DenyLoginOnOverloadedServer",
+              "description": "",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DisableRadioAdmin",
+              "description": "Disables radio transmissions from players with 'admin' access level",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DisableRadioGM",
+              "description": "Disables radio transmissions from players with 'gm' access level",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DisableRadioInvisible",
+              "description": "Disables radio transmissions from invisible players",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DisableRadioModerator",
+              "description": "Disables radio transmissions from players with 'moderator' access level",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DisableRadioOverseer",
+              "description": "Disables radio transmissions from players with 'overseer' access level",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DisableRadioStaff",
+              "description": "Disables radio transmissions from players with an access level",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DisableSafehouseWhenPlayerConnected",
+              "description": "Safehouse acts like a normal house if a member of the safehouse is connected (so secure when players are offline)",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DiscordChannel",
+              "description": "The Discord channel name. (Try the separate channel ID option if having difficulties)",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DiscordChannelID",
+              "description": "The Discord channel ID. (Use if having difficulties with Discord channel name option)",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DiscordEnable",
+              "description": "Enables global text chat integration with a Discord channel",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DiscordToken",
+              "description": "Discord bot access token",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DisplayUserName",
+              "description": "Display usernames above player's heads in-game.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DoLuaChecksum",
+              "description": "Kick clients whose game files don't match the server's.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__DropOffWhiteListAfterDeath",
+              "description": "Remove player accounts from the whitelist after death. This prevents players creating a new character after death on Open=false servers",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__Faction",
+              "description": "Players can create factions when true",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__FactionDaySurvivedToCreate",
+              "description": "Players must survive this number of in-game days before being allowed to create a faction\\nMinimum=0 Maximum=2147483647 Default=0",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__FactionPlayersRequiredForTag",
+              "description": "Number of players required as faction members before the faction owner can create a group tag\\nMinimum=1 Maximum=2147483647 Default=1",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__FastForwardMultiplier",
+              "description": "Governs how fast time passes while players sleep. Value multiplies the speed of the time that passes during sleeping.\\nMinimum=1.00 Maximum=100.00 Default=40.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__GlobalChat",
+              "description": "Toggles global chat on or off.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__HidePlayersBehindYou",
+              "description": "If true, automatically hide the player you can't see (like zombies).",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__HoursForLootRespawn",
+              "description": "After X hours, all containers in the world will respawn loot. To spawn loot a container must have been looted at least once. Loot respawn is not impacted by visibility or subsequent looting.\\nMinimum=0 Maximum=2147483647 Default=0",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__ItemNumbersLimitPerContainer",
+              "description": "Maximum number of items that can be placed in a container.  Zero means there is no limit. (PLEASE NOTE: This includes individual small items such as nails. A limit of 50 will mean only 50 nails can be stored.)\\nMinimum=0 Maximum=9000 Default=0",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__KickFastPlayers",
+              "description": "Kick players that appear to be moving faster than is possible. May be buggy -- use with caution.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__KnockedDownAllowed",
+              "description": "",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__LoginQueueConnectTimeout",
+              "description": "Minimum=20 Maximum=1200 Default=60",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__LoginQueueEnabled",
+              "description": "",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__Map",
+              "description": "Enter the foldername of the mod found in \\Steam\\steamapps\\workshop\\modID\\mods\\modName\\media\\maps\\",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__MapRemotePlayerVisibility",
+              "description": "Controls display of remote players on the in-game map.\\n1=Hidden 2=Friends 3=Everyone\\nMinimum=1 Maximum=3 Default=1",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__MaxAccountsPerUser",
+              "description": "Limits the number of different accounts a single Steam user may create on this server. Ignored when using the Hosts button.\\nMinimum=0 Maximum=2147483647 Default=0",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__MaxItemsForLootRespawn",
+              "description": "Containers with a number of items greater, or equal to, this setting will not respawn\\nMinimum=1 Maximum=2147483647 Default=4",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__MaxPlayers",
+              "description": "Maximum number of players that can be on the server at one time. This excludes admins.\\nWARNING: Server player counts above 32 will potentially result in poor map streaming and desync. Please advance with caution.\\nMinimum=1 Maximum=100 Default=32",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__MinutesPerPage",
+              "description": "The number of in-game minutes it takes to read one page of a book\\nMinimum=0.00 Maximum=60.00 Default=1.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__Mods",
+              "description": "Enter the mod loading ID here. It can be found in \\Steam\\steamapps\\workshop\\modID\\mods\\modName\\info.txt",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": [
+                "MOD_IDS"
+              ]
+            },
+            {
+              "name": "ini__pzserver__MouseOverToSeeDisplayName",
+              "description": "If true, players will have to mouse over someone to see their display name.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__NoFire",
+              "description": "All forms of fire are disabled - except for campfires",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__Open",
+              "description": "Clients may join without already having an account in the whitelist. If set to false, administrators must manually create username/password combos.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__PVP",
+              "description": "Players can hurt and kill other players",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__PVPFirearmDamageModifier",
+              "description": "Damage multiplier for PVP ranged attacks.\\nMinimum=0.00 Maximum=500.00 Default=50.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__PVPMeleeDamageModifier",
+              "description": "Damage multiplier for PVP melee attacks.\\nMinimum=0.00 Maximum=500.00 Default=30.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__PVPMeleeWhileHitReaction",
+              "description": "If true, player can hit again when struck by another player.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__Password",
+              "description": "Clients must know this password to join the server. (Ignored when hosting a server via the Host button)",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": [
+                "ADMINPASSWORD",
+                "PASSWORD"
+              ]
+            },
+            {
+              "name": "ini__pzserver__PauseEmpty",
+              "description": "Game time stops when there are no players online",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__PerkLogs",
+              "description": "Track changes in player perk levels in PerkLog.txt server log",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__PingLimit",
+              "description": "Ping limit, in milliseconds, before a player is kicked from the server. (Set to 100 to disable)\\nMinimum=100 Maximum=2147483647 Default=400",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__PlayerBumpPlayer",
+              "description": "Governs whether players bump (and knock over) other players when running through them.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__PlayerRespawnWithOther",
+              "description": "Players can respawn in-game at a split screen / Remote Play player's location",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__PlayerRespawnWithSelf",
+              "description": "Players can respawn in-game at the coordinates where they died",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__PlayerSafehouse",
+              "description": "Both admins and players can claim safehouses",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__Public",
+              "description": "Shows the server on the in-game browser. (Note: Steam-enabled servers are always visible in the Steam server browser)",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__PublicDescription",
+              "description": "Description displayed in the in-game public server browser. Typing \\n will create a new line in your description",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__PublicName",
+              "description": "Name of the server displayed in the in-game browser and, if applicable, the Steam browser",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__RCONPassword",
+              "description": "RCON password (Pick a strong password)",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": [
+                "RCONPASSWORD"
+              ]
+            },
+            {
+              "name": "ini__pzserver__RCONPort",
+              "description": "The port for the RCON (Remote Console)\\nMinimum=0 Maximum=65535 Default=27015",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__RemovePlayerCorpsesOnCorpseRemoval",
+              "description": "If enabled, when HoursForCorpseRemoval triggers, it will also remove player?s corpses from the ground.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__ResetID",
+              "description": "Reset ID determines if the server has undergone a soft-reset. If this number does match the client, the client must create a new character. Used in conjunction with PlayerServerID. It is strongly advised that you backup these IDs somewhere\\nMinimum=0 Maximum=2147483647 Default=244048362",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SafeHouseRemovalTime",
+              "description": "Players are automatically removed from a safehouse they have not visited for this many real-world hours\\nMinimum=0 Maximum=2147483647 Default=144",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SafehouseAllowFire",
+              "description": "Allow fire to damage safehouses",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SafehouseAllowLoot",
+              "description": "Allow non-members to take items from safehouses",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SafehouseAllowNonResidential",
+              "description": "Governs whether players can claim non-residential buildings.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SafehouseAllowRespawn",
+              "description": "Players will respawn in a safehouse that they were a member of before they died",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SafehouseAllowTrepass",
+              "description": "Allow non-members to enter a safehouse without being invited",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SafehouseDaySurvivedToClaim",
+              "description": "Players must have survived this number of in-game days before they are allowed to claim a safehouse\\nMinimum=0 Maximum=2147483647 Default=0",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SafetyCooldownTimer",
+              "description": "The delay before a player can enter or leave PVP mode again, having recently done so\\nMinimum=0 Maximum=1000 Default=3",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SafetySystem",
+              "description": "Players can enter and leave PVP on an individual basis. A player can only hurt another player when at least one of them is in PVP mode - as shown by the unobscured skull and crossbones on the left of the screen. When SafetySystem=false, players are free to hurt each other at any time if PVP is enabled.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SafetyToggleTimer",
+              "description": "The time it takes for a player to enter and leave PVP mode\\nMinimum=0 Maximum=1000 Default=2",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SaveWorldEveryMinutes",
+              "description": "Loaded parts of the map are saved after this set number of real-world minutes have passed. (The map is usually saved only after clients leave a loaded area)\\nMinimum=0 Maximum=2147483647 Default=0",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__ServerPlayerID",
+              "description": "ServerPlayerID determines if a character is from another server, or single player. This value may be changed by soft resets. If this number does match the client, the client must create a new character. This is used in conjunction with ResetID. It is strongly advised that you backup these IDs somewhere",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__ServerWelcomeMessage",
+              "description": "The first welcome message visible in the chat panel. This will be displayed immediately after player login. you can use RGB colours to chance the colour of the welcome message. You can also use <LINE> to create a separate lines within your text. Use: <RGB:1,0,0> This message will show up red!",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__ShowFirstAndLastName",
+              "description": "Display first & last name above player's heads.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__ShowSafety",
+              "description": "Display a skull icon over the head of players who have entered PVP mode",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SledgehammerOnlyInSafehouse",
+              "description": "Allow players to destroy world objects only in their safehouse (require AllowDestructionBySledgehammer to true).",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SleepAllowed",
+              "description": "Players are allowed to sleep when their survivor becomes tired, but they do not NEED to sleep",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SleepNeeded",
+              "description": "Players get tired and need to sleep. (Ignored if SleepAllowed=false)",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SneakModeHideFromOtherPlayers",
+              "description": "",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SpawnItems",
+              "description": "Item types new players spawn with.\\nSeparate multiple item types with commas.\\nExample: Base.Axe,Base.Bag_BigHikingBag",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SpawnPoint",
+              "description": "Force every new player to spawn at these set x,y,z world coordinates. Find desired coordinates at map.projectzomboid.com. (Ignored when 0,0,0)",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SpeedLimit",
+              "description": "Minimum=10.00 Maximum=150.00 Default=70.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SteamScoreboard",
+              "description": "Show Steam usernames and avatars in the Players list. Can be true (visible to everyone), false (visible to no one), or admin (visible to only admins)",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__SteamVAC",
+              "description": "Enable the Steam VAC system",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__TrashDeleteAll",
+              "description": "If true, player can use the \"delete all\" button on bins.",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__UDPPort",
+              "description": "Minimum=0 Maximum=65535 Default=16262",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__UPnP",
+              "description": "Attempt to configure a UPnP-enabled internet gateway to automatically setup port forwarding rules. The server will fall back to default ports if this fails",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__Voice3D",
+              "description": "Toggle directional audio for VOIP",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__VoiceEnable",
+              "description": "VOIP is enabled when checked",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__VoiceMaxDistance",
+              "description": "The maximum tile distance over which VOIP sounds can be heard.\\nMinimum=0.00 Maximum=100000.00 Default=100.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__VoiceMinDistance",
+              "description": "The minimum tile distance over which VOIP sounds can be heard.\\nMinimum=0.00 Maximum=100000.00 Default=10.00",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "ini__pzserver__WorkshopItems",
+              "description": "List Workshop Mod IDs for the server to download. Each must be separated by a semicolon. Example: WorkshopItems=514427485;513111049",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": [
+                "WORKSHOP_IDS"
+              ]
+            },
+            {
+              "name": "ini__pzserver__server_browser_announced_ip",
+              "description": "Set the IP from which the server is broadcast. This is for network configurations with multiple IP addresses, such as server farms",
+              "source_ids": [
+                "ini_pzserver"
+              ],
+              "replaced_by": []
+            }
+          ]
+        }
+      },
+      "lua": null
+    }
+  }
+}
