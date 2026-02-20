@@ -1,11 +1,12 @@
 {
-  "image_tag": "stable-41.78.16-894e9fe",
+  "image_tag": "stable-41.78.16-5968c58",
   "meta": {
     "sources": {
       "hooks_args": "scripts/env_hooks/args",
       "hooks": "scripts/env_hooks",
       "hooks_vars": "scripts/env_hooks/vars",
-      "ini_pzserver": "docs/env_sources/stable-41.78.16/zomboid/Server/pzserver.ini"
+      "ini_pzserver": "docs/env_sources/stable-41.78.16/zomboid/Server/pzserver.ini",
+      "lua_pzserver_SandboxVars": "docs/env_sources/stable-41.78.16/zomboid/Server/pzserver_SandboxVars.lua"
     }
   },
   "env": {
@@ -1078,7 +1079,7 @@
             },
             {
               "name": "ini__pzserver__ResetID",
-              "description": "Reset ID determines if the server has undergone a soft-reset. If this number does match the client, the client must create a new character. Used in conjunction with PlayerServerID. It is strongly advised that you backup these IDs somewhere\\nMinimum=0 Maximum=2147483647 Default=244048362",
+              "description": "Reset ID determines if the server has undergone a soft-reset. If this number does match the client, the client must create a new character. Used in conjunction with PlayerServerID. It is strongly advised that you backup these IDs somewhere\\nMinimum=0 Maximum=2147483647 Default=610876640",
               "source_ids": [
                 "ini_pzserver"
               ],
@@ -1353,7 +1354,1228 @@
           ]
         }
       },
-      "lua": null
+      "lua": {
+        "pzserver_SandboxVars": {
+          "Alarm": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__Alarm",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "AllClothesUnlocked": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__AllClothesUnlocked",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "AllowExteriorGenerator": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__AllowExteriorGenerator",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "AmmoLoot": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__AmmoLoot",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "AnnotatedMapChance": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__AnnotatedMapChance",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "AttackBlockMovements": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__AttackBlockMovements",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "BloodLevel": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__BloodLevel",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "BoneFracture": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__BoneFracture",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "CannedFoodLoot": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__CannedFoodLoot",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "CarAlarm": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__CarAlarm",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "CarDamageOnImpact": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__CarDamageOnImpact",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "CarGasConsumption": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__CarGasConsumption",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "CarGeneralCondition": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__CarGeneralCondition",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "CarSpawnRate": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__CarSpawnRate",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "ChanceHasGas": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ChanceHasGas",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "CharacterFreePoints": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__CharacterFreePoints",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "ClothingDegradation": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ClothingDegradation",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "CompostTime": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__CompostTime",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "ConstructionBonusPoints": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ConstructionBonusPoints",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "DamageToPlayerFromHitByACar": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__DamageToPlayerFromHitByACar",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "DayLength": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__DayLength",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "DaysForRottenFoodRemoval": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__DaysForRottenFoodRemoval",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "DecayingCorpseHealthImpact": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__DecayingCorpseHealthImpact",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "Distribution": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__Distribution",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "ElecShut": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ElecShut",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "ElecShutModifier": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ElecShutModifier",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "EnablePoisoning": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__EnablePoisoning",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "EnableSnowOnGround": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__EnableSnowOnGround",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "EnableTaintedWaterText": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__EnableTaintedWaterText",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "EnableVehicles": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__EnableVehicles",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "EndRegen": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__EndRegen",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "ErosionDays": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ErosionDays",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "ErosionSpeed": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ErosionSpeed",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "Farming": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__Farming",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "FireSpread": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__FireSpread",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "FoodLoot": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__FoodLoot",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "FoodRotSpeed": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__FoodRotSpeed",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "FridgeFactor": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__FridgeFactor",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "FuelStationGas": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__FuelStationGas",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "GeneratorFuelConsumption": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__GeneratorFuelConsumption",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "GeneratorSpawning": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__GeneratorSpawning",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "Helicopter": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__Helicopter",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "HoursForCorpseRemoval": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__HoursForCorpseRemoval",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "HoursForWorldItemRemoval": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__HoursForWorldItemRemoval",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "InitialGas": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__InitialGas",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "InjurySeverity": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__InjurySeverity",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "ItemRemovalListBlacklistToggle": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ItemRemovalListBlacklistToggle",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "LiteratureLoot": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__LiteratureLoot",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "LockedCar": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__LockedCar",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "LockedHouses": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__LockedHouses",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "LootRespawn": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__LootRespawn",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "MaggotSpawn": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__MaggotSpawn",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "Map": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__Map__AllowMiniMap",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__Map__AllowWorldMap",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__Map__MapAllKnown",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "MaxFogIntensity": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__MaxFogIntensity",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "MaxRainFxIntensity": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__MaxRainFxIntensity",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "MechanicsLoot": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__MechanicsLoot",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "MedicalLoot": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__MedicalLoot",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "MetaEvent": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__MetaEvent",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "MultiHitZombies": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__MultiHitZombies",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "NatureAbundance": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__NatureAbundance",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "NightDarkness": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__NightDarkness",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "Nutrition": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__Nutrition",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "OtherLoot": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__OtherLoot",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "PlantAbundance": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__PlantAbundance",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "PlantResilience": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__PlantResilience",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "PlayerDamageFromCrash": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__PlayerDamageFromCrash",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "Rain": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__Rain",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "RangedWeaponLoot": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__RangedWeaponLoot",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "RearVulnerability": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__RearVulnerability",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "RecentlySurvivorVehicles": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__RecentlySurvivorVehicles",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "SeenHoursPreventLootRespawn": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__SeenHoursPreventLootRespawn",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "SirenShutoffHours": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__SirenShutoffHours",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "SleepingEvent": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__SleepingEvent",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "StartDay": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__StartDay",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "StartMonth": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__StartMonth",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "StartTime": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__StartTime",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "StartYear": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__StartYear",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "StarterKit": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__StarterKit",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "StatsDecrease": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__StatsDecrease",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "SurvivalGearsLoot": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__SurvivalGearsLoot",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "SurvivorHouseChance": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__SurvivorHouseChance",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "Temperature": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__Temperature",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "TimeSinceApo": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__TimeSinceApo",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "TrafficJam": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__TrafficJam",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "VERSION": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__VERSION",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "VehicleEasyUse": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__VehicleEasyUse",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "VehicleStoryChance": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__VehicleStoryChance",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "WaterShut": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__WaterShut",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "WaterShutModifier": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__WaterShutModifier",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "WeaponLoot": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__WeaponLoot",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "WorldItemRemovalList": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__WorldItemRemovalList",
+              "description": "please ensure that Base.Maggots stays in the list with any future changes due to corpse maggots,",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "XpMultiplier": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__XpMultiplier",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "ZombieAttractionMultiplier": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieAttractionMultiplier",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "ZombieConfig": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieConfig__FollowSoundDistance",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieConfig__PopulationMultiplier",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieConfig__PopulationPeakDay",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieConfig__PopulationPeakMultiplier",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieConfig__PopulationStartMultiplier",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieConfig__RallyGroupRadius",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieConfig__RallyGroupSeparation",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieConfig__RallyGroupSize",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieConfig__RallyTravelDistance",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieConfig__RedistributeHours",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieConfig__RespawnHours",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieConfig__RespawnMultiplier",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieConfig__RespawnUnseenHours",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "ZombieLore": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__ActiveOnly",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Cognition",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__CrawlUnderVehicle",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__DisableFakeDead",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Hearing",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Memory",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Mortality",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Reanimate",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Sight",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Speed",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Strength",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__ThumpNoChasing",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__ThumpOnConstruction",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Toughness",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Transmission",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__TriggerHouseAlarm",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__ZombiesDragDown",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__ZombiesFenceLunge",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "Zombies": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__Zombies",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ],
+          "ZoneStoryChance": [
+            {
+              "name": "lua__pzserver_SandboxVars__SandboxVars__ZoneStoryChance",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            }
+          ]
+        }
+      }
     }
   }
 }

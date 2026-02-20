@@ -2,7 +2,7 @@
   "files": [
     {
       "file": "stable-41.78.16.json",
-      "image_tag": "stable-41.78.16-894e9fe"
+      "image_tag": "stable-41.78.16-5968c58"
     },
     {
       "file": "stable.json",
@@ -10,7 +10,7 @@
     },
     {
       "file": "unstable-42.14.1.json",
-      "image_tag": "unstable-42.14.1-894e9fe"
+      "image_tag": "unstable-42.14.1-5968c58"
     },
     {
       "file": "unstable.json",
