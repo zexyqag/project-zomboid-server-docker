@@ -192,8 +192,8 @@ $(grep -oE '\blocal[[:space:]]+[A-Z][A-Z0-9_]*\b' "${file}" || true)"
 ini_files=""
 lua_files=""
 if [ -n "${sources_root}" ] && [ -d "${sources_root}" ]; then
-  ini_files="$(find "${sources_root}" -type f -path '*Server*' -name '*.ini' | sort)"
-  lua_files="$(find "${sources_root}" -type f -path '*Server*' -name '*.lua' | sort)"
+  ini_files="$(find "${sources_root}" -type f -name '*.ini' | sort)"
+  lua_files="$(find "${sources_root}" -type f -name '*.lua' | sort)"
 else
   if [ -z "${sources_root}" ]; then
     echo "Info: ENV_SOURCES_DIR not set; skipping INI/Lua env discovery." >&2
@@ -218,6 +218,7 @@ while IFS= read -r file; do
   legacy_prefix="$(legacy_ini_env_prefix "${file_id}")"
   source_id="ini_${base_name}"
   awk -v file="${file}" -v file_key="${base_name}" -v source_id="${source_id}" -v docs_ini_prefix="${DOCS_INI_PREFIX}" -v legacy_prefix="${legacy_prefix}" '
+  function sanitize(v) { gsub(/\r/, "", v); gsub(/\t/, " ", v); gsub(/\n/, "\\n", v); return v }
   function trim(s) { sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s); return s }
   function ini_split_inline(s,    i, ch, in_sq, in_dq, out, comment) {
     inline_comment=""
@@ -270,6 +271,7 @@ while IFS= read -r file; do
       inline=inline_comment
       if (inline != "") desc=inline
       else if (comment_block != "") desc=comment_block
+      desc=sanitize(desc)
       env_new=docs_ini_prefix file_key
       if (section != "") env_new=env_new "__" section
       env_new=env_new "__" key
@@ -296,6 +298,7 @@ while IFS= read -r file; do
   legacy_prefix="${legacy_prefix%__}"
   source_id="lua_${base_name}"
   awk -v file="${file}" -v file_key="${base_name}" -v source_id="${source_id}" -v docs_lua_prefix="${DOCS_LUA_PREFIX}" -v legacy_prefix="${legacy_prefix}" '
+  function sanitize(v) { gsub(/\r/, "", v); gsub(/\t/, " ", v); gsub(/\n/, "\\n", v); return v }
   function encode(value,    out) {
     out=value
     gsub(/_/, "__", out)
@@ -410,6 +413,7 @@ while IFS= read -r file; do
       desc=""
       if (inline != "") desc=inline
       else if (comment_block != "") desc=comment_block
+      desc=sanitize(desc)
       path=join_path(key)
       n=split(path, parts, ".")
       path_token=""

@@ -559,6 +559,14 @@ EOF
     exit 1
   fi
 
+  if [ "$(jq -r '[
+      (.env.generated.ini // {} | .. | objects | select(has("name") and has("source_ids")) | select((.source_ids | length) == 0)),
+      (.env.generated.lua // {} | .. | objects | select(has("name") and has("source_ids")) | select((.source_ids | length) == 0))
+    ] | length' "${out_json}")" != "0" ]; then
+    echo "Rich env docs contains malformed generated entries with empty source_ids" >&2
+    exit 1
+  fi
+
   if [ "$(jq -r '.env.custom | has("args") and has("hooks") and has("vars")' "${out_json}")" != "true" ]; then
     echo "Rich env docs missing expected env.custom groups" >&2
     exit 1
