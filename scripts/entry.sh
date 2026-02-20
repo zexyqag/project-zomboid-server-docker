@@ -15,15 +15,68 @@ ENV_HOOKS_DIR="/server/scripts/env_hooks"
 if [ -d "${ENV_HOOKS_DIR}" ]; then
   declare -A hook_files
   declare -A hook_deps
+  declare -A hook_replaces
+  declare -A replaced_by
   declare -A hook_done
 
   while IFS= read -r file; do
     [ -f "${file}" ] || continue
     name="$(basename "${file}" .sh)"
     deps="$(awk -F= '$1=="DEPENDS_ON" {val=$2; gsub(/^[ \t]+|[ \t]+$/, "", val); gsub(/^"|"$|^\047|\047$/, "", val); print val; exit}' "${file}")"
+    replaces="$(awk -F= '$1=="REPLACES" {val=$2; gsub(/^[ \t]+|[ \t]+$/, "", val); gsub(/^"|"$|^\047|\047$/, "", val); gsub(/[;,]/, " ", val); print val; exit}' "${file}")"
     hook_files["${name}"]="${file}"
     hook_deps["${name}"]="${deps}"
+    hook_replaces["${name}"]="${replaces}"
   done <<< "$(find "${ENV_HOOKS_DIR}" -type d -name vars -prune -o -type f -name '*.sh' -print | sort)"
+
+  sorted_hook_names() {
+    printf '%s\n' "${!hook_files[@]}" | sed '/^$/d' | sort
+  }
+
+  while IFS= read -r hook_name; do
+    [ -n "${hook_name}" ] || continue
+    replaces="${hook_replaces[${hook_name}]}"
+    for replaced_name in ${replaces}; do
+      [ -n "${hook_files[${replaced_name}]+x}" ] || continue
+      if [ -n "${replaced_by[${replaced_name}]+x}" ] && [ "${replaced_by[${replaced_name}]}" != "${hook_name}" ]; then
+        echo "Warning: hook ${replaced_name} is replaced by both ${replaced_by[${replaced_name}]} and ${hook_name}; keeping ${replaced_by[${replaced_name}]}." >&2
+        continue
+      fi
+      replaced_by["${replaced_name}"]="${hook_name}"
+    done
+  done <<< "$(sorted_hook_names)"
+
+  for replaced_name in "${!replaced_by[@]}"; do
+    unset "hook_files[${replaced_name}]"
+    unset "hook_done[${replaced_name}]"
+  done
+
+  while IFS= read -r hook_name; do
+    [ -n "${hook_name}" ] || continue
+    deps="${hook_deps[${hook_name}]}"
+    mapped_deps=""
+    for dep in ${deps}; do
+      mapped_dep="${dep}"
+      if [ -n "${replaced_by[${dep}]+x}" ]; then
+        mapped_dep="${replaced_by[${dep}]}"
+      fi
+      if [ -n "${hook_files[${mapped_dep}]+x}" ]; then
+        mapped_deps="${mapped_deps} ${mapped_dep}"
+      fi
+    done
+    hook_deps["${hook_name}"]="$(printf '%s\n' "${mapped_deps}" | xargs -n1 | awk '!seen[$0]++' | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+  done <<< "$(sorted_hook_names)"
+
+  replaced_env_tokens=""
+  while IFS= read -r hook_name; do
+    [ -n "${hook_name}" ] || continue
+    replaces="${hook_replaces[${hook_name}]}"
+    for token in ${replaces}; do
+      [ -n "${hook_files[${token}]+x}" ] && continue
+      replaced_env_tokens="${replaced_env_tokens} ${token}"
+    done
+  done <<< "$(sorted_hook_names)"
+  export PZ_REPLACED_ENV_TOKENS="$(printf '%s\n' "${replaced_env_tokens}" | xargs -n1 2>/dev/null | awk '!seen[$0]++' | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
 
   run_hook() {
     local hook_name="$1"
@@ -39,7 +92,8 @@ if [ -d "${ENV_HOOKS_DIR}" ]; then
 
   while true; do
     progress=false
-    for hook_name in "${!hook_files[@]}"; do
+    while IFS= read -r hook_name; do
+      [ -n "${hook_name}" ] || continue
       [ -n "${hook_done[${hook_name}]+x}" ] && continue
       deps="${hook_deps[${hook_name}]}"
       ready=true
@@ -54,19 +108,20 @@ if [ -d "${ENV_HOOKS_DIR}" ]; then
         hook_done["${hook_name}"]=1
         progress=true
       fi
-    done
+    done <<< "$(sorted_hook_names)"
     if [ "${progress}" != true ]; then
       break
     fi
   done
 
   remaining=""
-  for hook_name in "${!hook_files[@]}"; do
+  while IFS= read -r hook_name; do
+    [ -n "${hook_name}" ] || continue
     if [ -z "${hook_done[${hook_name}]+x}" ]; then
       remaining="${remaining}
 ${hook_name}"
     fi
-  done
+  done <<< "$(sorted_hook_names)"
   if [ -n "${remaining}" ]; then
     echo "Warning: Unresolved hook dependencies; running remaining hooks in name order." >&2
     while IFS= read -r hook_name; do

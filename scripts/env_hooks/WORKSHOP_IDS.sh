@@ -1,5 +1,5 @@
 DESCRIPTION="Workshop IDs and collections; replaces INI_WorkshopItems."
-REPLACES="INI_WorkshopItems"
+REPLACES="ini__pzserver__WorkshopItems"
 
 manual_apply() {
 	# Resolve all WORKSHOP_IDS (collections and direct mod IDs) to a flat list of mod IDs

@@ -5,7 +5,6 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 env_hooks_dir="${ENV_HOOKS_DIR:-${repo_root}/scripts/env_hooks}"
 entry_sh="${repo_root}/scripts/entry.sh"
-env_template="${repo_root}/.env.template"
 sources_root="${ENV_SOURCES_DIR:-}"
 
 source "${repo_root}/scripts/lib/env_name_codec.sh"
@@ -57,12 +56,6 @@ $(grep -oE '\blocal[[:space:]]+[A-Z][A-Z0-9_]*\b' "${file}" || true)"
   assigned="$(printf '%s\n%s\n%s\n' "${assigned}" "${assigned_for}" "${assigned_local}" | sed '/^$/d' | sort -u)"
   handcrafted_list="$(comm -23 <(printf '%s\n' "${refs}" | sort -u) <(printf '%s\n' "${assigned}" | sort -u))"
   add_envs <<< "${handcrafted_list}"
-fi
-
-if [ -f "${env_template}" ]; then
-  template_raw="$(grep -oE '^[[:space:]]*[A-Z][A-Z0-9_]*=' "${env_template}" || true)"
-  template_envs="$(printf '%s\n' "${template_raw}" | sed -e 's/^[[:space:]]*//' -e 's/=.*$//' | sort -u)"
-  add_envs <<< "${template_envs}"
 fi
 
 if [ -n "${sources_root}" ] && [ -d "${sources_root}" ]; then

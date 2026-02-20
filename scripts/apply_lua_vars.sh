@@ -15,6 +15,18 @@ ESC_UNDERSCORE_PLACEHOLDER="__ESC_UNDERSCORE__"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib/env_name_codec.sh"
 FILE_KEY="$(env_name_file_key "${LUA_FILE}" ".lua")"
+REPLACED_ENV_TOKENS="${PZ_REPLACED_ENV_TOKENS:-}"
+
+is_replaced_token() {
+  local token="$1"
+  local replaced
+  for replaced in ${REPLACED_ENV_TOKENS}; do
+    if [ "${replaced}" = "${token}" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
 
 if [ -z "${LUA_FILE}" ] || [ ! -f "${LUA_FILE}" ]; then
   echo "Error: Lua file not found: ${LUA_FILE}" >&2
@@ -26,6 +38,10 @@ MAP_FILE=$(mktemp)
 trap 'rm -f "$MAP_FILE"' EXIT
 
 while IFS='=' read -r name value; do
+  if is_replaced_token "${name}"; then
+    echo "WARN: Ignoring replaced env var ${name}" >&2
+    continue
+  fi
   case "$name" in
     ${DRY_RUN_ENV}|${STRICT_ENV}|${CASE_SENSITIVE_ENV})
       continue

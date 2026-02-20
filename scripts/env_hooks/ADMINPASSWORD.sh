@@ -1,5 +1,5 @@
 DESCRIPTION="Admin password for first setup; updates INI_Password if changed."
-REPLACES="INI_Password"
+REPLACES="ini__pzserver__Password"
 DEPENDS_ON="ARGS_SERVER_END"
 
 manual_apply() {

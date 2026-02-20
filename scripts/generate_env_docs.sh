@@ -33,7 +33,7 @@ declared_envs_file="${tmp_dir}/declared_envs.txt"
 : > "${env_declarations_items_file}"
 : > "${declared_envs_file}"
 
-env_hook_replaces=""
+replacement_map_json='{}'
 
 extract_manual_value() {
   local key="$1"
@@ -72,7 +72,28 @@ if [ -d "${env_declarations_dir}" ]; then
 fi
 
 if [ -s "${env_hooks_items_file}" ]; then
-  env_hook_replaces="$(awk -F '\t' '{print $3}' "${env_hooks_items_file}" | tr ' ' '\n' | sed '/^$/d' | sort -u | tr '\n' ' ')"
+  replacement_map_json="$(
+    awk -F '\t' '
+      {
+        replacer=$1
+        replaces=$3
+        gsub(/[;,]/, " ", replaces)
+        n=split(replaces, parts, / +/)
+        for (i=1; i<=n; i++) {
+          if (parts[i] != "") {
+            printf "%s\t%s\n", parts[i], replacer
+          }
+        }
+      }
+    ' "${env_hooks_items_file}" \
+    | jq -R -s '
+        split("\n")
+        | map(select(length>0) | split("\t"))
+        | group_by(.[0])
+        | map({key: .[0][0], value: (map(.[1]) | unique)})
+        | from_entries
+      '
+  )"
 fi
 
 if [ -s "${declared_envs_file}" ]; then
@@ -152,10 +173,10 @@ $(grep -oE '\blocal[[:space:]]+[A-Z][A-Z0-9_]*\b' "${file}" || true)"
       continue
     fi
     source_path="scripts/env_hooks"
-    group_name="env_hooks"
+    group_name="hooks"
     if [ -f "${env_hooks_dir}/${env_name}.sh" ]; then
       source_path="scripts/env_hooks"
-      group_name="env_hooks"
+      group_name="hooks"
     elif [ -f "${env_hooks_dir}/args/${env_name}.sh" ]; then
       source_path="scripts/env_hooks/args"
       group_name="args"
@@ -429,7 +450,7 @@ handcrafted_rows_json="$(jq -R -s '
         description: ($parts[3] // ""),
         source_id: (
           if ($parts[2] // "") == "args" then "hooks_args"
-          elif ($parts[2] // "") == "env_hooks" then "hooks_env_hooks"
+          elif ($parts[2] // "") == "hooks" then "hooks"
           elif ($parts[2] // "") == "vars" then "hooks_vars"
           else "hooks_misc"
           end
@@ -439,8 +460,7 @@ handcrafted_rows_json="$(jq -R -s '
   | map(select(.name != "" and .group != ""))
 ' "${handcrafted_file}")"
 
-ini_rows_json="$(jq -R -s --arg manual_replaces "${env_hook_replaces}" '
-  def list(s): (s|split(" ")|map(select(length>0)));
+ini_rows_json="$(jq -R -s --argjson replacement_map "${replacement_map_json}" '
   split("\n")
   | map(select(length>0)
     | split("\t")
@@ -454,12 +474,16 @@ ini_rows_json="$(jq -R -s --arg manual_replaces "${env_hook_replaces}" '
         legacy_name: (.[6] // "")
       }
     | . as $row
-    | select((list($manual_replaces) | index($row.name) or index($row.legacy_name)) | not)
+    | .replaced_by = (
+        [ $row.name, $row.legacy_name ]
+        | map(select(length>0) | ($replacement_map[.] // []))
+        | add
+        | unique
+      )
   )
 ' "${ini_items_file}")"
 
-lua_rows_json="$(jq -R -s --arg manual_replaces "${env_hook_replaces}" '
-  def list(s): (s|split(" ")|map(select(length>0)));
+lua_rows_json="$(jq -R -s --argjson replacement_map "${replacement_map_json}" '
   split("\n")
   | map(select(length>0)
     | split("\t")
@@ -475,7 +499,12 @@ lua_rows_json="$(jq -R -s --arg manual_replaces "${env_hook_replaces}" '
         legacy_name_root: (.[9] // "")
       }
     | . as $row
-    | select((list($manual_replaces) | index($row.name) or index($row.legacy_name) or index($row.legacy_name_root)) | not)
+    | .replaced_by = (
+        [ $row.name, $row.legacy_name, $row.legacy_name_root ]
+        | map(select(length>0) | ($replacement_map[.] // []))
+        | add
+        | unique
+      )
   )
 ' "${lua_items_file}")"
 
@@ -525,7 +554,8 @@ jq -n \
     | map({
         name: .[0].name,
         description: ((map(select(.description != "") | .description) | first) // ""),
-        source_ids: (map(.source_id) | map(select(length > 0)) | unique)
+        source_ids: (map(.source_id) | map(select(length > 0)) | unique),
+        replaced_by: (map(.replaced_by // []) | add | unique)
       })
     | sort_by(.name);
 
@@ -568,7 +598,7 @@ jq -n \
     image_tag: $image_tag,
     meta: {
       sources: (
-        ({hooks_args:"scripts/env_hooks/args", hooks_env_hooks:"scripts/env_hooks", hooks_vars:"scripts/env_hooks/vars"})
+        ({hooks_args:"scripts/env_hooks/args", hooks:"scripts/env_hooks", hooks_vars:"scripts/env_hooks/vars"})
         + as_source_map($ini_rows_resolved)
         + as_source_map($lua_rows_resolved)
       )
@@ -576,7 +606,7 @@ jq -n \
     env: {
       custom: {
         args: normalize_entries($handcrafted_rows | map(select(.group == "args"))),
-        env_hooks: normalize_entries($handcrafted_rows | map(select(.group == "env_hooks"))),
+        hooks: normalize_entries($handcrafted_rows | map(select(.group == "hooks"))),
         vars: normalize_entries($handcrafted_rows | map(select(.group == "vars")))
       },
       generated: {

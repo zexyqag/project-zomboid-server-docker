@@ -62,6 +62,29 @@ run_ini_load_docs_style() {
   diff -u "${TMP_DIR}/expected.docs.norm.ini" "${TMP_DIR}/sample.docs.out.ini" >/dev/null
 }
 
+run_replaced_generated_ini_env_ignored_smoke() {
+  cat > "${TMP_DIR}/pzserver.ini" <<'EOF'
+Password=OldSecret
+Public=false
+EOF
+
+  (
+    export PZ_REPLACED_ENV_TOKENS="INI_Password ini__pzserver__Password"
+    export ini__pzserver__Password=NewSecret
+    export ini__pzserver__Public=true
+    bash "${ROOT_DIR}/scripts/apply_ini_vars.sh" "${TMP_DIR}/pzserver.ini"
+  )
+
+  if ! grep -q '^Password=OldSecret$' "${TMP_DIR}/pzserver.ini"; then
+    echo "Replaced generated env var unexpectedly changed Password" >&2
+    exit 1
+  fi
+  if ! grep -q '^Public=true$' "${TMP_DIR}/pzserver.ini"; then
+    echo "Non-replaced env var did not apply while testing replacement filtering" >&2
+    exit 1
+  fi
+}
+
 run_lua_dry_run() {
   cp "${SCRIPT_DIR}/sample_sandbox.lua" "${TMP_DIR}/sample_sandbox.lua"
   (
@@ -211,6 +234,38 @@ run_env_docs_roundtrip_smoke() {
   fi
   if ! grep -q "Event = 2" "${env_dir}/Server/pzserver_SandboxVars.lua"; then
     echo "Roundtrip Lua apply did not update Event" >&2
+    exit 1
+  fi
+}
+
+run_env_docs_replaced_by_smoke() {
+  local env_dir="${TMP_DIR}/env_sources_replaced_by"
+  local out_json="${TMP_DIR}/env-replaced-by.json"
+  mkdir -p "${env_dir}/Server"
+
+  cat > "${env_dir}/Server/pzserver.ini" <<'EOF'
+Password=old
+RCONPassword=oldrcon
+Mods=
+WorkshopItems=
+EOF
+
+  SERVERNAME=pzserver ENV_SOURCES_DIR="${env_dir}" OUTPUT_PATH="${out_json}" IMAGE_TAG="smoke-replaced-by" bash "${ROOT_DIR}/scripts/generate_env_docs.sh"
+
+  if [ "$(jq -r '.env.generated.ini.pzserver[""][] | select(.name=="ini__pzserver__Password") | (.replaced_by | index("PASSWORD") != null)' "${out_json}")" != "true" ]; then
+    echo "Env docs missing replaced_by mapping for ini__pzserver__Password -> PASSWORD" >&2
+    exit 1
+  fi
+  if [ "$(jq -r '.env.generated.ini.pzserver[""][] | select(.name=="ini__pzserver__RCONPassword") | (.replaced_by | index("RCONPASSWORD") != null)' "${out_json}")" != "true" ]; then
+    echo "Env docs missing replaced_by mapping for ini__pzserver__RCONPassword -> RCONPASSWORD" >&2
+    exit 1
+  fi
+  if [ "$(jq -r '.env.generated.ini.pzserver[""][] | select(.name=="ini__pzserver__Mods") | (.replaced_by | index("MOD_IDS") != null)' "${out_json}")" != "true" ]; then
+    echo "Env docs missing replaced_by mapping for ini__pzserver__Mods -> MOD_IDS" >&2
+    exit 1
+  fi
+  if [ "$(jq -r '.env.generated.ini.pzserver[""][] | select(.name=="ini__pzserver__WorkshopItems") | (.replaced_by | index("WORKSHOP_IDS") != null)' "${out_json}")" != "true" ]; then
+    echo "Env docs missing replaced_by mapping for ini__pzserver__WorkshopItems -> WORKSHOP_IDS" >&2
     exit 1
   fi
 }
@@ -504,11 +559,11 @@ EOF
     exit 1
   fi
 
-  if [ "$(jq -r '.env.custom | has("args") and has("env_hooks") and has("vars")' "${out_json}")" != "true" ]; then
+  if [ "$(jq -r '.env.custom | has("args") and has("hooks") and has("vars")' "${out_json}")" != "true" ]; then
     echo "Rich env docs missing expected env.custom groups" >&2
     exit 1
   fi
-  if [ "$(jq -r '.meta.sources | has("hooks_args") and has("hooks_env_hooks") and has("hooks_vars")' "${out_json}")" != "true" ]; then
+  if [ "$(jq -r '.meta.sources | has("hooks_args") and has("hooks") and has("hooks_vars")' "${out_json}")" != "true" ]; then
     echo "Rich env docs missing expected handcrafted source IDs" >&2
     exit 1
   fi
@@ -696,6 +751,8 @@ run_ini_load
 echo "INI apply ok"
 run_ini_load_docs_style
 echo "INI docs-style apply ok"
+run_replaced_generated_ini_env_ignored_smoke
+echo "INI replaced-env filtering ok"
 
 echo "Running Lua helper smoke tests..."
 run_lua_dry_run
@@ -712,6 +769,10 @@ echo "Env docs ok"
 echo "Running env docs roundtrip smoke test..."
 run_env_docs_roundtrip_smoke
 echo "Env docs roundtrip ok"
+
+echo "Running env docs replaced_by smoke test..."
+run_env_docs_replaced_by_smoke
+echo "Env docs replaced_by ok"
 
 echo "Running env name contract smoke test..."
 run_env_name_contract_smoke

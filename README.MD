@@ -2,6 +2,8 @@
 
 This Dockerfile downloads the Project Zomboid dedicated server using SteamCMD. Will allow you to deploy with ease a server in Kubernetes, Docker...
 
+If you are contributing to this repository (scripts, CI, release pipeline, env-doc generation), see [DEVELOPMENT.md](DEVELOPMENT.md).
+
 
 The ready to use image is published automatically to GitHub Container Registry (GHCR).
 
@@ -57,7 +59,7 @@ If you want unstable, change the image tag to `unstable`.
 
 If you want to build locally, set `STEAMAPPBRANCH` at build time (see Build time environment variables).
 
-Use .env.template as a starting point for your `.env` file.
+Create a `.env` file with the settings you need (examples are shown below).
 
 ## Run time environment variables
 
@@ -87,20 +89,19 @@ The image supports the following environment variables:
 
 **Server configuration:**
 
-- Set all server INI options using `INI_*` environment variables. See below for examples.
-- Set all server Lua options using `LUA_*` environment variables. See below for examples.
+- Set server INI/Lua options using the generated docs-style env names (`ini__...` / `lua__...`).
+- The exact available keys depend on the image tag and source config files; see the generated env docs JSON for your tag.
 - The default server name is fixed to `pzserver` to keep env var prefixes consistent.
 - For admin, server, and RCON passwords, use only `ADMINPASSWORD`, `ADMINPASSWORD_FILE`, `PASSWORD`, `PASSWORD_FILE`, `RCONPASSWORD`, or `RCONPASSWORD_FILE`.
 
 
-`INI_*:` Overrides for any `.ini` under `Zomboid/Server`.
+`ini__*:` Overrides for any `.ini` under `Zomboid/Server`.
 
-- Default server INI (e.g., `pzserver.ini`): `INI_Key=Value`
-- Sectioned INI: `INI_Section__Key=Value` (double underscore separates section and key)
-- Additional INI files: `INI_<file>__Section__Key=Value` or `INI_<file>__Key=Value`
-- If the filename starts with the server name, that prefix is removed from `<file>`.
+- Default server INI (e.g., `pzserver.ini`): `ini__pzserver__Key=Value`
+- Sectioned INI: `ini__pzserver__Section__Key=Value`
+- Additional INI files: `ini__<file>__Section__Key=Value` or `ini__<file>__Key=Value`
 
-**Note:** Direct use of `INI_Password` and `INI_RCONPassword` is blocked for security reasons. Use `PASSWORD` / `PASSWORD_FILE` / `RCONPASSWORD` / `RCONPASSWORD_FILE`.
+**Note:** Password keys are managed by dedicated variables. Use `PASSWORD` / `PASSWORD_FILE` / `RCONPASSWORD` / `RCONPASSWORD_FILE`.
 
 `INI_CTRL_DRY_RUN:` If true, logs the changes that would be applied without modifying the ini file.
 
@@ -110,24 +111,23 @@ Example INI overrides:
 
 ```bash
 # Flat ini keys
-INI_Public=true
-INI_PublicName="My Server"
+ini__pzserver__Public=true
+ini__pzserver__PublicName="My Server"
 
 # Sectioned ini keys (if your ini uses [Section] headers)
-INI_ServerOptions__Public=true
-INI_ServerOptions__PublicName="My Server"
+ini__pzserver__ServerOptions__Public=true
+ini__pzserver__ServerOptions__PublicName="My Server"
 
-# Password and RCONPassword must use the dedicated variables:
+# Password and RCONPassword must use dedicated variables:
 # PASSWORD, PASSWORD_FILE, RCONPASSWORD, RCONPASSWORD_FILE
 ```
 
-`LUA_*:` Overrides for any `.lua` under `Zomboid/Server`.
+`lua__*:` Overrides for any `.lua` under `Zomboid/Server`.
 
-- Default server Lua file (e.g., `pzserver.lua`): `LUA_Path=Value`
-- Additional Lua files: `LUA_<file>__Path=Value`
-- If the filename starts with the server name, that prefix is removed from `<file>`.
-- `Path` uses `_` as path separator and `__` for a literal underscore.
-- The root Lua table is detected dynamically; the root name is not part of the env var path.
+- Default server Lua file (e.g., `pzserver_SandboxVars.lua`): `lua__pzserver_SandboxVars__...=Value`
+- Additional Lua files: `lua__<file>__...=Value`
+- Lua paths are represented by `__`-separated table keys.
+- For files with a named root table (e.g., `SandboxVars = { ... }`), include that root key in the env name.
 
 `LUA_CTRL_DRY_RUN:` If true, logs the changes that would be applied without modifying the Lua file.
 
@@ -139,11 +139,11 @@ Example Lua overrides:
 
 ```bash
 # Example for <servername>_SandboxVars.lua
-LUA_SandboxVars__ZombieLore_Transmission=4
-LUA_SandboxVars__World_Event=2
+lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Transmission=4
+lua__pzserver_SandboxVars__SandboxVars__World__Event=2
 
 # Example for <servername>_othersettings.lua
-LUA_othersettings__SomeTable_SomeKey=true
+lua__pzserver_othersettings__SomeTable__SomeKey=true
 ```
 
 `CLEAN_WORKSHOP:` If true, removes workshop items on disk that are not listed in `WORKSHOP_IDS` (after collection resolution). This only runs when `WORKSHOP_IDS` is set and collection resolution succeeds to avoid wiping everything by accident.
@@ -238,6 +238,6 @@ When using docker-compose, be sure to map the UDP ports you need (16261 + 16262,
 
 To setup the server you can use the docker-compose program:
 
-* Copy the .env.template to .env and edit it with the settings you want. The only mandatory variable is ADMINPASSWORD and just the first time the server is executed (once is started at least once, it can be removed). The other variables are optional.
+* Create a `.env` file and set the variables you want. The only mandatory variable is ADMINPASSWORD and just the first time the server is executed (once is started at least once, it can be removed). The other variables are optional.
 * Run the `docker-compose up -d` command to start the server.
 

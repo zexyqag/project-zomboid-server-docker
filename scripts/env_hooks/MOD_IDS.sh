@@ -1,5 +1,5 @@
 DESCRIPTION="Mod IDs for the server; replaces INI_Mods."
-REPLACES="INI_Mods"
+REPLACES="ini__pzserver__Mods"
 
 manual_apply() {
 	if [ -n "${MOD_IDS:-}" ]; then

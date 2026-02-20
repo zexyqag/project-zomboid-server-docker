@@ -12,6 +12,18 @@ STRICT_ENV="INI_CTRL_STRICT"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib/env_name_codec.sh"
 FILE_KEY="$(env_name_file_key "${INI_FILE}" ".ini")"
+REPLACED_ENV_TOKENS="${PZ_REPLACED_ENV_TOKENS:-}"
+
+is_replaced_token() {
+  local token="$1"
+  local replaced
+  for replaced in ${REPLACED_ENV_TOKENS}; do
+    if [ "${replaced}" = "${token}" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
 
 if [ -z "${INI_FILE}" ] || [ ! -f "${INI_FILE}" ]; then
   echo "Error: INI file not found: ${INI_FILE}" >&2
@@ -22,6 +34,10 @@ MAP_FILE=$(mktemp)
 trap 'rm -f "$MAP_FILE"' EXIT
 
 while IFS='=' read -r name value; do
+  if is_replaced_token "${name}"; then
+    echo "WARN: Ignoring replaced env var ${name}" >&2
+    continue
+  fi
   case "$name" in
     ${DRY_RUN_ENV}|${STRICT_ENV})
       continue
@@ -41,6 +57,14 @@ while IFS='=' read -r name value; do
       if [[ "$raw" == *"__"* ]]; then
         section="${raw%%__*}"
         key="${raw#*__}"
+      fi
+      legacy_name="INI_${key}"
+      if [ -n "${section}" ]; then
+        legacy_name="INI_${section}__${key}"
+      fi
+      if is_replaced_token "${legacy_name}"; then
+        echo "WARN: Ignoring replaced env var ${name} (${legacy_name})" >&2
+        continue
       fi
       printf '%s\t%s\t%s\n' "$section" "$key" "$value" >> "$MAP_FILE"
       ;;
