@@ -1,118 +1,17 @@
 {
-  "image_tag": "unstable-42.14.1-ce34698",
+  "image_tag": "unstable-42.14.1-a0b759d",
   "meta": {
     "sources": {
-      "hooks_args": "scripts/env_hooks/args",
-      "hooks": "scripts/env_hooks",
-      "hooks_vars": "scripts/env_hooks/vars",
-      "ini_pzserver": "docs/env_sources/unstable-42.14.1/zomboid/Server/pzserver.ini",
+      "hooks_args": "scripts/custom/*/args",
+      "hooks": "scripts/custom/*/hooks",
+      "hooks_vars": "scripts/custom/*/vars",
+      "ini_servertest": "docs/env_sources/unstable-42.14.1/zomboid/Server/servertest.ini",
       "lua_pzserver_SandboxVars": "docs/env_sources/unstable-42.14.1/zomboid/Server/pzserver_SandboxVars.lua"
     }
   },
   "env": {
     "custom": {
-      "args": {
-        "ADMINUSERNAME": {
-          "name": "ADMINUSERNAME",
-          "env_name": "ADMINUSERNAME",
-          "description": "Admin username for the server.",
-          "source_ids": [
-            "hooks_args"
-          ],
-          "replaced_by": []
-        },
-        "CACHEDIR": {
-          "name": "CACHEDIR",
-          "env_name": "CACHEDIR",
-          "description": "Override the data cache directory.",
-          "source_ids": [
-            "hooks_args"
-          ],
-          "replaced_by": []
-        },
-        "IP": {
-          "name": "IP",
-          "env_name": "IP",
-          "description": "Bind address for the server (-ip).",
-          "source_ids": [
-            "hooks_args"
-          ],
-          "replaced_by": []
-        },
-        "MAX_MEMORY": {
-          "name": "MAX_MEMORY",
-          "env_name": "MAX_MEMORY",
-          "description": "Set JVM maximum heap size (e.g., 4096m).",
-          "source_ids": [
-            "hooks_args"
-          ],
-          "replaced_by": []
-        },
-        "MEMORY": {
-          "name": "MEMORY",
-          "env_name": "MEMORY",
-          "description": "Set JVM min/max heap size (e.g., 2048m).",
-          "source_ids": [
-            "hooks_args"
-          ],
-          "replaced_by": []
-        },
-        "MIN_MEMORY": {
-          "name": "MIN_MEMORY",
-          "env_name": "MIN_MEMORY",
-          "description": "Set JVM minimum heap size (e.g., 1024m).",
-          "source_ids": [
-            "hooks_args"
-          ],
-          "replaced_by": []
-        },
-        "MODFOLDERS": {
-          "name": "MODFOLDERS",
-          "env_name": "MODFOLDERS",
-          "description": "Mod folder order/source list (e.g., workshop,steam,mods).",
-          "source_ids": [
-            "hooks_args"
-          ],
-          "replaced_by": []
-        },
-        "PORT": {
-          "name": "PORT",
-          "env_name": "PORT",
-          "description": "Default server port (-port).",
-          "source_ids": [
-            "hooks_args"
-          ],
-          "replaced_by": []
-        },
-        "STEAMPORT1": {
-          "name": "STEAMPORT1",
-          "env_name": "STEAMPORT1",
-          "description": "Steam server port 1.",
-          "source_ids": [
-            "hooks_args"
-          ],
-          "replaced_by": []
-        },
-        "STEAMPORT2": {
-          "name": "STEAMPORT2",
-          "env_name": "STEAMPORT2",
-          "description": "Steam server port 2.",
-          "source_ids": [
-            "hooks_args"
-          ],
-          "replaced_by": []
-        }
-      },
-      "hooks": {
-        "ADMINPASSWORD": {
-          "name": "ADMINPASSWORD",
-          "env_name": "ADMINPASSWORD",
-          "description": "Admin password for first setup; updates INI_Password if changed.",
-          "source_ids": [
-            "hooks"
-          ],
-          "replaced_by": []
-        },
+      "config": {
         "DISABLE_ANTICHEAT": {
           "name": "DISABLE_ANTICHEAT",
           "env_name": "DISABLE_ANTICHEAT",
@@ -121,42 +20,44 @@
             "hooks"
           ],
           "replaced_by": []
-        },
-        "MOD_IDS": {
-          "name": "MOD_IDS",
-          "env_name": "MOD_IDS",
-          "description": "Mod IDs for the server; replaces INI_Mods.",
+        }
+      },
+      "jvm": {
+        "MAX_MEMORY": {
+          "name": "MAX_MEMORY",
+          "env_name": "MAX_MEMORY",
+          "description": "",
           "source_ids": [
-            "hooks"
+            "hooks_args"
           ],
           "replaced_by": []
         },
-        "SERVERPRESET": {
-          "name": "SERVERPRESET",
-          "env_name": "SERVERPRESET",
-          "description": "Preset name for SandboxVars; copies preset on first run or when SERVERPRESETREPLACE is true.",
+        "MEMORY": {
+          "name": "MEMORY",
+          "env_name": "MEMORY",
+          "description": "",
           "source_ids": [
-            "hooks"
+            "hooks_args"
           ],
           "replaced_by": []
         },
-        "WORKSHOP_IDS": {
-          "name": "WORKSHOP_IDS",
-          "env_name": "WORKSHOP_IDS",
-          "description": "Workshop IDs and collections; replaces INI_WorkshopItems.",
+        "MIN_MEMORY": {
+          "name": "MIN_MEMORY",
+          "env_name": "MIN_MEMORY",
+          "description": "",
           "source_ids": [
-            "hooks"
+            "hooks_args"
           ],
           "replaced_by": []
         }
       },
-      "vars": {
-        "ADMINPASSWORD_FILE": {
-          "name": "ADMINPASSWORD_FILE",
-          "env_name": "ADMINPASSWORD_FILE",
-          "description": "Path to a file containing the admin password.",
+      "mods": {
+        "CLEAN_WORKSHOP": {
+          "name": "CLEAN_WORKSHOP",
+          "env_name": "CLEAN_WORKSHOP",
+          "description": "Clean unused workshop content for resolved WORKSHOP_IDS.",
           "source_ids": [
-            "hooks_vars"
+            "hooks"
           ],
           "replaced_by": []
         },
@@ -187,15 +88,6 @@
           ],
           "replaced_by": []
         },
-        "LANG": {
-          "name": "LANG",
-          "env_name": "LANG",
-          "description": "Locale for the server process.",
-          "source_ids": [
-            "hooks_vars"
-          ],
-          "replaced_by": []
-        },
         "MAP_SCAN_DRY_RUN": {
           "name": "MAP_SCAN_DRY_RUN",
           "env_name": "MAP_SCAN_DRY_RUN",
@@ -205,21 +97,115 @@
           ],
           "replaced_by": []
         },
-        "PASSWORD_FILE": {
-          "name": "PASSWORD_FILE",
-          "env_name": "PASSWORD_FILE",
-          "description": "Path to a file containing the server password.",
+        "MAP_SCAN_VERBOSE": {
+          "name": "MAP_SCAN_VERBOSE",
+          "env_name": "MAP_SCAN_VERBOSE",
+          "description": "Verbose output while scanning workshop maps.",
+          "source_ids": [
+            "hooks"
+          ],
+          "replaced_by": []
+        },
+        "MOD_IDS": {
+          "name": "MOD_IDS",
+          "env_name": "MOD_IDS",
+          "description": "Mod IDs for the server; replaces INI_Mods.",
+          "source_ids": [
+            "hooks"
+          ],
+          "replaced_by": []
+        },
+        "STEAM_API_KEY": {
+          "name": "STEAM_API_KEY",
+          "env_name": "STEAM_API_KEY",
+          "description": "Steam Web API key for resolving collections.",
           "source_ids": [
             "hooks_vars"
           ],
           "replaced_by": []
         },
-        "RCONPASSWORD_FILE": {
-          "name": "RCONPASSWORD_FILE",
-          "env_name": "RCONPASSWORD_FILE",
-          "description": "Path to a file containing the RCON password.",
+        "WORKSHOP_IDS": {
+          "name": "WORKSHOP_IDS",
+          "env_name": "WORKSHOP_IDS",
+          "description": "Workshop IDs and collections; replaces INI_WorkshopItems.",
+          "source_ids": [
+            "hooks"
+          ],
+          "replaced_by": []
+        }
+      },
+      "network": {
+        "IP": {
+          "name": "IP",
+          "env_name": "IP",
+          "description": "",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        },
+        "PORT": {
+          "name": "PORT",
+          "env_name": "PORT",
+          "description": "",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        },
+        "STEAMPORT1": {
+          "name": "STEAMPORT1",
+          "env_name": "STEAMPORT1",
+          "description": "",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        },
+        "STEAMPORT2": {
+          "name": "STEAMPORT2",
+          "env_name": "STEAMPORT2",
+          "description": "",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        }
+      },
+      "runtime": {
+        "FORCESTEAMCLIENTSOUPDATE": {
+          "name": "FORCESTEAMCLIENTSOUPDATE",
+          "env_name": "FORCESTEAMCLIENTSOUPDATE",
+          "description": "Update steamclient.so in the server installation before launch.",
+          "source_ids": [
+            "hooks"
+          ],
+          "replaced_by": []
+        },
+        "FORCEUPDATE": {
+          "name": "FORCEUPDATE",
+          "env_name": "FORCEUPDATE",
+          "description": "Force update the server before launch.",
+          "source_ids": [
+            "hooks"
+          ],
+          "replaced_by": []
+        },
+        "LANG": {
+          "name": "LANG",
+          "env_name": "LANG",
+          "description": "Locale for the server process.",
           "source_ids": [
             "hooks_vars"
+          ],
+          "replaced_by": []
+        },
+        "SERVERPRESET": {
+          "name": "SERVERPRESET",
+          "env_name": "SERVERPRESET",
+          "description": "Preset name for SandboxVars; copies preset on first run or when SERVERPRESETREPLACE is true.",
+          "source_ids": [
+            "hooks"
           ],
           "replaced_by": []
         },
@@ -240,13 +226,89 @@
             "hooks_vars"
           ],
           "replaced_by": []
+        }
+      },
+      "security": {
+        "ADMINPASSWORD": {
+          "name": "ADMINPASSWORD",
+          "env_name": "ADMINPASSWORD",
+          "description": "Admin password for first setup; updates INI_Password if changed.",
+          "source_ids": [
+            "hooks"
+          ],
+          "replaced_by": []
         },
-        "STEAM_API_KEY": {
-          "name": "STEAM_API_KEY",
-          "env_name": "STEAM_API_KEY",
-          "description": "Steam Web API key for resolving collections.",
+        "ADMINPASSWORD_FILE": {
+          "name": "ADMINPASSWORD_FILE",
+          "env_name": "ADMINPASSWORD_FILE",
+          "description": "Path to a file containing the admin password.",
           "source_ids": [
             "hooks_vars"
+          ],
+          "replaced_by": []
+        },
+        "PASSWORD": {
+          "name": "PASSWORD",
+          "env_name": "PASSWORD",
+          "description": "Server password (preferred over INI_Password).",
+          "source_ids": [
+            "hooks"
+          ],
+          "replaced_by": []
+        },
+        "PASSWORD_FILE": {
+          "name": "PASSWORD_FILE",
+          "env_name": "PASSWORD_FILE",
+          "description": "Path to a file containing the server password.",
+          "source_ids": [
+            "hooks_vars"
+          ],
+          "replaced_by": []
+        },
+        "RCONPASSWORD": {
+          "name": "RCONPASSWORD",
+          "env_name": "RCONPASSWORD",
+          "description": "RCON password (preferred over INI_RCONPassword).",
+          "source_ids": [
+            "hooks"
+          ],
+          "replaced_by": []
+        },
+        "RCONPASSWORD_FILE": {
+          "name": "RCONPASSWORD_FILE",
+          "env_name": "RCONPASSWORD_FILE",
+          "description": "Path to a file containing the RCON password.",
+          "source_ids": [
+            "hooks_vars"
+          ],
+          "replaced_by": []
+        }
+      },
+      "server": {
+        "ADMINUSERNAME": {
+          "name": "ADMINUSERNAME",
+          "env_name": "ADMINUSERNAME",
+          "description": "",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        },
+        "CACHEDIR": {
+          "name": "CACHEDIR",
+          "env_name": "CACHEDIR",
+          "description": "",
+          "source_ids": [
+            "hooks_args"
+          ],
+          "replaced_by": []
+        },
+        "MODFOLDERS": {
+          "name": "MODFOLDERS",
+          "env_name": "MODFOLDERS",
+          "description": "",
+          "source_ids": [
+            "hooks_args"
           ],
           "replaced_by": []
         }
@@ -254,1355 +316,1346 @@
     },
     "generated": {
       "ini": {
-        "pzserver": {
+        "servertest": {
           "": {
             "AdminSafehouse": {
               "name": "AdminSafehouse",
-              "env_name": "ini__pzserver__AdminSafehouse",
+              "env_name": "ini__servertest__AdminSafehouse",
               "description": "Only admins can claim safehouses",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AllowCoop": {
               "name": "AllowCoop",
-              "env_name": "ini__pzserver__AllowCoop",
+              "env_name": "ini__servertest__AllowCoop",
               "description": "Allow co-op/splitscreen players",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AllowDestructionBySledgehammer": {
               "name": "AllowDestructionBySledgehammer",
-              "env_name": "ini__pzserver__AllowDestructionBySledgehammer",
+              "env_name": "ini__servertest__AllowDestructionBySledgehammer",
               "description": "Allow players to destroy world objects with sledgehammers",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AllowNonAsciiUsername": {
               "name": "AllowNonAsciiUsername",
-              "env_name": "ini__pzserver__AllowNonAsciiUsername",
+              "env_name": "ini__servertest__AllowNonAsciiUsername",
               "description": "Allow use of non-ASCII (cyrillic etc) characters in usernames",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AnnounceAnimalDeath": {
               "name": "AnnounceAnimalDeath",
-              "env_name": "ini__pzserver__AnnounceAnimalDeath",
+              "env_name": "ini__servertest__AnnounceAnimalDeath",
               "description": "If checked, every time an animal dies a global message will be displayed in the chat",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AnnounceDeath": {
               "name": "AnnounceDeath",
-              "env_name": "ini__pzserver__AnnounceDeath",
+              "env_name": "ini__servertest__AnnounceDeath",
               "description": "If checked, every time a player dies a global message will be displayed in the chat",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AntiCheatChecksum": {
               "name": "AntiCheatChecksum",
-              "env_name": "ini__pzserver__AntiCheatChecksum",
+              "env_name": "ini__servertest__AntiCheatChecksum",
               "description": "Disables checksum anti-cheat protection.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AntiCheatFire": {
               "name": "AntiCheatFire",
-              "env_name": "ini__pzserver__AntiCheatFire",
+              "env_name": "ini__servertest__AntiCheatFire",
               "description": "Disables fire checks anti-cheat protection.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AntiCheatHit": {
               "name": "AntiCheatHit",
-              "env_name": "ini__pzserver__AntiCheatHit",
+              "env_name": "ini__servertest__AntiCheatHit",
               "description": "Disables character hit anti-cheat protection.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AntiCheatItem": {
               "name": "AntiCheatItem",
-              "env_name": "ini__pzserver__AntiCheatItem",
+              "env_name": "ini__servertest__AntiCheatItem",
               "description": "Disables item checks anti-cheat protection.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AntiCheatMovement": {
               "name": "AntiCheatMovement",
-              "env_name": "ini__pzserver__AntiCheatMovement",
+              "env_name": "ini__servertest__AntiCheatMovement",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AntiCheatPacket": {
               "name": "AntiCheatPacket",
-              "env_name": "ini__pzserver__AntiCheatPacket",
+              "env_name": "ini__servertest__AntiCheatPacket",
               "description": "Disables packet checks anti-cheat protection.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AntiCheatPermission": {
               "name": "AntiCheatPermission",
-              "env_name": "ini__pzserver__AntiCheatPermission",
+              "env_name": "ini__servertest__AntiCheatPermission",
               "description": "Disables player permissions anti-cheat protection.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AntiCheatPlayer": {
               "name": "AntiCheatPlayer",
-              "env_name": "ini__pzserver__AntiCheatPlayer",
+              "env_name": "ini__servertest__AntiCheatPlayer",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AntiCheatRecipe": {
               "name": "AntiCheatRecipe",
-              "env_name": "ini__pzserver__AntiCheatRecipe",
+              "env_name": "ini__servertest__AntiCheatRecipe",
               "description": "Disables recipe checks anti-cheat protection.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AntiCheatSafeHouse": {
               "name": "AntiCheatSafeHouse",
-              "env_name": "ini__pzserver__AntiCheatSafeHouse",
+              "env_name": "ini__servertest__AntiCheatSafeHouse",
               "description": "Disables safehouse anti-cheat protection.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AntiCheatSafety": {
               "name": "AntiCheatSafety",
-              "env_name": "ini__pzserver__AntiCheatSafety",
+              "env_name": "ini__servertest__AntiCheatSafety",
               "description": "Disables safety system anti-cheat protection.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AntiCheatServerCustomization": {
               "name": "AntiCheatServerCustomization",
-              "env_name": "ini__pzserver__AntiCheatServerCustomization",
+              "env_name": "ini__servertest__AntiCheatServerCustomization",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AntiCheatXP": {
               "name": "AntiCheatXP",
-              "env_name": "ini__pzserver__AntiCheatXP",
+              "env_name": "ini__servertest__AntiCheatXP",
               "description": "Disables player XP anti-cheat protection.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "AutoCreateUserInWhiteList": {
               "name": "AutoCreateUserInWhiteList",
-              "env_name": "ini__pzserver__AutoCreateUserInWhiteList",
+              "env_name": "ini__servertest__AutoCreateUserInWhiteList",
               "description": "Add unknown usernames to the whitelist when players join. Clients will supply their own username/password on joining. (This is for Open=true servers)",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "BackupsCount": {
               "name": "BackupsCount",
-              "env_name": "ini__pzserver__BackupsCount",
+              "env_name": "ini__servertest__BackupsCount",
               "description": "Min: 1 Max: 300 Default: 5",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "BackupsOnStart": {
               "name": "BackupsOnStart",
-              "env_name": "ini__pzserver__BackupsOnStart",
+              "env_name": "ini__servertest__BackupsOnStart",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "BackupsOnVersionChange": {
               "name": "BackupsOnVersionChange",
-              "env_name": "ini__pzserver__BackupsOnVersionChange",
+              "env_name": "ini__servertest__BackupsOnVersionChange",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "BackupsPeriod": {
               "name": "BackupsPeriod",
-              "env_name": "ini__pzserver__BackupsPeriod",
+              "env_name": "ini__servertest__BackupsPeriod",
               "description": "Min: 0 Max: 1500 Default: 0",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "BadWordListFile": {
               "name": "BadWordListFile",
-              "env_name": "ini__pzserver__BadWordListFile",
+              "env_name": "ini__servertest__BadWordListFile",
               "description": "Path to the file with the list of words to be prohibited. Each word must be on a separate line",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "BadWordPolicy": {
               "name": "BadWordPolicy",
-              "env_name": "ini__pzserver__BadWordPolicy",
+              "env_name": "ini__servertest__BadWordPolicy",
               "description": "What to do with the sender of a bad word in the chat: 1 - ban, 2 - kick, 3 - record the violation in the database, 4 - mute",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "BadWordReplacement": {
               "name": "BadWordReplacement",
-              "env_name": "ini__pzserver__BadWordReplacement",
+              "env_name": "ini__servertest__BadWordReplacement",
               "description": "The symbol or piece of text that will replace the bad word",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "BanKickGlobalSound": {
               "name": "BanKickGlobalSound",
-              "env_name": "ini__pzserver__BanKickGlobalSound",
+              "env_name": "ini__servertest__BanKickGlobalSound",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "BloodSplatLifespanDays": {
               "name": "BloodSplatLifespanDays",
-              "env_name": "ini__pzserver__BloodSplatLifespanDays",
+              "env_name": "ini__servertest__BloodSplatLifespanDays",
               "description": "Number of days before old blood splats are removed.\\nRemoval happens when map chunks are loaded.\\nZero means they will never disappear Min: 0 Max: 365 Default: 0",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "CarEngineAttractionModifier": {
               "name": "CarEngineAttractionModifier",
-              "env_name": "ini__pzserver__CarEngineAttractionModifier",
+              "env_name": "ini__servertest__CarEngineAttractionModifier",
               "description": "Modify the range of zombie attraction to cars. (Lower values can help with lag.) Min: 0.00 Max: 10.00 Default: 0.50",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "ChatMessageCharacterLimit": {
               "name": "ChatMessageCharacterLimit",
-              "env_name": "ini__pzserver__ChatMessageCharacterLimit",
+              "env_name": "ini__servertest__ChatMessageCharacterLimit",
               "description": "Min: 64 Max: 1024 Default: 200",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "ChatMessageSlowModeTime": {
               "name": "ChatMessageSlowModeTime",
-              "env_name": "ini__pzserver__ChatMessageSlowModeTime",
+              "env_name": "ini__servertest__ChatMessageSlowModeTime",
               "description": "Min: 1 Max: 30 Default: 3",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "ChatStreams": {
               "name": "ChatStreams",
-              "env_name": "ini__pzserver__ChatStreams",
+              "env_name": "ini__servertest__ChatStreams",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "ClientActionLogs": {
               "name": "ClientActionLogs",
-              "env_name": "ini__pzserver__ClientActionLogs",
+              "env_name": "ini__servertest__ClientActionLogs",
               "description": "ISExitVehicle;ISTakeEngineParts;",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "ClientCommandFilter": {
               "name": "ClientCommandFilter",
-              "env_name": "ini__pzserver__ClientCommandFilter",
+              "env_name": "ini__servertest__ClientCommandFilter",
               "description": "+vehicle.damageWindow;+vehicle.fixPart;+vehicle.installPart;+vehicle.uninstallPart",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DefaultPort": {
               "name": "DefaultPort",
-              "env_name": "ini__pzserver__DefaultPort",
+              "env_name": "ini__servertest__DefaultPort",
               "description": "Default starting port for player data. If UDP, this is this one of two ports used. Min: 0 Max: 65535 Default: 16261",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DenyLoginOnOverloadedServer": {
               "name": "DenyLoginOnOverloadedServer",
-              "env_name": "ini__pzserver__DenyLoginOnOverloadedServer",
+              "env_name": "ini__servertest__DenyLoginOnOverloadedServer",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DisableBurntTowing": {
               "name": "DisableBurntTowing",
-              "env_name": "ini__pzserver__DisableBurntTowing",
+              "env_name": "ini__servertest__DisableBurntTowing",
               "description": "Disables burnt vehicle towing",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DisableRadioAdmin": {
               "name": "DisableRadioAdmin",
-              "env_name": "ini__pzserver__DisableRadioAdmin",
+              "env_name": "ini__servertest__DisableRadioAdmin",
               "description": "Disables radio transmissions from players with 'admin' access level",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DisableRadioGM": {
               "name": "DisableRadioGM",
-              "env_name": "ini__pzserver__DisableRadioGM",
+              "env_name": "ini__servertest__DisableRadioGM",
               "description": "Disables radio transmissions from players with 'gm' access level",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DisableRadioInvisible": {
               "name": "DisableRadioInvisible",
-              "env_name": "ini__pzserver__DisableRadioInvisible",
+              "env_name": "ini__servertest__DisableRadioInvisible",
               "description": "Disables radio transmissions from invisible players",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DisableRadioModerator": {
               "name": "DisableRadioModerator",
-              "env_name": "ini__pzserver__DisableRadioModerator",
+              "env_name": "ini__servertest__DisableRadioModerator",
               "description": "Disables radio transmissions from players with 'moderator' access level",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DisableRadioOverseer": {
               "name": "DisableRadioOverseer",
-              "env_name": "ini__pzserver__DisableRadioOverseer",
+              "env_name": "ini__servertest__DisableRadioOverseer",
               "description": "Disables radio transmissions from players with 'overseer' access level",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DisableRadioStaff": {
               "name": "DisableRadioStaff",
-              "env_name": "ini__pzserver__DisableRadioStaff",
+              "env_name": "ini__servertest__DisableRadioStaff",
               "description": "Disables radio transmissions from players with an access level",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DisableSafehouseWhenPlayerConnected": {
               "name": "DisableSafehouseWhenPlayerConnected",
-              "env_name": "ini__pzserver__DisableSafehouseWhenPlayerConnected",
+              "env_name": "ini__servertest__DisableSafehouseWhenPlayerConnected",
               "description": "Safehouse acts like a normal house if a member of the safehouse is connected (so secure when players are offline)",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DisableScoreboard": {
               "name": "DisableScoreboard",
-              "env_name": "ini__pzserver__DisableScoreboard",
+              "env_name": "ini__servertest__DisableScoreboard",
               "description": "Disables scoreboard.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DisableTrailerTowing": {
               "name": "DisableTrailerTowing",
-              "env_name": "ini__pzserver__DisableTrailerTowing",
+              "env_name": "ini__servertest__DisableTrailerTowing",
               "description": "Disables trailer towing",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DisableVehicleTowing": {
               "name": "DisableVehicleTowing",
-              "env_name": "ini__pzserver__DisableVehicleTowing",
+              "env_name": "ini__servertest__DisableVehicleTowing",
               "description": "Disables vehicle towing",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DiscordChatChannel": {
               "name": "DiscordChatChannel",
-              "env_name": "ini__pzserver__DiscordChatChannel",
+              "env_name": "ini__servertest__DiscordChatChannel",
               "description": "The Discord chat channel name",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DiscordCommandChannel": {
               "name": "DiscordCommandChannel",
-              "env_name": "ini__pzserver__DiscordCommandChannel",
+              "env_name": "ini__servertest__DiscordCommandChannel",
               "description": "The Discord commands channel name",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DiscordEnable": {
               "name": "DiscordEnable",
-              "env_name": "ini__pzserver__DiscordEnable",
+              "env_name": "ini__servertest__DiscordEnable",
               "description": "Enables global text chat integration with a Discord channel",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DiscordLogChannel": {
               "name": "DiscordLogChannel",
-              "env_name": "ini__pzserver__DiscordLogChannel",
+              "env_name": "ini__servertest__DiscordLogChannel",
               "description": "The Discord logs channel name",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DiscordToken": {
               "name": "DiscordToken",
-              "env_name": "ini__pzserver__DiscordToken",
+              "env_name": "ini__servertest__DiscordToken",
               "description": "Discord bot access token",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DisplayUserName": {
               "name": "DisplayUserName",
-              "env_name": "ini__pzserver__DisplayUserName",
+              "env_name": "ini__servertest__DisplayUserName",
               "description": "Display usernames above player's heads in-game.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DoLuaChecksum": {
               "name": "DoLuaChecksum",
-              "env_name": "ini__pzserver__DoLuaChecksum",
+              "env_name": "ini__servertest__DoLuaChecksum",
               "description": "Kick clients whose game files don't match the server's.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "DropOffWhiteListAfterDeath": {
               "name": "DropOffWhiteListAfterDeath",
-              "env_name": "ini__pzserver__DropOffWhiteListAfterDeath",
+              "env_name": "ini__servertest__DropOffWhiteListAfterDeath",
               "description": "Remove player accounts from the whitelist after death. This prevents players creating a new character after death on Open=false servers",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "Faction": {
               "name": "Faction",
-              "env_name": "ini__pzserver__Faction",
+              "env_name": "ini__servertest__Faction",
               "description": "Players can create factions when true",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "FactionDaySurvivedToCreate": {
               "name": "FactionDaySurvivedToCreate",
-              "env_name": "ini__pzserver__FactionDaySurvivedToCreate",
+              "env_name": "ini__servertest__FactionDaySurvivedToCreate",
               "description": "Players must survive this number of in-game days before being allowed to create a faction Min: 0 Max: 2147483647 Default: 0",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "FactionPlayersRequiredForTag": {
               "name": "FactionPlayersRequiredForTag",
-              "env_name": "ini__pzserver__FactionPlayersRequiredForTag",
+              "env_name": "ini__servertest__FactionPlayersRequiredForTag",
               "description": "Number of players required as faction members before the faction owner can create a group tag Min: 1 Max: 2147483647 Default: 1",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "FastForwardMultiplier": {
               "name": "FastForwardMultiplier",
-              "env_name": "ini__pzserver__FastForwardMultiplier",
+              "env_name": "ini__servertest__FastForwardMultiplier",
               "description": "Governs how fast time passes while players sleep. Value multiplies the speed of the time that passes during sleeping. Min: 1.00 Max: 100.00 Default: 40.00",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "GlobalChat": {
               "name": "GlobalChat",
-              "env_name": "ini__pzserver__GlobalChat",
+              "env_name": "ini__servertest__GlobalChat",
               "description": "Toggles global chat on or off.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "GoodWordListFile": {
               "name": "GoodWordListFile",
-              "env_name": "ini__pzserver__GoodWordListFile",
+              "env_name": "ini__servertest__GoodWordListFile",
               "description": "Path to the file with the list of words that should be allowed, even if they contain bad word. Each word should be on a separate line.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "HideAdminsInPlayerList": {
               "name": "HideAdminsInPlayerList",
-              "env_name": "ini__pzserver__HideAdminsInPlayerList",
+              "env_name": "ini__servertest__HideAdminsInPlayerList",
               "description": "Hides admins in the player list.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "HideDisguisedUserName": {
               "name": "HideDisguisedUserName",
-              "env_name": "ini__pzserver__HideDisguisedUserName",
+              "env_name": "ini__servertest__HideDisguisedUserName",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "HidePlayersBehindYou": {
               "name": "HidePlayersBehindYou",
-              "env_name": "ini__pzserver__HidePlayersBehindYou",
+              "env_name": "ini__servertest__HidePlayersBehindYou",
               "description": "If true, automatically hide the player you can't see (like zombies).",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "ItemNumbersLimitPerContainer": {
               "name": "ItemNumbersLimitPerContainer",
-              "env_name": "ini__pzserver__ItemNumbersLimitPerContainer",
+              "env_name": "ini__servertest__ItemNumbersLimitPerContainer",
               "description": "Maximum number of items that can be placed in a container.  Zero means there is no limit. (PLEASE NOTE: This includes individual small items such as nails. A limit of 50 will mean only 50 nails can be stored.) Min: 0 Max: 9000 Default: 0",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "KnockedDownAllowed": {
               "name": "KnockedDownAllowed",
-              "env_name": "ini__pzserver__KnockedDownAllowed",
+              "env_name": "ini__servertest__KnockedDownAllowed",
               "description": "WIP: Activating this setting may cause visual desynchronization of player positions.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "LoginQueueConnectTimeout": {
               "name": "LoginQueueConnectTimeout",
-              "env_name": "ini__pzserver__LoginQueueConnectTimeout",
+              "env_name": "ini__servertest__LoginQueueConnectTimeout",
               "description": "Min: 20 Max: 1200 Default: 60",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "LoginQueueEnabled": {
               "name": "LoginQueueEnabled",
-              "env_name": "ini__pzserver__LoginQueueEnabled",
+              "env_name": "ini__servertest__LoginQueueEnabled",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "Map": {
               "name": "Map",
-              "env_name": "ini__pzserver__Map",
+              "env_name": "ini__servertest__Map",
               "description": "Enter the foldername of the mod found in \\Steam\\steamapps\\workshop\\modID\\mods\\modName\\media\\maps\\",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "MapRemotePlayerVisibility": {
               "name": "MapRemotePlayerVisibility",
-              "env_name": "ini__pzserver__MapRemotePlayerVisibility",
+              "env_name": "ini__servertest__MapRemotePlayerVisibility",
               "description": "Controls display of remote players on the in-game map. 1=Hidden 2=Friends 3=Everyone Min: 1 Max: 3 Default: 1",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "MaxAccountsPerUser": {
               "name": "MaxAccountsPerUser",
-              "env_name": "ini__pzserver__MaxAccountsPerUser",
+              "env_name": "ini__servertest__MaxAccountsPerUser",
               "description": "Limits the number of different accounts a single Steam user may create on this server. Ignored when using the Hosts button. Min: 0 Max: 2147483647 Default: 0",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "MaxPlayers": {
               "name": "MaxPlayers",
-              "env_name": "ini__pzserver__MaxPlayers",
+              "env_name": "ini__servertest__MaxPlayers",
               "description": "Maximum number of players that can be on the server at one time. This excludes admins.\\nWARNING: Server player counts above 32 will potentially result in poor map streaming and desync. Please advance with caution. Min: 1 Max: 100 Default: 32",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "MaxSafezoneSize": {
               "name": "MaxSafezoneSize",
-              "env_name": "ini__pzserver__MaxSafezoneSize",
+              "env_name": "ini__servertest__MaxSafezoneSize",
               "description": "Min: 0 Max: 2147483647 Default: 20000",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "Mods": {
               "name": "Mods",
-              "env_name": "ini__pzserver__Mods",
+              "env_name": "ini__servertest__Mods",
               "description": "Enter the mod loading ID here. It can be found in \\Steam\\steamapps\\workshop\\modID\\mods\\modName\\info.txt",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
-              "replaced_by": [
-                "MOD_IDS"
-              ]
+              "replaced_by": []
             },
             "MouseOverToSeeDisplayName": {
               "name": "MouseOverToSeeDisplayName",
-              "env_name": "ini__pzserver__MouseOverToSeeDisplayName",
+              "env_name": "ini__servertest__MouseOverToSeeDisplayName",
               "description": "If true, players will have to mouse over someone to see their display name.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "MultiplayerStatisticsPeriod": {
               "name": "MultiplayerStatisticsPeriod",
-              "env_name": "ini__pzserver__MultiplayerStatisticsPeriod",
+              "env_name": "ini__servertest__MultiplayerStatisticsPeriod",
               "description": "Sets the multiplayer update period in seconds. Statistics is disabled if value is 0. Min: 0 Max: 10 Default: 1",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "NoFire": {
               "name": "NoFire",
-              "env_name": "ini__pzserver__NoFire",
+              "env_name": "ini__servertest__NoFire",
               "description": "All forms of fire are disabled - except for campfires",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "Open": {
               "name": "Open",
-              "env_name": "ini__pzserver__Open",
+              "env_name": "ini__servertest__Open",
               "description": "Clients may join without already having an account in the whitelist. If set to false, administrators must manually create username/password combos.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "PVP": {
               "name": "PVP",
-              "env_name": "ini__pzserver__PVP",
+              "env_name": "ini__servertest__PVP",
               "description": "Players can hurt and kill other players",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "PVPFirearmDamageModifier": {
               "name": "PVPFirearmDamageModifier",
-              "env_name": "ini__pzserver__PVPFirearmDamageModifier",
+              "env_name": "ini__servertest__PVPFirearmDamageModifier",
               "description": "Damage multiplier for PVP ranged attacks. Min: 0.00 Max: 500.00 Default: 50.00",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "PVPLogToolChat": {
               "name": "PVPLogToolChat",
-              "env_name": "ini__pzserver__PVPLogToolChat",
+              "env_name": "ini__servertest__PVPLogToolChat",
               "description": "PVP is logged to admin chat",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "PVPLogToolFile": {
               "name": "PVPLogToolFile",
-              "env_name": "ini__pzserver__PVPLogToolFile",
+              "env_name": "ini__servertest__PVPLogToolFile",
               "description": "PVP is logged to file",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "PVPMeleeDamageModifier": {
               "name": "PVPMeleeDamageModifier",
-              "env_name": "ini__pzserver__PVPMeleeDamageModifier",
+              "env_name": "ini__servertest__PVPMeleeDamageModifier",
               "description": "Damage multiplier for PVP melee attacks. Min: 0.00 Max: 500.00 Default: 30.00",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "PVPMeleeWhileHitReaction": {
               "name": "PVPMeleeWhileHitReaction",
-              "env_name": "ini__pzserver__PVPMeleeWhileHitReaction",
+              "env_name": "ini__servertest__PVPMeleeWhileHitReaction",
               "description": "If true, player can hit again when struck by another player.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "Password": {
               "name": "Password",
-              "env_name": "ini__pzserver__Password",
+              "env_name": "ini__servertest__Password",
               "description": "Clients must know this password to join the server. (Ignored when hosting a server via the Host button)",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
-              "replaced_by": [
-                "ADMINPASSWORD",
-                "PASSWORD"
-              ]
+              "replaced_by": []
             },
             "PauseEmpty": {
               "name": "PauseEmpty",
-              "env_name": "ini__pzserver__PauseEmpty",
+              "env_name": "ini__servertest__PauseEmpty",
               "description": "Game time stops when there are no players online",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "PerkLogs": {
               "name": "PerkLogs",
-              "env_name": "ini__pzserver__PerkLogs",
+              "env_name": "ini__servertest__PerkLogs",
               "description": "Track changes in player perk levels in PerkLog.txt server log",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "PingLimit": {
               "name": "PingLimit",
-              "env_name": "ini__pzserver__PingLimit",
+              "env_name": "ini__servertest__PingLimit",
               "description": "Ping limit, in milliseconds, before a player is kicked from the server. (Set to 0 to disable) Min: 0 Max: 2147483647 Default: 0",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "PlayerBumpPlayer": {
               "name": "PlayerBumpPlayer",
-              "env_name": "ini__pzserver__PlayerBumpPlayer",
+              "env_name": "ini__servertest__PlayerBumpPlayer",
               "description": "Governs whether players bump (and knock over) other players when running through them.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "PlayerRespawnWithOther": {
               "name": "PlayerRespawnWithOther",
-              "env_name": "ini__pzserver__PlayerRespawnWithOther",
+              "env_name": "ini__servertest__PlayerRespawnWithOther",
               "description": "Players can respawn in-game at a split screen / Remote Play player's location",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "PlayerRespawnWithSelf": {
               "name": "PlayerRespawnWithSelf",
-              "env_name": "ini__pzserver__PlayerRespawnWithSelf",
+              "env_name": "ini__servertest__PlayerRespawnWithSelf",
               "description": "Players can respawn in-game at the coordinates where they died",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "PlayerSafehouse": {
               "name": "PlayerSafehouse",
-              "env_name": "ini__pzserver__PlayerSafehouse",
+              "env_name": "ini__servertest__PlayerSafehouse",
               "description": "Both admins and players can claim safehouses",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "Public": {
               "name": "Public",
-              "env_name": "ini__pzserver__Public",
+              "env_name": "ini__servertest__Public",
               "description": "Shows the server on the in-game browser. (Note: Steam-enabled servers are always visible in the Steam server browser)",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "PublicDescription": {
               "name": "PublicDescription",
-              "env_name": "ini__pzserver__PublicDescription",
+              "env_name": "ini__servertest__PublicDescription",
               "description": "Description displayed in the in-game public server browser. Typing   will create a new line in your description",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "PublicName": {
               "name": "PublicName",
-              "env_name": "ini__pzserver__PublicName",
+              "env_name": "ini__servertest__PublicName",
               "description": "Name of the server displayed in the in-game browser and, if applicable, the Steam browser",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "RCONPassword": {
               "name": "RCONPassword",
-              "env_name": "ini__pzserver__RCONPassword",
+              "env_name": "ini__servertest__RCONPassword",
               "description": "RCON password (Pick a strong password)",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
-              "replaced_by": [
-                "RCONPASSWORD"
-              ]
+              "replaced_by": []
             },
             "RCONPort": {
               "name": "RCONPort",
-              "env_name": "ini__pzserver__RCONPort",
+              "env_name": "ini__servertest__RCONPort",
               "description": "The port for the RCON (Remote Console) Min: 0 Max: 65535 Default: 27015",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "RemovePlayerCorpsesOnCorpseRemoval": {
               "name": "RemovePlayerCorpsesOnCorpseRemoval",
-              "env_name": "ini__pzserver__RemovePlayerCorpsesOnCorpseRemoval",
+              "env_name": "ini__servertest__RemovePlayerCorpsesOnCorpseRemoval",
               "description": "If enabled, when HoursForCorpseRemoval triggers, it will also remove player’s corpses from the ground.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "ResetID": {
               "name": "ResetID",
-              "env_name": "ini__pzserver__ResetID",
-              "description": "Reset ID determines if the server has undergone a soft-reset. If this number does match the client, the client must create a new character. Used in conjunction with PlayerServerID. It is strongly advised that you backup these IDs somewhere Min: 0 Max: 2147483647 Default: 725655479",
+              "env_name": "ini__servertest__ResetID",
+              "description": "Reset ID determines if the server has undergone a soft-reset. If this number does match the client, the client must create a new character. Used in conjunction with PlayerServerID. It is strongly advised that you backup these IDs somewhere Min: 0 Max: 2147483647 Default: 796374126",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SafeHouseRemovalTime": {
               "name": "SafeHouseRemovalTime",
-              "env_name": "ini__pzserver__SafeHouseRemovalTime",
+              "env_name": "ini__servertest__SafeHouseRemovalTime",
               "description": "Players are automatically removed from a safehouse they have not visited for this many real-world hours Min: 0 Max: 2147483647 Default: 144",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SafehouseAllowFire": {
               "name": "SafehouseAllowFire",
-              "env_name": "ini__pzserver__SafehouseAllowFire",
+              "env_name": "ini__servertest__SafehouseAllowFire",
               "description": "Allow fire to damage safehouses",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SafehouseAllowLoot": {
               "name": "SafehouseAllowLoot",
-              "env_name": "ini__pzserver__SafehouseAllowLoot",
+              "env_name": "ini__servertest__SafehouseAllowLoot",
               "description": "Allow non-members to take items from safehouses",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SafehouseAllowNonResidential": {
               "name": "SafehouseAllowNonResidential",
-              "env_name": "ini__pzserver__SafehouseAllowNonResidential",
+              "env_name": "ini__servertest__SafehouseAllowNonResidential",
               "description": "Governs whether players can claim non-residential buildings.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SafehouseAllowRespawn": {
               "name": "SafehouseAllowRespawn",
-              "env_name": "ini__pzserver__SafehouseAllowRespawn",
+              "env_name": "ini__servertest__SafehouseAllowRespawn",
               "description": "Players will respawn in a safehouse that they were a member of before they died",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SafehouseAllowTrepass": {
               "name": "SafehouseAllowTrepass",
-              "env_name": "ini__pzserver__SafehouseAllowTrepass",
+              "env_name": "ini__servertest__SafehouseAllowTrepass",
               "description": "Allow non-members to enter a safehouse without being invited",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SafehouseDaySurvivedToClaim": {
               "name": "SafehouseDaySurvivedToClaim",
-              "env_name": "ini__pzserver__SafehouseDaySurvivedToClaim",
+              "env_name": "ini__servertest__SafehouseDaySurvivedToClaim",
               "description": "Players must have survived this number of in-game days before they are allowed to claim a safehouse Min: 0 Max: 2147483647 Default: 0",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SafehouseDisableDisguises": {
               "name": "SafehouseDisableDisguises",
-              "env_name": "ini__pzserver__SafehouseDisableDisguises",
+              "env_name": "ini__servertest__SafehouseDisableDisguises",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SafehousePreventsLootRespawn": {
               "name": "SafehousePreventsLootRespawn",
-              "env_name": "ini__pzserver__SafehousePreventsLootRespawn",
+              "env_name": "ini__servertest__SafehousePreventsLootRespawn",
               "description": "Items will not respawn in buildings that players have claimed as a safehouse",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SafetyCooldownTimer": {
               "name": "SafetyCooldownTimer",
-              "env_name": "ini__pzserver__SafetyCooldownTimer",
+              "env_name": "ini__servertest__SafetyCooldownTimer",
               "description": "The delay before a player can enter or leave PVP mode again, having recently done so Min: 0 Max: 1000 Default: 3",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SafetyDisconnectDelay": {
               "name": "SafetyDisconnectDelay",
-              "env_name": "ini__pzserver__SafetyDisconnectDelay",
+              "env_name": "ini__servertest__SafetyDisconnectDelay",
               "description": "Min: 0 Max: 60 Default: 60",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SafetySystem": {
               "name": "SafetySystem",
-              "env_name": "ini__pzserver__SafetySystem",
+              "env_name": "ini__servertest__SafetySystem",
               "description": "Players can enter and leave PVP on an individual basis. A player can only hurt another player when at least one of them is in PVP mode - as shown by the unobscured skull and crossbones on the left of the screen. When SafetySystem=false, players are free to hurt each other at any time if PVP is enabled.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SafetyToggleTimer": {
               "name": "SafetyToggleTimer",
-              "env_name": "ini__pzserver__SafetyToggleTimer",
+              "env_name": "ini__servertest__SafetyToggleTimer",
               "description": "The time it takes for a player to enter and leave PVP mode Min: 0 Max: 1000 Default: 2",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SaveWorldEveryMinutes": {
               "name": "SaveWorldEveryMinutes",
-              "env_name": "ini__pzserver__SaveWorldEveryMinutes",
+              "env_name": "ini__servertest__SaveWorldEveryMinutes",
               "description": "Loaded parts of the map are saved after this set number of real-world minutes have passed. (The map is usually saved only after clients leave a loaded area) Min: 0 Max: 2147483647 Default: 0",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "Seed": {
               "name": "Seed",
-              "env_name": "ini__pzserver__Seed",
+              "env_name": "ini__servertest__Seed",
               "description": "The worldgen seed used to generate the world.\\nIf you want to change this, put a new value in and delete map_worldgen.bin in your save directory.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "ServerImageIcon": {
               "name": "ServerImageIcon",
-              "env_name": "ini__pzserver__ServerImageIcon",
+              "env_name": "ini__servertest__ServerImageIcon",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "ServerImageLoadingScreen": {
               "name": "ServerImageLoadingScreen",
-              "env_name": "ini__pzserver__ServerImageLoadingScreen",
+              "env_name": "ini__servertest__ServerImageLoadingScreen",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "ServerImageLoginScreen": {
               "name": "ServerImageLoginScreen",
-              "env_name": "ini__pzserver__ServerImageLoginScreen",
+              "env_name": "ini__servertest__ServerImageLoginScreen",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "ServerPlayerID": {
               "name": "ServerPlayerID",
-              "env_name": "ini__pzserver__ServerPlayerID",
+              "env_name": "ini__servertest__ServerPlayerID",
               "description": "ServerPlayerID determines if a character is from another server, or single player. This value may be changed by soft resets. If this number does match the client, the client must create a new character. This is used in conjunction with ResetID. It is strongly advised that you backup these IDs somewhere",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "ServerWelcomeMessage": {
               "name": "ServerWelcomeMessage",
-              "env_name": "ini__pzserver__ServerWelcomeMessage",
+              "env_name": "ini__servertest__ServerWelcomeMessage",
               "description": "The first welcome message visible in the chat panel. This will be displayed immediately after player login. you can use RGB colours to chance the colour of the welcome message. You can also use < LINE>, without the space, to create a separate lines within your text. Use: \\<RGB:1,0,0> This message will show up red!",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "ShowFirstAndLastName": {
               "name": "ShowFirstAndLastName",
-              "env_name": "ini__pzserver__ShowFirstAndLastName",
+              "env_name": "ini__servertest__ShowFirstAndLastName",
               "description": "Display first & last name above player's heads.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "ShowSafety": {
               "name": "ShowSafety",
-              "env_name": "ini__pzserver__ShowSafety",
+              "env_name": "ini__servertest__ShowSafety",
               "description": "Display a skull icon over the head of players who have entered PVP mode",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SledgehammerOnlyInSafehouse": {
               "name": "SledgehammerOnlyInSafehouse",
-              "env_name": "ini__pzserver__SledgehammerOnlyInSafehouse",
+              "env_name": "ini__servertest__SledgehammerOnlyInSafehouse",
               "description": "Allow players to destroy world objects only in their safehouse (require AllowDestructionBySledgehammer to true).",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SleepAllowed": {
               "name": "SleepAllowed",
-              "env_name": "ini__pzserver__SleepAllowed",
+              "env_name": "ini__servertest__SleepAllowed",
               "description": "Players are allowed to sleep when their survivor becomes tired, but they do not NEED to sleep",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SleepNeeded": {
               "name": "SleepNeeded",
-              "env_name": "ini__pzserver__SleepNeeded",
+              "env_name": "ini__servertest__SleepNeeded",
               "description": "Players get tired and need to sleep. (Ignored if SleepAllowed=false)",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SneakModeHideFromOtherPlayers": {
               "name": "SneakModeHideFromOtherPlayers",
-              "env_name": "ini__pzserver__SneakModeHideFromOtherPlayers",
+              "env_name": "ini__servertest__SneakModeHideFromOtherPlayers",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SpawnItems": {
               "name": "SpawnItems",
-              "env_name": "ini__pzserver__SpawnItems",
+              "env_name": "ini__servertest__SpawnItems",
               "description": "Item types new players spawn with. Separate multiple item types with commas. Example: Base.Axe,Base.Bag_BigHikingBag",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SpawnPoint": {
               "name": "SpawnPoint",
-              "env_name": "ini__pzserver__SpawnPoint",
+              "env_name": "ini__servertest__SpawnPoint",
               "description": "Force every new player to spawn at these set x,y,z world coordinates. Find desired coordinates at map.projectzomboid.com. (Ignored when 0,0,0)",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SpeedLimit": {
               "name": "SpeedLimit",
-              "env_name": "ini__pzserver__SpeedLimit",
+              "env_name": "ini__servertest__SpeedLimit",
               "description": "Min: 10.00 Max: 150.00 Default: 70.00",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SteamScoreboard": {
               "name": "SteamScoreboard",
-              "env_name": "ini__pzserver__SteamScoreboard",
+              "env_name": "ini__servertest__SteamScoreboard",
               "description": "Show Steam usernames and avatars in the Players list.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SteamVAC": {
               "name": "SteamVAC",
-              "env_name": "ini__pzserver__SteamVAC",
+              "env_name": "ini__servertest__SteamVAC",
               "description": "Enable the Steam VAC system",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "SwitchZombiesOwnershipEachUpdate": {
               "name": "SwitchZombiesOwnershipEachUpdate",
-              "env_name": "ini__pzserver__SwitchZombiesOwnershipEachUpdate",
+              "env_name": "ini__servertest__SwitchZombiesOwnershipEachUpdate",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "TrashDeleteAll": {
               "name": "TrashDeleteAll",
-              "env_name": "ini__pzserver__TrashDeleteAll",
+              "env_name": "ini__servertest__TrashDeleteAll",
               "description": "If true, player can use the \"delete all\" button on bins.",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "UDPPort": {
               "name": "UDPPort",
-              "env_name": "ini__pzserver__UDPPort",
+              "env_name": "ini__servertest__UDPPort",
               "description": "Min: 0 Max: 65535 Default: 16262",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "UPnP": {
               "name": "UPnP",
-              "env_name": "ini__pzserver__UPnP",
+              "env_name": "ini__servertest__UPnP",
               "description": "Attempt to configure a UPnP-enabled internet gateway to automatically setup port forwarding rules. The server will fall back to default ports if this fails",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "UltraSpeedDoesnotAffectToAnimals": {
               "name": "UltraSpeedDoesnotAffectToAnimals",
-              "env_name": "ini__pzserver__UltraSpeedDoesnotAffectToAnimals",
+              "env_name": "ini__servertest__UltraSpeedDoesnotAffectToAnimals",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "UsePhysicsHitReaction": {
               "name": "UsePhysicsHitReaction",
-              "env_name": "ini__pzserver__UsePhysicsHitReaction",
+              "env_name": "ini__servertest__UsePhysicsHitReaction",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "UsernameDisguises": {
               "name": "UsernameDisguises",
-              "env_name": "ini__pzserver__UsernameDisguises",
+              "env_name": "ini__servertest__UsernameDisguises",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "Voice3D": {
               "name": "Voice3D",
-              "env_name": "ini__pzserver__Voice3D",
+              "env_name": "ini__servertest__Voice3D",
               "description": "Toggle directional audio for VOIP",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "VoiceEnable": {
               "name": "VoiceEnable",
-              "env_name": "ini__pzserver__VoiceEnable",
+              "env_name": "ini__servertest__VoiceEnable",
               "description": "VOIP is enabled when checked",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "VoiceMaxDistance": {
               "name": "VoiceMaxDistance",
-              "env_name": "ini__pzserver__VoiceMaxDistance",
+              "env_name": "ini__servertest__VoiceMaxDistance",
               "description": "The maximum tile distance over which VOIP sounds can be heard. Min: 0.00 Max: 100000.00 Default: 100.00",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "VoiceMinDistance": {
               "name": "VoiceMinDistance",
-              "env_name": "ini__pzserver__VoiceMinDistance",
+              "env_name": "ini__servertest__VoiceMinDistance",
               "description": "The minimum tile distance over which VOIP sounds can be heard. Min: 0.00 Max: 100000.00 Default: 10.00",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "War": {
               "name": "War",
-              "env_name": "ini__pzserver__War",
+              "env_name": "ini__servertest__War",
               "description": "",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "WarDuration": {
               "name": "WarDuration",
-              "env_name": "ini__pzserver__WarDuration",
+              "env_name": "ini__servertest__WarDuration",
               "description": "War duration in seconds. Min: 60 Max: 2147483647 Default: 3600",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "WarSafehouseHitPoints": {
               "name": "WarSafehouseHitPoints",
-              "env_name": "ini__pzserver__WarSafehouseHitPoints",
+              "env_name": "ini__servertest__WarSafehouseHitPoints",
               "description": "Safehouse hit points limit. Min: 0 Max: 2147483647 Default: 3",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "WarStartDelay": {
               "name": "WarStartDelay",
-              "env_name": "ini__pzserver__WarStartDelay",
+              "env_name": "ini__servertest__WarStartDelay",
               "description": "Time in seconds before the war starts. Min: 60 Max: 2147483647 Default: 600",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "WebhookAddress": {
               "name": "WebhookAddress",
-              "env_name": "ini__pzserver__WebhookAddress",
+              "env_name": "ini__servertest__WebhookAddress",
               "description": "The Slack incoming webhook URL",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             },
             "WorkshopItems": {
               "name": "WorkshopItems",
-              "env_name": "ini__pzserver__WorkshopItems",
+              "env_name": "ini__servertest__WorkshopItems",
               "description": "List Workshop Mod IDs for the server to download. Each must be separated by a semicolon. Example: WorkshopItems=514427485;513111049",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
-              "replaced_by": [
-                "WORKSHOP_IDS"
-              ]
+              "replaced_by": []
             },
             "server_browser_announced_ip": {
               "name": "server_browser_announced_ip",
-              "env_name": "ini__pzserver__server_browser_announced_ip",
+              "env_name": "ini__servertest__server_browser_announced_ip",
               "description": "Set the IP from which the server is broadcast. This is for network configurations with multiple IP addresses, such as server farms",
               "source_ids": [
-                "ini_pzserver"
+                "ini_servertest"
               ],
               "replaced_by": []
             }
@@ -1611,7 +1664,7 @@
       },
       "lua": {
         "pzserver_SandboxVars": {
-          "Alarm": {
+          "": {
             "Alarm": {
               "name": "Alarm",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__Alarm",
@@ -1620,9 +1673,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "AlarmDecay": {
+            },
             "AlarmDecay": {
               "name": "AlarmDecay",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__AlarmDecay",
@@ -1631,9 +1682,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "AllClothesUnlocked": {
+            },
             "AllClothesUnlocked": {
               "name": "AllClothesUnlocked",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__AllClothesUnlocked",
@@ -1642,9 +1691,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "AllowExteriorGenerator": {
+            },
             "AllowExteriorGenerator": {
               "name": "AllowExteriorGenerator",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__AllowExteriorGenerator",
@@ -1653,9 +1700,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "AnnotatedMapChance": {
+            },
             "AnnotatedMapChance": {
               "name": "AnnotatedMapChance",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__AnnotatedMapChance",
@@ -1664,9 +1709,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "AttackBlockMovements": {
+            },
             "AttackBlockMovements": {
               "name": "AttackBlockMovements",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__AttackBlockMovements",
@@ -1675,9 +1718,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "BloodLevel": {
+            },
             "BloodLevel": {
               "name": "BloodLevel",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__BloodLevel",
@@ -1686,9 +1727,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "BoneFracture": {
+            },
             "BoneFracture": {
               "name": "BoneFracture",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__BoneFracture",
@@ -1697,9 +1736,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "CarAlarm": {
+            },
             "CarAlarm": {
               "name": "CarAlarm",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__CarAlarm",
@@ -1708,9 +1745,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "CarDamageOnImpact": {
+            },
             "CarDamageOnImpact": {
               "name": "CarDamageOnImpact",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__CarDamageOnImpact",
@@ -1719,9 +1754,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "CarGasConsumption": {
+            },
             "CarGasConsumption": {
               "name": "CarGasConsumption",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__CarGasConsumption",
@@ -1730,9 +1763,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "CarGeneralCondition": {
+            },
             "CarGeneralCondition": {
               "name": "CarGeneralCondition",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__CarGeneralCondition",
@@ -1741,9 +1772,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "CarSpawnRate": {
+            },
             "CarSpawnRate": {
               "name": "CarSpawnRate",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__CarSpawnRate",
@@ -1752,9 +1781,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "ChanceHasGas": {
+            },
             "ChanceHasGas": {
               "name": "ChanceHasGas",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__ChanceHasGas",
@@ -1763,9 +1790,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "CharacterFreePoints": {
+            },
             "CharacterFreePoints": {
               "name": "CharacterFreePoints",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__CharacterFreePoints",
@@ -1774,9 +1799,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "ClothingDegradation": {
+            },
             "ClothingDegradation": {
               "name": "ClothingDegradation",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__ClothingDegradation",
@@ -1785,9 +1808,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "CompostTime": {
+            },
             "CompostTime": {
               "name": "CompostTime",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__CompostTime",
@@ -1796,9 +1817,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "ConstructionBonusPoints": {
+            },
             "ConstructionBonusPoints": {
               "name": "ConstructionBonusPoints",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__ConstructionBonusPoints",
@@ -1807,9 +1826,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "DamageToPlayerFromHitByACar": {
+            },
             "DamageToPlayerFromHitByACar": {
               "name": "DamageToPlayerFromHitByACar",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__DamageToPlayerFromHitByACar",
@@ -1818,9 +1835,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "DayLength": {
+            },
             "DayLength": {
               "name": "DayLength",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__DayLength",
@@ -1829,9 +1844,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "DaysForRottenFoodRemoval": {
+            },
             "DaysForRottenFoodRemoval": {
               "name": "DaysForRottenFoodRemoval",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__DaysForRottenFoodRemoval",
@@ -1840,9 +1853,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "DecayingCorpseHealthImpact": {
+            },
             "DecayingCorpseHealthImpact": {
               "name": "DecayingCorpseHealthImpact",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__DecayingCorpseHealthImpact",
@@ -1851,9 +1862,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "Distribution": {
+            },
             "Distribution": {
               "name": "Distribution",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__Distribution",
@@ -1862,9 +1871,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "ElecShut": {
+            },
             "ElecShut": {
               "name": "ElecShut",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__ElecShut",
@@ -1873,9 +1880,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "ElecShutModifier": {
+            },
             "ElecShutModifier": {
               "name": "ElecShutModifier",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__ElecShutModifier",
@@ -1884,9 +1889,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "EnablePoisoning": {
+            },
             "EnablePoisoning": {
               "name": "EnablePoisoning",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__EnablePoisoning",
@@ -1895,9 +1898,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "EnableSnowOnGround": {
+            },
             "EnableSnowOnGround": {
               "name": "EnableSnowOnGround",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__EnableSnowOnGround",
@@ -1906,9 +1907,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "EnableTaintedWaterText": {
+            },
             "EnableTaintedWaterText": {
               "name": "EnableTaintedWaterText",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__EnableTaintedWaterText",
@@ -1917,9 +1916,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "EnableVehicles": {
+            },
             "EnableVehicles": {
               "name": "EnableVehicles",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__EnableVehicles",
@@ -1928,9 +1925,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "EndRegen": {
+            },
             "EndRegen": {
               "name": "EndRegen",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__EndRegen",
@@ -1939,9 +1934,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "ErosionDays": {
+            },
             "ErosionDays": {
               "name": "ErosionDays",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__ErosionDays",
@@ -1950,9 +1943,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "ErosionSpeed": {
+            },
             "ErosionSpeed": {
               "name": "ErosionSpeed",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__ErosionSpeed",
@@ -1961,9 +1952,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "Farming": {
+            },
             "Farming": {
               "name": "Farming",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__Farming",
@@ -1972,9 +1961,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "FireSpread": {
+            },
             "FireSpread": {
               "name": "FireSpread",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__FireSpread",
@@ -1983,9 +1970,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "FoodRotSpeed": {
+            },
             "FoodRotSpeed": {
               "name": "FoodRotSpeed",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__FoodRotSpeed",
@@ -1994,9 +1979,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "FridgeFactor": {
+            },
             "FridgeFactor": {
               "name": "FridgeFactor",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__FridgeFactor",
@@ -2005,9 +1988,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "GeneratorFuelConsumption": {
+            },
             "GeneratorFuelConsumption": {
               "name": "GeneratorFuelConsumption",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__GeneratorFuelConsumption",
@@ -2016,9 +1997,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "GeneratorSpawning": {
+            },
             "GeneratorSpawning": {
               "name": "GeneratorSpawning",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__GeneratorSpawning",
@@ -2027,9 +2006,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "Helicopter": {
+            },
             "Helicopter": {
               "name": "Helicopter",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__Helicopter",
@@ -2038,9 +2015,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "HoursForCorpseRemoval": {
+            },
             "HoursForCorpseRemoval": {
               "name": "HoursForCorpseRemoval",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__HoursForCorpseRemoval",
@@ -2049,9 +2024,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "HoursForWorldItemRemoval": {
+            },
             "HoursForWorldItemRemoval": {
               "name": "HoursForWorldItemRemoval",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__HoursForWorldItemRemoval",
@@ -2060,9 +2033,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "InitialGas": {
+            },
             "InitialGas": {
               "name": "InitialGas",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__InitialGas",
@@ -2071,9 +2042,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "InjurySeverity": {
+            },
             "InjurySeverity": {
               "name": "InjurySeverity",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__InjurySeverity",
@@ -2082,9 +2051,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "ItemRemovalListBlacklistToggle": {
+            },
             "ItemRemovalListBlacklistToggle": {
               "name": "ItemRemovalListBlacklistToggle",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__ItemRemovalListBlacklistToggle",
@@ -2093,9 +2060,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "LockedCar": {
+            },
             "LockedCar": {
               "name": "LockedCar",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__LockedCar",
@@ -2104,9 +2069,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "LockedHouses": {
+            },
             "LockedHouses": {
               "name": "LockedHouses",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__LockedHouses",
@@ -2115,9 +2078,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "LootItemRemovalList": {
+            },
             "LootItemRemovalList": {
               "name": "LootItemRemovalList",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__LootItemRemovalList",
@@ -2126,9 +2087,7 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "LootRespawn": {
+            },
             "LootRespawn": {
               "name": "LootRespawn",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__LootRespawn",
@@ -2137,12 +2096,325 @@
                 "lua_pzserver_SandboxVars"
               ],
               "replaced_by": []
-            }
-          },
-          "MaggotSpawn": {
+            },
             "MaggotSpawn": {
               "name": "MaggotSpawn",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__MaggotSpawn",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "MaxFogIntensity": {
+              "name": "MaxFogIntensity",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__MaxFogIntensity",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "MaxRainFxIntensity": {
+              "name": "MaxRainFxIntensity",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__MaxRainFxIntensity",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "MetaEvent": {
+              "name": "MetaEvent",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__MetaEvent",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "MultiHitZombies": {
+              "name": "MultiHitZombies",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__MultiHitZombies",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "NatureAbundance": {
+              "name": "NatureAbundance",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__NatureAbundance",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "NightDarkness": {
+              "name": "NightDarkness",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__NightDarkness",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "Nutrition": {
+              "name": "Nutrition",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__Nutrition",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "PlantAbundance": {
+              "name": "PlantAbundance",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__PlantAbundance",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "PlantResilience": {
+              "name": "PlantResilience",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__PlantResilience",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "PlayerDamageFromCrash": {
+              "name": "PlayerDamageFromCrash",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__PlayerDamageFromCrash",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "Rain": {
+              "name": "Rain",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__Rain",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "RearVulnerability": {
+              "name": "RearVulnerability",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__RearVulnerability",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "RecentlySurvivorVehicles": {
+              "name": "RecentlySurvivorVehicles",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__RecentlySurvivorVehicles",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "SeenHoursPreventLootRespawn": {
+              "name": "SeenHoursPreventLootRespawn",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__SeenHoursPreventLootRespawn",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "SirenShutoffHours": {
+              "name": "SirenShutoffHours",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__SirenShutoffHours",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "SleepingEvent": {
+              "name": "SleepingEvent",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__SleepingEvent",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "StartDay": {
+              "name": "StartDay",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__StartDay",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "StartMonth": {
+              "name": "StartMonth",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__StartMonth",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "StartTime": {
+              "name": "StartTime",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__StartTime",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "StartYear": {
+              "name": "StartYear",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__StartYear",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "StarterKit": {
+              "name": "StarterKit",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__StarterKit",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "StatsDecrease": {
+              "name": "StatsDecrease",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__StatsDecrease",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "SurvivorHouseChance": {
+              "name": "SurvivorHouseChance",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__SurvivorHouseChance",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "Temperature": {
+              "name": "Temperature",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__Temperature",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "TimeSinceApo": {
+              "name": "TimeSinceApo",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__TimeSinceApo",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "TrafficJam": {
+              "name": "TrafficJam",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__TrafficJam",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "VERSION": {
+              "name": "VERSION",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__VERSION",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "VehicleEasyUse": {
+              "name": "VehicleEasyUse",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__VehicleEasyUse",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "VehicleStoryChance": {
+              "name": "VehicleStoryChance",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__VehicleStoryChance",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "WaterShut": {
+              "name": "WaterShut",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__WaterShut",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "WaterShutModifier": {
+              "name": "WaterShutModifier",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__WaterShutModifier",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "WorldItemRemovalList": {
+              "name": "WorldItemRemovalList",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__WorldItemRemovalList",
+              "description": "please ensure that Base.Maggots stays in the list with any future changes due to corpse maggots,",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "ZombieAttractionMultiplier": {
+              "name": "ZombieAttractionMultiplier",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__ZombieAttractionMultiplier",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "Zombies": {
+              "name": "Zombies",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__Zombies",
+              "description": "",
+              "source_ids": [
+                "lua_pzserver_SandboxVars"
+              ],
+              "replaced_by": []
+            },
+            "ZoneStoryChance": {
+              "name": "ZoneStoryChance",
+              "env_name": "lua__pzserver_SandboxVars__SandboxVars__ZoneStoryChance",
               "description": "",
               "source_ids": [
                 "lua_pzserver_SandboxVars"
@@ -2172,50 +2444,6 @@
             "MapAllKnown": {
               "name": "MapAllKnown",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__Map__MapAllKnown",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "MaxFogIntensity": {
-            "MaxFogIntensity": {
-              "name": "MaxFogIntensity",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__MaxFogIntensity",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "MaxRainFxIntensity": {
-            "MaxRainFxIntensity": {
-              "name": "MaxRainFxIntensity",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__MaxRainFxIntensity",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "MetaEvent": {
-            "MetaEvent": {
-              "name": "MetaEvent",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__MetaEvent",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "MultiHitZombies": {
-            "MultiHitZombies": {
-              "name": "MultiHitZombies",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__MultiHitZombies",
               "description": "",
               "source_ids": [
                 "lua_pzserver_SandboxVars"
@@ -2522,325 +2750,6 @@
               "replaced_by": []
             }
           },
-          "NatureAbundance": {
-            "NatureAbundance": {
-              "name": "NatureAbundance",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__NatureAbundance",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "NightDarkness": {
-            "NightDarkness": {
-              "name": "NightDarkness",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__NightDarkness",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "Nutrition": {
-            "Nutrition": {
-              "name": "Nutrition",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__Nutrition",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "PlantAbundance": {
-            "PlantAbundance": {
-              "name": "PlantAbundance",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__PlantAbundance",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "PlantResilience": {
-            "PlantResilience": {
-              "name": "PlantResilience",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__PlantResilience",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "PlayerDamageFromCrash": {
-            "PlayerDamageFromCrash": {
-              "name": "PlayerDamageFromCrash",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__PlayerDamageFromCrash",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "Rain": {
-            "Rain": {
-              "name": "Rain",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__Rain",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "RearVulnerability": {
-            "RearVulnerability": {
-              "name": "RearVulnerability",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__RearVulnerability",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "RecentlySurvivorVehicles": {
-            "RecentlySurvivorVehicles": {
-              "name": "RecentlySurvivorVehicles",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__RecentlySurvivorVehicles",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "SeenHoursPreventLootRespawn": {
-            "SeenHoursPreventLootRespawn": {
-              "name": "SeenHoursPreventLootRespawn",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__SeenHoursPreventLootRespawn",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "SirenShutoffHours": {
-            "SirenShutoffHours": {
-              "name": "SirenShutoffHours",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__SirenShutoffHours",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "SleepingEvent": {
-            "SleepingEvent": {
-              "name": "SleepingEvent",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__SleepingEvent",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "StartDay": {
-            "StartDay": {
-              "name": "StartDay",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__StartDay",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "StartMonth": {
-            "StartMonth": {
-              "name": "StartMonth",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__StartMonth",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "StartTime": {
-            "StartTime": {
-              "name": "StartTime",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__StartTime",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "StartYear": {
-            "StartYear": {
-              "name": "StartYear",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__StartYear",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "StarterKit": {
-            "StarterKit": {
-              "name": "StarterKit",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__StarterKit",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "StatsDecrease": {
-            "StatsDecrease": {
-              "name": "StatsDecrease",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__StatsDecrease",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "SurvivorHouseChance": {
-            "SurvivorHouseChance": {
-              "name": "SurvivorHouseChance",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__SurvivorHouseChance",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "Temperature": {
-            "Temperature": {
-              "name": "Temperature",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__Temperature",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "TimeSinceApo": {
-            "TimeSinceApo": {
-              "name": "TimeSinceApo",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__TimeSinceApo",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "TrafficJam": {
-            "TrafficJam": {
-              "name": "TrafficJam",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__TrafficJam",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "VERSION": {
-            "VERSION": {
-              "name": "VERSION",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__VERSION",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "VehicleEasyUse": {
-            "VehicleEasyUse": {
-              "name": "VehicleEasyUse",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__VehicleEasyUse",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "VehicleStoryChance": {
-            "VehicleStoryChance": {
-              "name": "VehicleStoryChance",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__VehicleStoryChance",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "WaterShut": {
-            "WaterShut": {
-              "name": "WaterShut",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__WaterShut",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "WaterShutModifier": {
-            "WaterShutModifier": {
-              "name": "WaterShutModifier",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__WaterShutModifier",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "WorldItemRemovalList": {
-            "WorldItemRemovalList": {
-              "name": "WorldItemRemovalList",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__WorldItemRemovalList",
-              "description": "please ensure that Base.Maggots stays in the list with any future changes due to corpse maggots,",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "ZombieAttractionMultiplier": {
-            "ZombieAttractionMultiplier": {
-              "name": "ZombieAttractionMultiplier",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__ZombieAttractionMultiplier",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
           "ZombieConfig": {
             "FollowSoundDistance": {
               "name": "FollowSoundDistance",
@@ -3135,28 +3044,6 @@
             "ZombiesFenceLunge": {
               "name": "ZombiesFenceLunge",
               "env_name": "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__ZombiesFenceLunge",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "Zombies": {
-            "Zombies": {
-              "name": "Zombies",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__Zombies",
-              "description": "",
-              "source_ids": [
-                "lua_pzserver_SandboxVars"
-              ],
-              "replaced_by": []
-            }
-          },
-          "ZoneStoryChance": {
-            "ZoneStoryChance": {
-              "name": "ZoneStoryChance",
-              "env_name": "lua__pzserver_SandboxVars__SandboxVars__ZoneStoryChance",
               "description": "",
               "source_ids": [
                 "lua_pzserver_SandboxVars"
