@@ -1,5 +1,5 @@
 {
-  "image_tag": "unstable-42.14.1-1ef1271",
+  "image_tag": "unstable-42.14.1-ce34698",
   "meta": {
     "sources": {
       "hooks_args": "scripts/env_hooks/args",
@@ -1157,7 +1157,7 @@
             "ResetID": {
               "name": "ResetID",
               "env_name": "ini__pzserver__ResetID",
-              "description": "Reset ID determines if the server has undergone a soft-reset. If this number does match the client, the client must create a new character. Used in conjunction with PlayerServerID. It is strongly advised that you backup these IDs somewhere Min: 0 Max: 2147483647 Default: 577447034",
+              "description": "Reset ID determines if the server has undergone a soft-reset. If this number does match the client, the client must create a new character. Used in conjunction with PlayerServerID. It is strongly advised that you backup these IDs somewhere Min: 0 Max: 2147483647 Default: 725655479",
               "source_ids": [
                 "ini_pzserver"
               ],

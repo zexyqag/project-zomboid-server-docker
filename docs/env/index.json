@@ -2,11 +2,11 @@
   "files": [
     {
       "file": "stable-41.78.16.json",
-      "image_tag": "stable-41.78.16-1ef1271"
+      "image_tag": "stable-41.78.16-ce34698"
     },
     {
       "file": "unstable-42.14.1.json",
-      "image_tag": "unstable-42.14.1-1ef1271"
+      "image_tag": "unstable-42.14.1-ce34698"
     }
   ]
 }
