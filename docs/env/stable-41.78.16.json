@@ -1211,7 +1211,7 @@
             "ResetID": {
               "name": "ResetID",
               "env_name": "ini__pzserver__ResetID",
-              "description": "Reset ID determines if the server has undergone a soft-reset. If this number does match the client, the client must create a new character. Used in conjunction with PlayerServerID. It is strongly advised that you backup these IDs somewhere\\nMinimum=0 Maximum=2147483647 Default=177652192",
+              "description": "Reset ID determines if the server has undergone a soft-reset. If this number does match the client, the client must create a new character. Used in conjunction with PlayerServerID. It is strongly advised that you backup these IDs somewhere\\nMinimum=0 Maximum=2147483647 Default=991812797",
               "source_ids": [
                 "ini_pzserver"
               ],
