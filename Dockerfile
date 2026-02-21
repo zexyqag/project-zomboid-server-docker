@@ -56,8 +56,8 @@ RUN chmod 550 /server/scripts/apply_lua_vars.sh
 COPY --chown=${USER}:${USER} scripts/apply_ini_vars.sh /server/scripts/apply_ini_vars.sh
 RUN chmod 550 /server/scripts/apply_ini_vars.sh
 
-# Copy env hooks
-COPY --chown=${USER}:${USER} scripts/env_hooks /server/scripts/env_hooks
+# Copy custom env scripts (hooks/args/vars)
+COPY --chown=${USER}:${USER} scripts/custom /server/scripts/custom
 
 # Copy env source extractor for docs
 COPY --chown=${USER}:${USER} scripts/extract_env_sources.sh /server/scripts/extract_env_sources.sh

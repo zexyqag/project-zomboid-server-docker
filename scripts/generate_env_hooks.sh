@@ -3,13 +3,14 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-env_hooks_dir="${ENV_HOOKS_DIR:-${repo_root}/scripts/env_hooks}"
+env_hooks_dir="${ENV_HOOKS_DIR:-${repo_root}/scripts/custom}"
+runtime_hooks_dir="${env_hooks_dir}/hooks"
 entry_sh="${repo_root}/scripts/entry.sh"
 sources_root="${ENV_SOURCES_DIR:-}"
 
 source "${repo_root}/scripts/lib/env_name_codec.sh"
 
-mkdir -p "${env_hooks_dir}"
+mkdir -p "${env_hooks_dir}" "${runtime_hooks_dir}"
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT
@@ -184,7 +185,7 @@ description_for() {
 
 while IFS= read -r env_name; do
   [ -z "${env_name}" ] && continue
-  file_path="${env_hooks_dir}/${env_name}.sh"
+  file_path="${runtime_hooks_dir}/${env_name}.sh"
   if [ -f "${file_path}" ]; then
     continue
   fi
@@ -199,4 +200,4 @@ while IFS= read -r env_name; do
   } > "${file_path}"
 done < "${all_envs_file}"
 
-printf 'Generated env hook files in %s\n' "${env_hooks_dir}" >&2
+printf 'Generated env hook files in %s\n' "${runtime_hooks_dir}" >&2

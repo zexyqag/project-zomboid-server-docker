@@ -3,7 +3,7 @@ REPLACES=""
 DEPENDS_ON="SERVERPRESET"
 
 hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${hook_dir}/../lib/env_name_codec.sh"
+source "${hook_dir}/../../../lib/env_name_codec.sh"
 
 manual_apply() {
   if [ -n "${LUA_LOAD_DONE:-}" ]; then

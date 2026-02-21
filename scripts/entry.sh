@@ -11,7 +11,7 @@ ARGS=""
 
 INI_FILE="$(resolve_ini_file)"
 
-ENV_HOOKS_DIR="/server/scripts/env_hooks"
+ENV_HOOKS_DIR="/server/scripts/custom"
 if [ -d "${ENV_HOOKS_DIR}" ]; then
   declare -A hook_files
   declare -A hook_deps
@@ -27,7 +27,7 @@ if [ -d "${ENV_HOOKS_DIR}" ]; then
     hook_files["${name}"]="${file}"
     hook_deps["${name}"]="${deps}"
     hook_replaces["${name}"]="${replaces}"
-  done <<< "$(find "${ENV_HOOKS_DIR}" -type d -name vars -prune -o -type f -name '*.sh' -print | sort)"
+  done <<< "$(find "${ENV_HOOKS_DIR}" -type f -path '*/hooks/*.sh' -name '*.sh' -print | sort)"
 
   sorted_hook_names() {
     printf '%s\n' "${!hook_files[@]}" | sed '/^$/d' | sort

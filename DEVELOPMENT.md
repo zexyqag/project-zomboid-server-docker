@@ -13,7 +13,7 @@ The main README is intentionally user/operator oriented.
 
 - Container startup entrypoint: `scripts/entry.sh`
 - Shared runtime helpers: `scripts/lib/runtime_helpers.sh`
-- Env hook system (ordered by `DEPENDS_ON`): `scripts/env_hooks/**`
+- Env hook system (ordered by `DEPENDS_ON`): `scripts/custom/**`
 - INI mutation engine: `scripts/apply_ini_vars.sh`
 - Lua mutation engine: `scripts/apply_lua_vars.sh`
 - Workshop collection resolver: `scripts/resolve_workshop_collection.sh`
@@ -24,7 +24,7 @@ The main README is intentionally user/operator oriented.
 At runtime, `entry.sh`:
 
 1. Resolves the server INI path.
-2. Discovers env hooks in `scripts/env_hooks` (excluding `vars/`).
+2. Discovers env hooks in `scripts/custom` (excluding `vars/`).
 3. Applies hooks in dependency order using `DEPENDS_ON`.
 4. Falls back to name-ordered execution for unresolved dependency cycles.
 5. Sets runtime fixes (`LD_LIBRARY_PATH`, permissions).
@@ -46,9 +46,9 @@ Each hook can define:
 
 Related directories:
 
-- `scripts/env_hooks/`: runtime behavior hooks
-- `scripts/env_hooks/args/`: command-line argument builders
-- `scripts/env_hooks/vars/`: declarative/env-doc variables (not executed as hooks)
+- `scripts/custom/<feature>/hooks/`: runtime behavior hooks
+- `scripts/custom/<feature>/args/`: command-line argument builders
+- `scripts/custom/<feature>/vars/`: declarative/env-doc variables (not executed as hooks)
 
 ## Configuration model
 
@@ -82,9 +82,9 @@ Current env docs JSON shape (`scripts/generate_env_docs.sh`):
 	- `description`
 	- `source_ids`
 	- `replaced_by`
-- `env.custom.args`, `env.custom.hooks`, and `env.custom.vars` follow the same entry shape.
+- `env.custom` is grouped as `<group> -> <name> -> entry`, where `<group>` is derived from `scripts/custom/{hooks,args,vars}` subfolders and can be `""` for root-level entries.
 - `env.generated.ini` is grouped as `<file_key> -> <section> -> <name> -> entry`.
-- `env.generated.lua` is grouped as `<file_key> -> ... -> <name> -> entry`, with logical names using subgroup-relative path segments joined by `__` when needed for uniqueness.
+- `env.generated.lua` is grouped as `<file_key> -> <group> -> <name> -> entry` (same two-level concept as INI sections), where `<group>` can be `""` for root-level Lua values.
 
 Preview data checked into repo:
 

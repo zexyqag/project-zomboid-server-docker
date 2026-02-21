@@ -13,8 +13,7 @@ image_tag="${IMAGE_TAG:-}"
 
 source "${repo_root}/scripts/lib/env_name_codec.sh"
 
-env_hooks_dir="${repo_root}/scripts/env_hooks"
-env_declarations_dir="${repo_root}/scripts/env_hooks/vars"
+env_custom_dir="${repo_root}/scripts/custom"
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT
@@ -41,7 +40,7 @@ extract_manual_value() {
   awk -F= -v k="$key" '$1==k {val=$2; gsub(/^[ \t]+|[ \t]+$/, "", val); gsub(/^"|"$|^\047|\047$/, "", val); print val; exit}' "$file"
 }
 
-if [ -d "${env_hooks_dir}" ]; then
+if [ -d "${env_custom_dir}" ]; then
   while IFS= read -r file; do
     [ -z "${file}" ] && continue
     docs_ignore="$(extract_manual_value "DOCS_IGNORE" "${file}")"
@@ -53,10 +52,10 @@ if [ -d "${env_hooks_dir}" ]; then
     replaces="$(extract_manual_value "REPLACES" "${file}")"
     printf '%s\t%s\t%s\n' "${env_name}" "${description}" "${replaces}" >> "${env_hooks_items_file}"
     printf '%s\n' "${env_name}" >> "${declared_envs_file}"
-  done <<< "$(find "${env_hooks_dir}" -type d -name vars -prune -o -type f -name '*.sh' -print | sort)"
+  done <<< "$(find "${env_custom_dir}" -type f -path '*/hooks/*.sh' -name '*.sh' -print | sort)"
 fi
 
-if [ -d "${env_declarations_dir}" ]; then
+if [ -d "${env_custom_dir}" ]; then
   while IFS= read -r file; do
     [ -z "${file}" ] && continue
     docs_ignore="$(extract_manual_value "DOCS_IGNORE" "${file}")"
@@ -68,7 +67,19 @@ if [ -d "${env_declarations_dir}" ]; then
     replaces="$(extract_manual_value "REPLACES" "${file}")"
     printf '%s\t%s\t%s\n' "${env_name}" "${description}" "${replaces}" >> "${env_declarations_items_file}"
     printf '%s\n' "${env_name}" >> "${declared_envs_file}"
-  done <<< "$(find "${env_declarations_dir}" -type f -name '*.sh' | sort)"
+  done <<< "$(find "${env_custom_dir}" -type f -path '*/vars/*.sh' -name '*.sh' | sort)"
+fi
+
+if [ -d "${env_custom_dir}" ]; then
+  while IFS= read -r file; do
+    [ -z "${file}" ] && continue
+    docs_ignore="$(extract_manual_value "DOCS_IGNORE" "${file}")"
+    case "${docs_ignore,,}" in
+      1|true|yes|y|on) continue ;;
+    esac
+    env_name="$(basename "${file}" .sh)"
+    printf '%s\n' "${env_name}" >> "${declared_envs_file}"
+  done <<< "$(find "${env_custom_dir}" -type f -path '*/args/*.sh' -name '*.sh' | sort)"
 fi
 
 if [ -s "${env_hooks_items_file}" ]; then
@@ -117,11 +128,11 @@ collect_handcrafted_envs() {
   local refs assigned assigned_for assigned_local
   local -a scan_files=()
 
-  if [ -d "${env_hooks_dir}" ]; then
+  if [ -d "${env_custom_dir}" ]; then
     while IFS= read -r file; do
       [ -z "${file}" ] && continue
       scan_files+=("${file}")
-    done <<< "$(find "${env_hooks_dir}" -type d -name vars -prune -o -type f -name '*.sh' -print | sort)"
+    done <<< "$(find "${env_custom_dir}" -type f \( -path '*/hooks/*.sh' -o -path '*/args/*.sh' -o -path '*/vars/*.sh' \) -name '*.sh' -print | sort)"
   fi
 
   if [ ${#scan_files[@]} -eq 0 ]; then
@@ -147,8 +158,11 @@ $(grep -oE '\blocal[[:space:]]+[A-Z][A-Z0-9_]*\b' "${file}" || true)"
 
   ref_envs="$(comm -23 <(printf '%s\n' "${refs}" | sort -u) <(printf '%s\n' "${assigned}" | sort -u))"
   declared_only=""
-  if [ -s "${env_declarations_items_file}" ]; then
-    declared_only="$(awk -F '\t' '{print $1}' "${env_declarations_items_file}" | sed '/^$/d' | sort -u)"
+  if [ -s "${env_hooks_items_file}" ] || [ -s "${env_declarations_items_file}" ]; then
+    declared_only="$({
+      [ -s "${env_hooks_items_file}" ] && awk -F '\t' '{print $1}' "${env_hooks_items_file}"
+      [ -s "${env_declarations_items_file}" ] && awk -F '\t' '{print $1}' "${env_declarations_items_file}"
+    } | sed '/^$/d' | sort -u)"
   fi
   env_list="$(printf '%s\n%s\n' "${ref_envs}" "${declared_only}" | sed '/^$/d' | sort -u)"
 
@@ -172,20 +186,32 @@ $(grep -oE '\blocal[[:space:]]+[A-Z][A-Z0-9_]*\b' "${file}" || true)"
     if [ "$(is_declared "${env_name}")" != "true" ]; then
       continue
     fi
-    source_path="scripts/env_hooks"
+    source_path="scripts/custom"
     group_name="hooks"
-    if [ -f "${env_hooks_dir}/${env_name}.sh" ]; then
-      source_path="scripts/env_hooks"
+    subgroup_name=""
+
+    hook_match="$(find "${env_custom_dir}" -type f -path "*/hooks/${env_name}.sh" 2>/dev/null | sort | head -n 1 || true)"
+    args_match="$(find "${env_custom_dir}" -type f -path "*/args/${env_name}.sh" 2>/dev/null | sort | head -n 1 || true)"
+    vars_match="$(find "${env_custom_dir}" -type f -path "*/vars/${env_name}.sh" 2>/dev/null | sort | head -n 1 || true)"
+
+    if [ -n "${hook_match}" ]; then
       group_name="hooks"
-    elif [ -f "${env_hooks_dir}/args/${env_name}.sh" ]; then
-      source_path="scripts/env_hooks/args"
+      feature_name="$(echo "${hook_match#${env_custom_dir}/}" | sed -E 's#/hooks/.*$##')"
+      subgroup_name="${feature_name}"
+      source_path="scripts/custom/${feature_name}/hooks"
+    elif [ -n "${args_match}" ]; then
       group_name="args"
-    elif [ -f "${env_declarations_dir}/${env_name}.sh" ]; then
-      source_path="scripts/env_hooks/vars"
+      feature_name="$(echo "${args_match#${env_custom_dir}/}" | sed -E 's#/args/.*$##')"
+      subgroup_name="${feature_name}"
+      source_path="scripts/custom/${feature_name}/args"
+    elif [ -n "${vars_match}" ]; then
       group_name="vars"
+      feature_name="$(echo "${vars_match#${env_custom_dir}/}" | sed -E 's#/vars/.*$##')"
+      subgroup_name="${feature_name}"
+      source_path="scripts/custom/${feature_name}/vars"
     fi
     description="$(get_env_description "${env_name}")"
-    printf '%s\t%s\t%s\t%s\n' "${env_name}" "${source_path}" "${group_name}" "${description}" >> "${handcrafted_file}"
+    printf '%s\t%s\t%s\t%s\t%s\n' "${env_name}" "${source_path}" "${group_name}" "${subgroup_name}" "${description}" >> "${handcrafted_file}"
   done <<< "${env_list}"
 }
 
@@ -440,6 +466,7 @@ while IFS= read -r file; do
       if (current_group == "") env_legacy_root=env_legacy
       else if (legacy_prefix == "LUA") env_legacy_root="LUA_" encode(current_group) "_" path_token
       else env_legacy_root=legacy_prefix "_" encode(current_group) "_" path_token
+      path_has_nested=(index(path, ".") > 0 ? "1" : "0")
       subgroup=path
       sub(/\..*$/, "", subgroup)
       logical_name=path
@@ -448,7 +475,7 @@ while IFS= read -r file; do
       }
       gsub(/\./, "__", logical_name)
       if (logical_name == "") logical_name=key
-      print logical_name "\t" env_new_root "\t" file_key "\t" current_group "\t" subgroup "\t" source_id "\t" file "\t" desc "\t" env_legacy "\t" env_legacy_root
+      print logical_name "\t" env_new_root "\t" file_key "\t" current_group "\t" subgroup "\t" source_id "\t" file "\t" desc "\t" env_legacy "\t" env_legacy_root "\t" path_has_nested
       comment_block=""
     }
   }
@@ -466,7 +493,8 @@ handcrafted_rows_json="$(jq -R -s '
         env_name: ($parts[0] // ""),
         source_path: ($parts[1] // ""),
         group: ($parts[2] // ""),
-        description: ($parts[3] // ""),
+        subgroup: ($parts[3] // ""),
+        description: ($parts[4] // ""),
         source_id: (
           if ($parts[2] // "") == "args" then "hooks_args"
           elif ($parts[2] // "") == "hooks" then "hooks"
@@ -517,7 +545,8 @@ lua_rows_json="$(jq -R -s --argjson replacement_map "${replacement_map_json}" '
         source_path: (.[6] // ""),
         description: (.[7] // ""),
         legacy_name: (.[8] // ""),
-        legacy_name_root: (.[9] // "")
+        legacy_name_root: (.[9] // ""),
+        path_has_nested: ((.[10] // "0") == "1")
       }
     | . as $row
     | .replaced_by = (
@@ -597,19 +626,33 @@ jq -n \
     | map({ (.[0].subgroup): (normalize_entries(.)) })
     | add;
 
+  def lua_rows_canonical(rows):
+    (rows | map(select(.group != "") | .group) | unique) as $named_groups
+    | (rows | map(
+        . as $r
+        | ($r.path_has_nested and ($r.subgroup != "")) as $has_subgroup
+      | (if $has_subgroup then $r.subgroup else "" end) as $base_group
+      | (if $has_subgroup then $r.name else $r.name end) as $base_name
+        | if (($named_groups | length) > 1 and ($r.group != "")) then
+            $r + {
+              group: $r.group,
+              name: (if $base_group == "" then $base_name else ($base_group + "__" + $base_name) end),
+              subgroup: ""
+            }
+          else
+            $r + {
+              group: $base_group,
+              name: $base_name,
+              subgroup: ""
+            }
+          end
+      ));
+
   def by_group(rows):
     rows
     | group_by(.group)
-    | map({ (.[0].group): (by_subgroup(.)) })
+    | map({ (.[0].group): (normalize_entries(.)) })
     | add;
-
-  def lua_file_groups(rows):
-    (rows | map(.group) | unique) as $all_groups
-    | (rows | map(select(.group != "") | .group) | unique) as $named_groups
-    | if (($all_groups | length) == 1 and ($named_groups | length) == 1)
-      then by_subgroup(rows)
-      else by_group(rows)
-      end;
 
   def as_source_map(rows):
     rows
@@ -618,23 +661,25 @@ jq -n \
     | unique_by(.key)
     | from_entries;
 
+  def custom_grouped(rows):
+    rows
+    | group_by(.subgroup)
+    | map({ (.[0].subgroup): (normalize_entries(.)) })
+    | add;
+
   $ini_rows as $ini_rows_resolved
   | $lua_rows as $lua_rows_resolved
   | {
     image_tag: $image_tag,
     meta: {
       sources: (
-        ({hooks_args:"scripts/env_hooks/args", hooks:"scripts/env_hooks", hooks_vars:"scripts/env_hooks/vars"})
+        ({hooks_args:"scripts/custom/*/args", hooks:"scripts/custom/*/hooks", hooks_vars:"scripts/custom/*/vars"})
         + as_source_map($ini_rows_resolved)
         + as_source_map($lua_rows_resolved)
       )
     },
     env: {
-      custom: {
-        args: normalize_entries($handcrafted_rows | map(select(.group == "args"))),
-        hooks: normalize_entries($handcrafted_rows | map(select(.group == "hooks"))),
-        vars: normalize_entries($handcrafted_rows | map(select(.group == "vars")))
-      },
+      custom: custom_grouped($handcrafted_rows),
       generated: {
         ini: (
           $ini_rows_resolved
@@ -645,7 +690,7 @@ jq -n \
         lua: (
           $lua_rows_resolved
           | group_by(.file_key)
-          | map({ (.[0].file_key): (lua_file_groups(.)) })
+          | map({ (.[0].file_key): (by_group(lua_rows_canonical(.))) })
           | add
         )
       }

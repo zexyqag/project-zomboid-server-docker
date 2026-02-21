@@ -328,15 +328,15 @@ EOF
     echo "Contract smoke missing single-table Lua key name" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_LootRules[""].Zones.Town__Weapons.env_name' "${out_json}")" != "lua__pzserver_LootRules__Zones__Town__Weapons" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_LootRules.Zones.Town__Weapons.env_name' "${out_json}")" != "lua__pzserver_LootRules__Zones__Town__Weapons" ]; then
     echo "Contract smoke missing return-table Lua key name" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MultiTables.SandboxVars.ZombieLore.Transmission.env_name' "${out_json}")" != "lua__pzserver_MultiTables__SandboxVars__ZombieLore__Transmission" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_MultiTables.SandboxVars.ZombieLore__Transmission.env_name' "${out_json}")" != "lua__pzserver_MultiTables__SandboxVars__ZombieLore__Transmission" ]; then
     echo "Contract smoke missing multi-table first key name" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MultiTables.SandboxVars2.ZombieLore.Transmission.env_name' "${out_json}")" != "lua__pzserver_MultiTables__SandboxVars2__ZombieLore__Transmission" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_MultiTables.SandboxVars2.ZombieLore__Transmission.env_name' "${out_json}")" != "lua__pzserver_MultiTables__SandboxVars2__ZombieLore__Transmission" ]; then
     echo "Contract smoke missing multi-table second key name" >&2
     exit 1
   fi
@@ -567,8 +567,8 @@ EOF
     exit 1
   fi
 
-  if [ "$(jq -r '.env.custom | has("args") and has("hooks") and has("vars")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing expected env.custom groups" >&2
+  if [ "$(jq -r '.env.custom | has("mods") and has("security") and has("config") and has("runtime") and has("server") and has("network") and has("jvm")' "${out_json}")" != "true" ]; then
+    echo "Rich env docs missing expected merged env.custom feature groups" >&2
     exit 1
   fi
   if [ "$(jq -r '.meta.sources | has("hooks_args") and has("hooks") and has("hooks_vars")' "${out_json}")" != "true" ]; then
@@ -609,11 +609,11 @@ EOF
     echo "Rich env docs missing trimmed Lua groups for MapSettings" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_AdvancedSettings | has("Enabled") and has("Loot") and has("Zombies")' "${out_json}")" != "true" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_AdvancedSettings | has("") and has("Loot") and has("Zombies")' "${out_json}")" != "true" ]; then
     echo "Rich env docs missing trimmed Lua groups for AdvancedSettings" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_LootRules[""] | has("Enabled") and has("Multipliers") and has("Zones")' "${out_json}")" != "true" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_LootRules | has("") and has("Multipliers") and has("Zones")' "${out_json}")" != "true" ]; then
     echo "Rich env docs missing nested Lua groups for LootRules" >&2
     exit 1
   fi
@@ -621,7 +621,7 @@ EOF
     echo "Rich env docs missing retained top-level Lua groups for MultiTables" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys[""] | has("Zones") and has("Banner") and has("Literal") and has("Dup")' "${out_json}")" != "true" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys | has("") and has("Zones")' "${out_json}")" != "true" ]; then
     echo "Rich env docs missing Lua groups for bracket-keys file" >&2
     exit 1
   fi
@@ -654,7 +654,7 @@ EOF
     echo "Rich env docs missing case-sensitive INI key pvp" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_AdvancedSettings.Enabled.Enabled.description' "${out_json}")" != "enable advanced mode" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_AdvancedSettings[""].Enabled.description' "${out_json}")" != "enable advanced mode" ]; then
     echo "Rich env docs missing top-level Lua description extraction" >&2
     exit 1
   fi
@@ -662,67 +662,67 @@ EOF
     echo "Rich env docs missing deep nested Lua description extraction" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_LootRules[""].Enabled.Enabled.description' "${out_json}")" != "root enabled flag" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_LootRules[""].Enabled.description' "${out_json}")" != "root enabled flag" ]; then
     echo "Rich env docs missing return-table top-level Lua description extraction" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_LootRules[""].Zones.Town__Weapons.description' "${out_json}")" != "town weapon multiplier" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_LootRules.Zones.Town__Weapons.description' "${out_json}")" != "town weapon multiplier" ]; then
     echo "Rich env docs missing return-table nested Lua description extraction" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MultiTables.SandboxVars.ZombieLore.Transmission.env_name' "${out_json}")" != "lua__pzserver_MultiTables__SandboxVars__ZombieLore__Transmission" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_MultiTables.SandboxVars.ZombieLore__Transmission.env_name' "${out_json}")" != "lua__pzserver_MultiTables__SandboxVars__ZombieLore__Transmission" ]; then
     echo "Rich env docs missing first top-level Lua group extraction in MultiTables" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MultiTables.SandboxVars2.ZombieLore.Transmission.env_name' "${out_json}")" != "lua__pzserver_MultiTables__SandboxVars2__ZombieLore__Transmission" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_MultiTables.SandboxVars2.ZombieLore__Transmission.env_name' "${out_json}")" != "lua__pzserver_MultiTables__SandboxVars2__ZombieLore__Transmission" ]; then
     echo "Rich env docs missing second top-level Lua group extraction in MultiTables" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys[""].Zones["Town-Center"].description' "${out_json}")" != "bracket key description" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys.Zones["Town-Center"].description' "${out_json}")" != "bracket key description" ]; then
     echo "Rich env docs missing double-quoted Lua bracket key extraction" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys[""].Zones["Semi;Colon"].description' "${out_json}")" != "single quote bracket key" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys.Zones["Semi;Colon"].description' "${out_json}")" != "single quote bracket key" ]; then
     echo "Rich env docs missing single-quoted Lua bracket key extraction" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys[""].Zones["42"].description' "${out_json}")" != "numeric bracket key" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys.Zones["42"].description' "${out_json}")" != "numeric bracket key" ]; then
     echo "Rich env docs missing numeric Lua bracket key extraction" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys[""].Zones["A\"B"].env_name' "${out_json}")" != "lua__pzserver_BracketKeys__Zones__A\"B" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys.Zones["A\"B"].env_name' "${out_json}")" != "lua__pzserver_BracketKeys__Zones__A\"B" ]; then
     echo "Rich env docs missing escaped-quote Lua bracket key extraction" >&2
     exit 1
   fi
-  if [ "$(jq -r ".env.generated.lua.pzserver_BracketKeys[\"\"].Zones[\"A'B\"].env_name" "${out_json}")" != "lua__pzserver_BracketKeys__Zones__A'B" ]; then
+  if [ "$(jq -r ".env.generated.lua.pzserver_BracketKeys.Zones[\"A'B\"].env_name" "${out_json}")" != "lua__pzserver_BracketKeys__Zones__A'B" ]; then
     echo "Rich env docs missing escaped-single-quote Lua bracket key extraction" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MixedBracketNested[""].Mix.x__1__y.description' "${out_json}")" != "mixed nested value" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_MixedBracketNested.Mix.x__1__y.description' "${out_json}")" != "mixed nested value" ]; then
     echo "Rich env docs missing mixed bracket nested Lua extraction" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MixedBracketNested[""].ArrayLike // {} | has("1") or has("2") or has("3")' "${out_json}")" != "false" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_MixedBracketNested.ArrayLike // {} | has("1") or has("2") or has("3")' "${out_json}")" != "false" ]; then
     echo "Rich env docs unexpectedly generated Lua array index entries" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MalformedBracket[""] | has("Bad")' "${out_json}")" != "true" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_MalformedBracket | has("Bad")' "${out_json}")" != "true" ]; then
     echo "Rich env docs missing malformed-bracket Lua group" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MalformedBracket[""].Bad.Good.description' "${out_json}")" != "valid neighbor key" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_MalformedBracket.Bad.Good.description' "${out_json}")" != "valid neighbor key" ]; then
     echo "Rich env docs failed to extract valid key adjacent to malformed bracket keys" >&2
     exit 1
   fi
-  if [ "$(jq -r '[.env.generated.lua.pzserver_MalformedBracket[""].Bad[]?.env_name | select(test("MissingEnd|AlsoBad|abc"))] | length' "${out_json}")" != "0" ]; then
+  if [ "$(jq -r '[.env.generated.lua.pzserver_MalformedBracket.Bad[]?.env_name | select(test("MissingEnd|AlsoBad|abc"))] | length' "${out_json}")" != "0" ]; then
     echo "Rich env docs unexpectedly extracted malformed Lua bracket keys" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys[""].Banner.Banner.description' "${out_json}")" != "banner description" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys[""].Banner.description' "${out_json}")" != "banner description" ]; then
     echo "Rich env docs failed quote-aware Lua inline comment parsing" >&2
     exit 1
   fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys[""].Literal.Literal.description' "${out_json}")" != "" ]; then
+  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys[""].Literal.description' "${out_json}")" != "" ]; then
     echo "Rich env docs falsely parsed Lua inline comment inside quoted value" >&2
     exit 1
   fi

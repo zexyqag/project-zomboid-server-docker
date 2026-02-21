@@ -80,10 +80,10 @@ jobs:
           bash scripts/generate_env_docs.sh >/dev/null
 
           jq -e '.env.generated.ini.pzserver.ServerOptions.MaxPlayers | select(.env_name=="ini__pzserver__ServerOptions__MaxPlayers" and .description=="inline ini comment")' "$tmpd/env.json" >/dev/null
-          jq -e '.env.generated.lua.pzserver_SandboxVars[""].Zones["A\"B"] | select(.env_name=="lua__pzserver_SandboxVars__Zones__A\"B")' "$tmpd/env.json" >/dev/null
-          jq -e ".env.generated.lua.pzserver_SandboxVars[\"\"].Zones[\"A'B\"] | select(.env_name==\"lua__pzserver_SandboxVars__Zones__A'B\")" "$tmpd/env.json" >/dev/null
-          jq -e '.env.generated.lua.pzserver_SandboxVars[""].Zones["42"] | select(.env_name=="lua__pzserver_SandboxVars__Zones__42")' "$tmpd/env.json" >/dev/null
-          jq -e '((.env.generated.lua.pzserver_SandboxVars[""].ArrayLike // {}) | length) == 0' "$tmpd/env.json" >/dev/null
+          jq -e '.env.generated.lua.pzserver_SandboxVars.Zones["A\"B"] | select(.env_name=="lua__pzserver_SandboxVars__Zones__A\"B")' "$tmpd/env.json" >/dev/null
+          jq -e ".env.generated.lua.pzserver_SandboxVars.Zones[\"A'B\"] | select(.env_name==\"lua__pzserver_SandboxVars__Zones__A'B\")" "$tmpd/env.json" >/dev/null
+          jq -e '.env.generated.lua.pzserver_SandboxVars.Zones["42"] | select(.env_name=="lua__pzserver_SandboxVars__Zones__42")' "$tmpd/env.json" >/dev/null
+          jq -e '((.env.generated.lua.pzserver_SandboxVars.ArrayLike // {}) | length) == 0' "$tmpd/env.json" >/dev/null
 
   prepare:
     if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.force_rebuild == 'true')

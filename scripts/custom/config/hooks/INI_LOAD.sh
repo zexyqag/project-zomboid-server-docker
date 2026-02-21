@@ -3,7 +3,7 @@ REPLACES=""
 DEPENDS_ON="ADMINPASSWORD PASSWORD RCONPASSWORD MOD_IDS WORKSHOP_IDS DISABLE_ANTICHEAT MAP_SCAN_VERBOSE"
 
 hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${hook_dir}/../lib/env_name_codec.sh"
+source "${hook_dir}/../../../lib/env_name_codec.sh"
 
 manual_apply() {
   if [ -n "${INI_LOAD_DONE:-}" ]; then
