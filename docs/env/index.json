@@ -2,19 +2,11 @@
   "files": [
     {
       "file": "stable-41.78.16.json",
-      "image_tag": "stable-41.78.16-5968c58"
-    },
-    {
-      "file": "stable.json",
-      "image_tag": "stable-fb6e650"
+      "image_tag": "stable-41.78.16-1ef1271"
     },
     {
       "file": "unstable-42.14.1.json",
-      "image_tag": "unstable-42.14.1-5968c58"
-    },
-    {
-      "file": "unstable.json",
-      "image_tag": "unstable-fb6e650"
+      "image_tag": "unstable-42.14.1-1ef1271"
     }
   ]
 }
