@@ -155,9 +155,11 @@ jobs:
 
       - name: Generate INI sources
         run: |
+          set -euo pipefail
           sudo rm -rf "${TAG_DIR}/zomboid"
           mkdir -p "${TAG_DIR}/zomboid"
           SERVER_OUT_DIR="${TAG_DIR}/zomboid/Server"
+          TARGET_INI="${SERVER_OUT_DIR}/pzserver.ini"
           docker rm -f "pz-envdocs-${TAG_SAFE}" >/dev/null 2>&1 || true
           CID=$(docker run -d --name "pz-envdocs-${TAG_SAFE}" \
             -e ADMINPASSWORD=envdocs \
@@ -166,20 +168,24 @@ jobs:
             -v "$PWD/${TAG_DIR}/zomboid:/home/steam/Zomboid" \
             ghcr.io/${REPO_NAME_LC}:${TAG})
           found_ini=""
-          found_sandbox_lua=""
           for i in {1..120}; do
-            found_ini="$(find "${SERVER_OUT_DIR}" -maxdepth 1 -type f -name '*.ini' | sort | head -n 1 || true)"
-            found_sandbox_lua="$(find "${SERVER_OUT_DIR}" -maxdepth 1 -type f -name '*_SandboxVars.lua' | sort | head -n 1 || true)"
-            if [ -n "$found_ini" ] || [ -n "$found_sandbox_lua" ]; then
+            if [ -f "${TARGET_INI}" ]; then
+              found_ini="${TARGET_INI}"
               break
             fi
             sleep 2
           done
+
+          if [ -z "$found_ini" ]; then
+            echo "Warning: ${TARGET_INI} was not created within wait window; container logs:" >&2
+            docker logs "$CID" >&2 || true
+          fi
+
           docker stop "$CID" >/dev/null 2>&1 || true
           docker rm -f "$CID" >/dev/null 2>&1 || true
           sudo chown -R "$(id -u):$(id -g)" "${TAG_DIR}"
-          if [ -z "$found_ini" ] && [ -z "$found_sandbox_lua" ]; then
-            echo "Warning: no Server INI or SandboxVars Lua file created for $TAG" >&2
+          if [ -z "$found_ini" ]; then
+            echo "Warning: no pzserver.ini was created for $TAG" >&2
           fi
 
       - name: Normalize pzserver env sources
