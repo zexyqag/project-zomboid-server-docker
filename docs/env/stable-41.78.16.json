@@ -1,5 +1,5 @@
 {
-  "image_tag": "stable-41.78.16-a0b759d",
+  "image_tag": "stable-41.78.16-cf9251c",
   "meta": {
     "sources": {
       "hooks_args": "scripts/custom/*/args",
@@ -1266,7 +1266,7 @@
             "ResetID": {
               "name": "ResetID",
               "env_name": "ini__servertest__ResetID",
-              "description": "Reset ID determines if the server has undergone a soft-reset. If this number does match the client, the client must create a new character. Used in conjunction with PlayerServerID. It is strongly advised that you backup these IDs somewhere\\nMinimum=0 Maximum=2147483647 Default=606106570",
+              "description": "Reset ID determines if the server has undergone a soft-reset. If this number does match the client, the client must create a new character. Used in conjunction with PlayerServerID. It is strongly advised that you backup these IDs somewhere\\nMinimum=0 Maximum=2147483647 Default=867266947",
               "source_ids": [
                 "ini_servertest"
               ],
