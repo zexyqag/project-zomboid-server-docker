@@ -182,12 +182,39 @@ jobs:
             echo "Warning: no Server INI or SandboxVars Lua file created for $TAG" >&2
           fi
 
+      - name: Normalize pzserver env sources
+        run: |
+          set -euo pipefail
+          DOCS_SOURCES_DIR="${RUNNER_TEMP}/env-sources-${TAG_SAFE}"
+          echo "DOCS_SOURCES_DIR=${DOCS_SOURCES_DIR}" >> ${GITHUB_ENV}
+          rm -rf "${DOCS_SOURCES_DIR}"
+          mkdir -p "${DOCS_SOURCES_DIR}/Server"
+
+          if [ -d "${TAG_DIR}/zomboid/Server" ]; then
+            find "${TAG_DIR}/zomboid/Server" -maxdepth 1 -type f \( -name 'pzserver*.ini' -o -name 'pzserver*.lua' \) -exec cp -f {} "${DOCS_SOURCES_DIR}/Server/" \;
+          fi
+
+          if [ -d "${TAG_DIR}/Server" ]; then
+            while IFS= read -r file; do
+              [ -z "${file}" ] && continue
+              file_name="$(basename "${file}")"
+              if [ ! -f "${DOCS_SOURCES_DIR}/Server/${file_name}" ]; then
+                cp -f "${file}" "${DOCS_SOURCES_DIR}/Server/${file_name}"
+              fi
+            done < <(find "${TAG_DIR}/Server" -maxdepth 1 -type f \( -name 'pzserver*.ini' -o -name 'pzserver*.lua' \) | sort)
+          fi
+
+          if [ ! -f "${DOCS_SOURCES_DIR}/Server/pzserver.ini" ]; then
+            echo "Error: expected ${DOCS_SOURCES_DIR}/Server/pzserver.ini for docs generation" >&2
+            exit 1
+          fi
+
       - name: Generate env docs
         run: |
           mkdir -p docs/env
           LOG_FILE="${RUNNER_TEMP}/env-docs-${TAG_SAFE}.log"
           IMAGE_TAG_VALUE="${TAG}-${GITHUB_SHA:0:7}"
-          if ! SERVERNAME=pzserver ENV_SOURCES_DIR="${TAG_DIR}" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${IMAGE_TAG_VALUE}" ENV_DOCS_FAIL_ON_DUPLICATES=true bash scripts/generate_env_docs.sh >"${LOG_FILE}" 2>&1; then
+          if ! SERVERNAME=pzserver ENV_SOURCES_DIR="${DOCS_SOURCES_DIR}" OUTPUT_PATH="docs/env/${TAG}.json" IMAGE_TAG="${IMAGE_TAG_VALUE}" ENV_DOCS_FAIL_ON_DUPLICATES=true bash scripts/generate_env_docs.sh >"${LOG_FILE}" 2>&1; then
             echo "generate_env_docs.sh failed; log output:" >&2
             cat "${LOG_FILE}" >&2
             exit 1
