@@ -193,6 +193,20 @@ jobs:
             exit 1
           fi
 
+      - name: Validate replaced_by mappings
+        run: |
+          set -euo pipefail
+          DOC_PATH="docs/env/${TAG}.json"
+          jq -e '.env.custom.mods.MOD_IDS.env_name == "MOD_IDS"' "${DOC_PATH}" >/dev/null
+          jq -e '.env.custom.mods.WORKSHOP_IDS.env_name == "WORKSHOP_IDS"' "${DOC_PATH}" >/dev/null
+          jq -e '.env.custom.security.PASSWORD.env_name == "PASSWORD"' "${DOC_PATH}" >/dev/null
+          jq -e '.env.custom.security.RCONPASSWORD.env_name == "RCONPASSWORD"' "${DOC_PATH}" >/dev/null
+
+          jq -e '((.env.generated.ini.pzserver[""].Mods? | type) != "object") or ((.env.generated.ini.pzserver[""].Mods.replaced_by | index("MOD_IDS")) != null)' "${DOC_PATH}" >/dev/null
+          jq -e '((.env.generated.ini.pzserver[""].WorkshopItems? | type) != "object") or ((.env.generated.ini.pzserver[""].WorkshopItems.replaced_by | index("WORKSHOP_IDS")) != null)' "${DOC_PATH}" >/dev/null
+          jq -e '((.env.generated.ini.pzserver[""].Password? | type) != "object") or ((.env.generated.ini.pzserver[""].Password.replaced_by | index("PASSWORD")) != null)' "${DOC_PATH}" >/dev/null
+          jq -e '((.env.generated.ini.pzserver[""].RCONPassword? | type) != "object") or ((.env.generated.ini.pzserver[""].RCONPassword.replaced_by | index("RCONPASSWORD")) != null)' "${DOC_PATH}" >/dev/null
+
       - name: Upload env docs
         uses: actions/upload-artifact@v4
         with:
