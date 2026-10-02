@@ -39,6 +39,7 @@ Example (stable):
 services:
 	ProjectZomboidDedicatedServer:
 		image: ghcr.io/zexyqag/project-zomboid-server-docker:stable
+		stop_grace_period: 120s
 		env_file:
 			- .env
 		ports:

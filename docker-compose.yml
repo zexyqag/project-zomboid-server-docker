@@ -3,6 +3,8 @@ services:
   ProjectZomboidDedicatedServer:
     image: ghcr.io/zexyqag/project-zomboid-server-docker:stable
     restart: unless-stopped
+    # Saving a large world on shutdown takes longer than Docker's default 10s.
+    stop_grace_period: 120s
     build:
       context: .
       dockerfile: Dockerfile
