@@ -592,11 +592,16 @@ if [ "${ENV_DOCS_FAIL_ON_DUPLICATES:-false}" = "true" ]; then
   fi
 fi
 
+# Passed as files: the B42 SandboxVars rows exceed the kernel's argument size limit.
+printf '%s' "${handcrafted_rows_json}" > "${tmp_dir}/handcrafted_rows.json"
+printf '%s' "${ini_rows_json}" > "${tmp_dir}/ini_rows.json"
+printf '%s' "${lua_rows_json}" > "${tmp_dir}/lua_rows.json"
+
 jq -n \
   --arg image_tag "${image_tag}" \
-  --argjson handcrafted_rows "${handcrafted_rows_json}" \
-  --argjson ini_rows "${ini_rows_json}" \
-  --argjson lua_rows "${lua_rows_json}" \
+  --slurpfile handcrafted_rows_file "${tmp_dir}/handcrafted_rows.json" \
+  --slurpfile ini_rows_file "${tmp_dir}/ini_rows.json" \
+  --slurpfile lua_rows_file "${tmp_dir}/lua_rows.json" \
   '
   def normalize_entries(rows):
     rows
@@ -667,8 +672,9 @@ jq -n \
     | map({ (.[0].subgroup): (normalize_entries(.)) })
     | add;
 
-  $ini_rows as $ini_rows_resolved
-  | $lua_rows as $lua_rows_resolved
+  $handcrafted_rows_file[0] as $handcrafted_rows
+  | $ini_rows_file[0] as $ini_rows_resolved
+  | $lua_rows_file[0] as $lua_rows_resolved
   | {
     image_tag: $image_tag,
     meta: {
