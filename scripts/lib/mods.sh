@@ -7,9 +7,6 @@ apply_workshop_ids() {
   # $1 = INI file. Collections in WORKSHOP_IDS are expanded to the items they contain.
   local ini_file="$1" resolved
   [ -n "${WORKSHOP_IDS+x}" ] || return 0
-  if compgen -e | grep -qiE '^INI_WorkshopItems(_FILE)?$'; then
-    echo "Warning: both WORKSHOP_IDS and INI_WorkshopItems are set; WORKSHOP_IDS wins." >&2
-  fi
   if [ -z "${WORKSHOP_IDS}" ]; then
     set_ini_value "${ini_file}" WorkshopItems ""
     return 0

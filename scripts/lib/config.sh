@@ -148,6 +148,36 @@ apply_sandbox_env() {
   report_unknown "${unknown}" "${lua_file}"
 }
 
+# Warns about variables that set the same thing, saying which one is used.
+report_overlaps() {
+  local names name lower
+  names="$(compgen -e | grep -E '^(INI|SANDBOX)_' || true)"
+  overlap() {
+    # $1 = variable that wins, $2 = case-insensitive pattern for the variables it overrides
+    local losers
+    [ -n "${!1+x}" ] || return 0
+    losers="$(grep -ixE "$2" <<< "${names}" | grep -vxF "$1" | paste -sd ' ' || true)"
+    [ -z "${losers}" ] || echo "Warning: $1 and ${losers} set the same thing; $1 is used." >&2
+  }
+  overlap WORKSHOP_IDS 'INI_WorkshopItems(_FILE)?'
+  overlap PORT 'INI_DefaultPort(_FILE)?'
+  overlap UDPPORT 'INI_UDPPort(_FILE)?'
+  if [ -n "${ADMINPASSWORD_FILE:-}" ] && [ -n "${ADMINPASSWORD:-}" ]; then
+    echo "Warning: ADMINPASSWORD and ADMINPASSWORD_FILE are both set; ADMINPASSWORD_FILE is used." >&2
+  fi
+  while IFS= read -r name; do
+    [ -n "${name}" ] || continue
+    if [[ "${name}" == INI_*_FILE ]] && grep -qixF "${name%_FILE}" <<< "${names}"; then
+      echo "Warning: ${name%_FILE} and ${name} are both set; ${name} is used." >&2
+    fi
+  done <<< "${names}"
+  # Names are matched case-insensitively, so these differ only in case and one silently wins.
+  while IFS= read -r lower; do
+    [ -n "${lower}" ] || continue
+    echo "Warning: $(grep -ixF "${lower}" <<< "${names}" | paste -sd ' ') differ only in case; only one is used." >&2
+  done < <(tr '[:upper:]' '[:lower:]' <<< "${names}" | sort | uniq -d)
+}
+
 report_unknown() {
   # $1 = space-separated variable names that matched no setting, $2 = file
   [ -n "${1// /}" ] || return 0

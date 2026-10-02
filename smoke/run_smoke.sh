@@ -138,12 +138,25 @@ else
 fi
 CURL
   chmod +x "${WORK}/bin/curl"
-  PATH="${WORK}/bin:${PATH}" WORKSHOP_IDS='111;222' INI_WorkshopItems=1 apply_workshop_ids "${SERVER}/pzserver.ini" > /dev/null 2> "${WORK}/err"
-  grep -q 'WORKSHOP_IDS wins' "${WORK}/err" || fail "setting both WORKSHOP_IDS and INI_WorkshopItems was not reported"
+  PATH="${WORK}/bin:${PATH}" WORKSHOP_IDS='111;222' apply_workshop_ids "${SERVER}/pzserver.ini" > /dev/null
   expect_line "${SERVER}/pzserver.ini" 'WorkshopItems=222;333;555'
   printf '#!/bin/bash\nexit 6\n' > "${WORK}/bin/curl"
   PATH="${WORK}/bin:${PATH}" WORKSHOP_IDS='111' apply_workshop_ids "${SERVER}/pzserver.ini" > /dev/null 2>&1
   expect_line "${SERVER}/pzserver.ini" 'WorkshopItems=222;333;555'
+}
+
+test_overlaps() {
+  TEST=overlaps
+  new_env
+  export WORKSHOP_IDS=1 INI_WorkshopItems=2 PORT=1 INI_defaultport=2 INI_Password=a INI_Password_FILE=/x \
+    INI_Public=true INI_public=false SANDBOX_Zombies=1 ADMINPASSWORD=a ADMINPASSWORD_FILE=/y INI_PVP=true
+  report_overlaps 2> "${WORK}/err"
+  grep -q 'WORKSHOP_IDS and INI_WorkshopItems set the same thing' "${WORK}/err" || fail "WORKSHOP_IDS overlap not reported"
+  grep -q 'PORT and INI_defaultport set the same thing' "${WORK}/err" || fail "PORT overlap not reported"
+  grep -q 'INI_Password and INI_Password_FILE are both set' "${WORK}/err" || fail "_FILE overlap not reported"
+  grep -q 'INI_Public INI_public differ only in case' "${WORK}/err" || fail "case duplicate not reported"
+  grep -q 'ADMINPASSWORD_FILE is used' "${WORK}/err" || fail "ADMINPASSWORD overlap not reported"
+  expect_eq "$(wc -l < "${WORK}/err")" 5
 }
 
 test_configure() {
@@ -231,7 +244,7 @@ EOF
   expect_line "${HOMEDIR}/args" "-servername"
 }
 
-for t in test_ini test_sandbox test_preset test_maps test_workshop test_configure test_list_env test_vars_documented test_entry; do
+for t in test_ini test_sandbox test_preset test_maps test_workshop test_overlaps test_configure test_list_env test_vars_documented test_entry; do
   ( "${t}"; exit "${FAILED}" ) || FAILED=1
 done
 
