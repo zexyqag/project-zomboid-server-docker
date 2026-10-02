@@ -27,15 +27,23 @@ RUN sed -i 's/^# *\(es_ES.UTF-8\)/\1/' /etc/locale.gen \
   # Generate locale
   && locale-gen
 
-# Download the Project Zomboid dedicated server app using the steamcmd app
-# Set the entry point file permissions
+# Download the Project Zomboid dedicated server app using the steamcmd app.
+# "-beta public" is not a valid beta, so the flag is only passed for other branches.
+# SteamCMD can fail the first attempt with "Missing configuration" until the app info is cached.
 RUN set -x \
   && mkdir -p "${STEAMAPPDIR}" \
   && chown -R "${USER}:${USER}" "${STEAMAPPDIR}" \
-  && bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" \
-  +login anonymous \
-  +app_update "${STEAMAPPID}" -beta "${STEAMAPPBRANCH}" validate \
-  +quit
+  && if [ "${STEAMAPPBRANCH}" = "public" ]; then BETA_ARGS=""; \
+     else BETA_ARGS="-beta ${STEAMAPPBRANCH}"; fi \
+  && for attempt in 1 2 3; do \
+       bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" \
+         +login anonymous \
+         +app_update "${STEAMAPPID}" ${BETA_ARGS} validate \
+         +quit \
+       && break; \
+       if [ "${attempt}" = "3" ]; then exit 1; fi; \
+       sleep 10; \
+     done
 
 # Copy the entry point file
 COPY --chown=${USER}:${USER} scripts/entry.sh /server/scripts/entry.sh

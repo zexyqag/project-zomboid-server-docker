@@ -4,6 +4,10 @@ REPLACES=""
 manual_apply() {
   if is_true "${FORCEUPDATE:-}"; then
     echo "FORCEUPDATE variable is set, so the server will be updated right now"
-    bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" +login anonymous +app_update "${STEAMAPPID}" -beta "${STEAMAPPBRANCH}" validate +quit
+    local beta_args=()
+    if [ "${STEAMAPPBRANCH}" != "public" ]; then
+      beta_args=(-beta "${STEAMAPPBRANCH}")
+    fi
+    bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" +login anonymous +app_update "${STEAMAPPID}" "${beta_args[@]}" validate +quit
   fi
 }
