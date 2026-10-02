@@ -138,7 +138,8 @@ else
 fi
 CURL
   chmod +x "${WORK}/bin/curl"
-  PATH="${WORK}/bin:${PATH}" WORKSHOP_IDS='111;222' apply_workshop_ids "${SERVER}/pzserver.ini" > /dev/null
+  PATH="${WORK}/bin:${PATH}" WORKSHOP_IDS='111;222' INI_WorkshopItems=1 apply_workshop_ids "${SERVER}/pzserver.ini" > /dev/null 2> "${WORK}/err"
+  grep -q 'WORKSHOP_IDS wins' "${WORK}/err" || fail "setting both WORKSHOP_IDS and INI_WorkshopItems was not reported"
   expect_line "${SERVER}/pzserver.ini" 'WorkshopItems=222;333;555'
   printf '#!/bin/bash\nexit 6\n' > "${WORK}/bin/curl"
   PATH="${WORK}/bin:${PATH}" WORKSHOP_IDS='111' apply_workshop_ids "${SERVER}/pzserver.ini" > /dev/null 2>&1
