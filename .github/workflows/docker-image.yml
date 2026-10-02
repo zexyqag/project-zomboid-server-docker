@@ -352,14 +352,6 @@ jobs:
             exit 1
           fi
 
-          # One-time import from the old docs/env branch; remove once that branch is deleted.
-          if git fetch -q origin docs/env 2>/dev/null; then
-            git ls-tree --name-only FETCH_HEAD docs/env/ | grep -E '\.json$' | grep -v '/index\.json$' | while IFS= read -r path; do
-              file="$(basename "${path}")"
-              [ -f "_site/env/${file}" ] || git show "FETCH_HEAD:${path}" > "_site/env/${file}"
-            done
-          fi
-
       - name: Assemble site
         run: |
           cp site/index.html _site/index.html
