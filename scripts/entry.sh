@@ -15,8 +15,10 @@ trap 'exit 143' TERM INT
 . "${SCRIPT_DIR}/lib/game.sh"
 
 for dir in "${HOMEDIR}/Zomboid" "${STEAMAPPDIR}"; do
-  if [ ! -w "${dir}" ]; then
-    echo "Error: ${dir} is not writable by $(id -un) (uid $(id -u)). For a bind mount, run: chown -R $(id -u):$(id -g) <host folder>" >&2
+  blocked="$(find "${dir}" -type d ! -writable -print -quit 2>/dev/null)"
+  if [ -n "${blocked}" ]; then
+    echo "Error: ${blocked} is not writable by $(id -un) (uid $(id -u)). For a bind mount, run: chown -R $(id -u):$(id -g) <host folder>" >&2
+    echo "If a volume is mounted inside ${dir} (such as an old steamapps/workshop volume), Docker created the folders leading to it as root: remove that mount, then recreate or chown the volume at ${dir}." >&2
     exit 1
   fi
 done
