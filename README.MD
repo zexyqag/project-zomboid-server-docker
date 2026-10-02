@@ -2,9 +2,6 @@
 
 This Dockerfile downloads the Project Zomboid dedicated server using SteamCMD. Will allow you to deploy with ease a server in Kubernetes, Docker...
 
-If you are contributing to this repository (scripts, CI, release pipeline, env-doc generation), see [DEVELOPMENT.md](DEVELOPMENT.md).
-
-
 The ready to use image is published automatically to GitHub Container Registry (GHCR).
 
 Example image URL:
