@@ -76,16 +76,16 @@ The image supports the following environment variables:
 `ADMINUSERNAME:` Sets the administrator username, otherwise `admin` will be used.
 
 
-`ADMINPASSWORD:` Sets or changes the admin password. This is mandatory at first startup or the server will fail to start. After the first setup, the password is updated directly in the INI file if changed, and is not passed as a command-line argument again. This minimizes the risk of logging the password in clear text. You may remove this variable after the initial setup if you wish.
+`ADMINPASSWORD:` Sets the admin password when the server creates its database on the first start. This is mandatory at first startup or the server will fail to start. Once the database exists it is no longer passed to the server, so it stays out of later launch lines, and you may remove this variable.
 
 `ADMINPASSWORD_FILE:` Path to a file containing the admin password. If set and the file exists, it takes precedence over `ADMINPASSWORD`. Same safe handling applies as above.
 
 
-`PASSWORD:` Sets or changes the server password. Is optional. After the first setup, the password is updated directly in the INI file if changed, and is not passed as a command-line argument again.
+`PASSWORD:` Sets or changes the server password in the INI file on every start. Is optional.
 
 `PASSWORD_FILE:` Path to a file containing the server password. If set and the file exists, it takes precedence over `PASSWORD`.
 
-`RCONPASSWORD:` Sets or changes the RCON password. Must be secure. After the first setup, the password is updated directly in the INI file if changed, and is not passed as a command-line argument again.
+`RCONPASSWORD:` Sets or changes the RCON password in the INI file on every start. Must be secure.
 
 `RCONPASSWORD_FILE:` Path to a file containing the RCON password. If set and the file exists, it takes precedence over `RCONPASSWORD`.
 
@@ -166,11 +166,9 @@ lua__pzserver_othersettings__SomeTable__SomeKey=true
 
 `LANG:` This env variable will set the container locales, which will be used by the pz server to set the language. Example (en_EN.UTF-8, es_ES.UTF-8...). Note: the image currently generates `es_ES.UTF-8` by default; if you need other locales, customize the Dockerfile.
 
-Mods will install on second server start
+INI settings, mods and workshop items apply on the first start. Sandbox (`lua__...`) settings apply from the second start, and maps are added on the second start, after the workshop content has been downloaded.
 
-Maps are added on third server start, after mods are added
-
-This is due to the server creating its config and data on the first start, downloading workshop content on the next start, and then wiring maps after they exist on disk. You can still change `MOD_IDS` and `WORKSHOP_IDS` later; updates apply on restart, but workshop downloads may require an extra restart. Changing maps on an existing world may require a new save depending on the map.
+This is because the server writes its SandboxVars file and downloads workshop content during the first start, and maps can only be wired once they exist on disk. You can still change `MOD_IDS` and `WORKSHOP_IDS` later; updates apply on restart, but workshop downloads may require an extra restart. Changing maps on an existing world may require a new save depending on the map.
 
 ## Build time environment variables
 

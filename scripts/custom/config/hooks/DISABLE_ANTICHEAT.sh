@@ -9,10 +9,10 @@ manual_apply() {
         START=${BASH_REMATCH[1]}
         END=${BASH_REMATCH[2]}
         for ((i=START; i<=END; i++)); do
-          set_ini_override "AntiCheatProtectionType${i}" "false"
+          set_ini_value "AntiCheatProtectionType${i}" "false"
         done
       elif [[ "$ITEM" =~ ^[0-9]+$ ]]; then
-        set_ini_override "AntiCheatProtectionType${ITEM}" "false"
+        set_ini_value "AntiCheatProtectionType${ITEM}" "false"
       fi
     done
   fi

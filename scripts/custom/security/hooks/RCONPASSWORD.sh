@@ -1,6 +1,10 @@
-DESCRIPTION="RCON password (preferred over INI_RCONPassword)."
+DESCRIPTION="RCON password (preferred over ini__pzserver__RCONPassword)."
 REPLACES="ini__pzserver__RCONPassword"
 
 manual_apply() {
-  safe_update_ini_key "${INI_FILE}" "RCONPassword" "RCONPASSWORD" "RCONPASSWORD_FILE"
+  local value
+  value="$(read_secret RCONPASSWORD RCONPASSWORD_FILE)"
+  if [ -n "${value}" ]; then
+    set_ini_value "RCONPassword" "${value}"
+  fi
 }

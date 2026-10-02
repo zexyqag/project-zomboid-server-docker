@@ -1,6 +1,10 @@
-DESCRIPTION="Server password (preferred over INI_Password)."
+DESCRIPTION="Server password (preferred over ini__pzserver__Password)."
 REPLACES="ini__pzserver__Password"
 
 manual_apply() {
-  safe_update_ini_key "${INI_FILE}" "Password" "PASSWORD" "PASSWORD_FILE"
+  local value
+  value="$(read_secret PASSWORD PASSWORD_FILE)"
+  if [ -n "${value}" ]; then
+    set_ini_value "Password" "${value}"
+  fi
 }

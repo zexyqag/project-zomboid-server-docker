@@ -6,7 +6,7 @@ manual_apply() {
   if [ -d "${HOMEDIR}/pz-dedicated/steamapps/workshop/content/108600" ]; then
 
     map_list=""
-    bash /server/scripts/search_folder.sh "${HOMEDIR}/pz-dedicated/steamapps/workshop/content/108600"
+    bash "${SCRIPT_DIR}/search_folder.sh" "${HOMEDIR}/pz-dedicated/steamapps/workshop/content/108600"
     if [ -f "${HOMEDIR}/maps.txt" ]; then
       map_list=$(<"${HOMEDIR}/maps.txt")
       rm "${HOMEDIR}/maps.txt"
@@ -14,7 +14,7 @@ manual_apply() {
 
     if [ -n "${map_list}" ]; then
       echo "*** INFO: Added maps including ${map_list} ***"
-      set_ini_override "Map" "${map_list}Muldraugh, KY"
+      set_ini_value "Map" "${map_list}Muldraugh, KY"
 
       # Checks which added maps have spawnpoints.lua files and adds them to the spawnregions file if they aren't already added
       IFS=";" read -ra strings <<< "$map_list"

@@ -360,23 +360,45 @@ EOF
   fi
 }
 
+# Runs every hook against a server home in $1 with the remaining arguments as environment,
+# then prints the launch args one per line.
+run_hooks_in() {
+  local home="$1"
+  shift
+  mkdir -p "${home}/Zomboid/Server"
+  touch "${home}/Zomboid/Server/pzserver.ini"
+  env -i PATH="${PATH}" HOMEDIR="${home}" "$@" bash -c '
+    SCRIPT_DIR="$1/scripts"
+    . "${SCRIPT_DIR}/lib/runtime_helpers.sh"
+    . "${SCRIPT_DIR}/lib/hooks.sh"
+    SERVERNAME=pzserver
+    INI_FILE="${HOMEDIR}/Zomboid/Server/pzserver.ini"
+    ARGS=()
+    run_env_hooks "${SCRIPT_DIR}/custom" >/dev/null 2>&1
+    printf "%s\n" "${ARGS[@]}"
+  ' _ "${ROOT_DIR}"
+}
+
+run_first_boot_config_smoke() {
+  local home="${TMP_DIR}/first_boot_home"
+  local ini="${home}/Zomboid/Server/pzserver.ini"
+  printf 'secret-from-file\n' > "${TMP_DIR}/rcon_secret"
+  run_hooks_in "${home}" \
+    'MOD_IDS=\\ModA;\\ModB' PASSWORD='p&ss|word' RCONPASSWORD_FILE="${TMP_DIR}/rcon_secret" \
+    ini__pzserver__Public=true ini__pzserver__Mods=ignored >/dev/null
+  local expected
+  expected="$(printf '%s\n' 'Mods=\\ModA;\\ModB' 'Password=p&ss|word' 'RCONPassword=secret-from-file' 'WorkshopItems=' 'Public=true')"
+  if [ "$(sort "${ini}")" != "$(echo "${expected}" | sort)" ]; then
+    echo "Unexpected first boot INI:" >&2
+    diff <(echo "${expected}" | sort) <(sort "${ini}") >&2
+    exit 1
+  fi
+}
+
 run_launch_args_smoke() {
-  mkdir -p "${TMP_DIR}/launch_home"
   local actual
-  actual="$(
-    env -i PATH="${PATH}" HOMEDIR="${TMP_DIR}/launch_home" \
-      MEMORY=2048m DEBUG=true ADMINUSERNAME=boss PORT=17000 \
-      ADMINPASSWORD='p@ss word$USER' \
-      bash -c '
-        . "$1/scripts/lib/runtime_helpers.sh"
-        . "$1/scripts/lib/hooks.sh"
-        SERVERNAME=pzserver
-        INI_FILE="${HOMEDIR}/Zomboid/Server/pzserver.ini"
-        ARGS=()
-        run_env_hooks "$1/scripts/custom" >/dev/null
-        printf "%s\n" "${ARGS[@]}"
-      ' _ "${ROOT_DIR}"
-  )"
+  actual="$(run_hooks_in "${TMP_DIR}/launch_home" \
+    MEMORY=2048m DEBUG=true ADMINUSERNAME=boss PORT=17000 ADMINPASSWORD='p@ss word$USER')"
   local expected
   expected="$(printf '%s\n' -Xms2048m -Xmx2048m -- -debug -adminusername boss -servername pzserver -port 17000 -adminpassword 'p@ss word$USER')"
   if [ "${actual}" != "${expected}" ]; then
@@ -817,6 +839,10 @@ echo "Env name contract ok"
 echo "Running rich env docs smoke test..."
 run_env_docs_rich_smoke
 echo "Rich env docs ok"
+
+echo "Running first boot config smoke test..."
+run_first_boot_config_smoke
+echo "First boot config ok"
 
 echo "Running launch args smoke test..."
 run_launch_args_smoke

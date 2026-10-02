@@ -1,70 +1,29 @@
 #!/bin/bash
 
-safe_update_ini_key() {
-  # $1 = INI file path
-  # $2 = INI key (e.g., Password, RCONPassword)
-  # $3 = value variable name (env var or file)
-  # $4 = optional: file variable name (e.g., PASSWORD_FILE)
-  local ini_file="$1"
-  local key="$2"
-  local value_var="$3"
-  local file_var="$4"
-  local value=""
-
-  # Prefer file if provided and exists
-  if [ -n "$file_var" ]; then
-    local file_path="${!file_var}"
-    if [ -n "$file_path" ] && [ -f "$file_path" ]; then
-      value=$(<"$file_path")
+read_secret() {
+  # $1 = value variable name, $2 = variable naming a file that holds the value (preferred)
+  local value_var="$1"
+  local file_var="$2"
+  local file_path="${!file_var:-}"
+  if [ -n "${file_path}" ]; then
+    if [ -f "${file_path}" ]; then
+      printf '%s' "$(<"${file_path}")"
+      return
     fi
+    echo "Warning: ${file_var} is set but file not found: ${file_path}" >&2
   fi
-  # Fallback to env var if value still empty
-  if [ -z "$value" ] && [ -n "${!value_var}" ]; then
-    value="${!value_var}"
-  fi
-
-  if [ -n "$value" ] && [ -f "$ini_file" ]; then
-    local current_val
-    current_val=$(awk -F '=' -v k="$key" '$1 ~ "^"k"[ \t]*$" {gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2; exit}' "$ini_file")
-    if [ "$current_val" != "$value" ]; then
-      echo "*** INFO: $key has changed, updating INI file directly ***"
-      export "INI_${key}=${value}"
-    fi
-  fi
+  printf '%s' "${!value_var:-}"
 }
 
-resolve_ini_file() {
-  local server_dir="${HOMEDIR}/Zomboid/Server"
-  local default_path="${server_dir}/${SERVERNAME}.ini"
-  if [ -f "${default_path}" ]; then
-    echo "${default_path}"
-    return
-  fi
-  shopt -s nullglob
-  local files=("${server_dir}"/*.ini)
-  shopt -u nullglob
-  if [ ${#files[@]} -eq 1 ]; then
-    echo "${files[0]}"
-  else
-    echo "${default_path}"
-  fi
-}
-
-resolve_sandboxvars_file() {
-  local server_dir="${HOMEDIR}/Zomboid/Server"
-  local default_path="${server_dir}/${SERVERNAME}_SandboxVars.lua"
-  if [ -f "${default_path}" ]; then
-    echo "${default_path}"
-    return
-  fi
-  shopt -s nullglob
-  local files=("${server_dir}"/*_SandboxVars.lua)
-  shopt -u nullglob
-  if [ ${#files[@]} -eq 1 ]; then
-    echo "${files[0]}"
-  else
-    echo "${default_path}"
-  fi
+set_ini_value() {
+  # $1 = key, $2 = value; replaces the key in INI_FILE or appends it
+  KEY="$1" VALUE="$2" awk '
+    BEGIN { k = ENVIRON["KEY"]; v = ENVIRON["VALUE"] }
+    index($0, k "=") == 1 { print k "=" v; found = 1; next }
+    { print }
+    END { if (!found) print k "=" v }
+  ' "${INI_FILE}" > "${INI_FILE}.tmp"
+  mv "${INI_FILE}.tmp" "${INI_FILE}"
 }
 
 is_true() {
@@ -81,35 +40,5 @@ is_true() {
         *) return 1 ;;
       esac
     ;;
-  esac
-}
-
-set_ini_override() {
-  # $1 = key, $2 = value
-  local key="$1"
-  local value="$2"
-  local env_name="INI_${key}"
-  # List of keys managed by extra logic
-  case "$key" in
-    WorkshopItems|Mods|Map|AntiCheatProtectionType*|Password|RCONPassword)
-      if [ -n "${!env_name+x}" ]; then
-        case "$key" in
-          Password)
-            msg="Use PASSWORD or PASSWORD_FILE environment variables instead."
-            ;;
-          RCONPassword)
-            msg="Use RCONPASSWORD or RCONPASSWORD_FILE environment variables instead."
-            ;;
-          *)
-            msg="This key is managed by entry.sh logic."
-            ;;
-        esac
-        echo "ERROR: Do not set INI_${key}. $msg Remove INI_${key} from your environment to avoid breaking server setup." >&2
-        exit 10
-      fi
-      ;;
-    *)
-      export "${env_name}=${value}"
-      ;;
   esac
 }

@@ -10,7 +10,11 @@ SERVERNAME="pzserver"
 
 ARGS=()
 
-INI_FILE="$(resolve_ini_file)"
+# The server keeps the values in an existing INI and fills in the rest, so creating it lets the
+# hooks apply settings on the very first start.
+INI_FILE="${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
+mkdir -p "$(dirname "${INI_FILE}")"
+[ -f "${INI_FILE}" ] || touch "${INI_FILE}"
 
 run_env_hooks "${SCRIPT_DIR}/custom"
 
