@@ -30,7 +30,8 @@ new_env() {
   touch "${HOMEDIR}/Zomboid/db/pzserver.db"
   export STEAMAPPID=380870 STEAMCMDDIR="${WORK}/home/steamcmd"
   mkdir -p "${STEAMCMDDIR}"
-  # Logs its arguments and installs a fake game with build FAKE_BUILD.
+  # Logs its arguments and installs a fake game with build FAKE_BUILD. Like the real one, its output
+  # doesn't end with a newline.
   cat > "${STEAMCMDDIR}/steamcmd.sh" <<'EOF'
 #!/bin/bash
 printf '%s\n' "$*" >> "${HOMEDIR}/steamcmd-calls"
@@ -41,7 +42,7 @@ mkdir -p "${dir}/steamapps"
 [ -f "${dir}/start-server.sh" ] || printf '#!/bin/bash\n' > "${dir}/start-server.sh"
 chmod +x "${dir}/start-server.sh"
 printf '"AppState"\n{\n\t"appid"\t\t"380870"\n\t"buildid"\t\t"%s"\n}\n' "${FAKE_BUILD:-100}" > "${dir}/steamapps/appmanifest_380870.acf"
-echo "Success! App '380870' fully installed."
+printf "Success! App '380870' fully installed.\nUnloading Steam API...OK"
 EOF
   chmod +x "${STEAMCMDDIR}/steamcmd.sh"
   # shellcheck source=scripts/configure.sh

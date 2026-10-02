@@ -7,7 +7,7 @@ game_build() {
 }
 
 update_game() {
-  local branch="${GAME_BRANCH:-public}" marker="${STEAMAPPDIR}/.game-branch" installed="" log
+  local branch="${GAME_BRANCH:-public}" marker="${STEAMAPPDIR}/.game-branch" installed="" log status
   local beta_args=() validate=()
   [ -f "${marker}" ] && installed="$(<"${marker}")"
 
@@ -36,7 +36,11 @@ update_game() {
       "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" +login anonymous \
         +app_update "${STEAMAPPID}" "${beta_args[@]}" "${validate[@]}" +quit 2>&1 | tee "${log}"
     ) &
-    if wait "$!" && grep -q "Success! App '${STEAMAPPID}'" "${log}" && [ -f "${STEAMAPPDIR}/start-server.sh" ]; then
+    status=0
+    wait "$!" || status=$?
+    # SteamCMD doesn't end its output with a newline, so the next line would be appended to its last.
+    [ -z "$(tail -c 1 "${log}")" ] || echo
+    if [ "${status}" = 0 ] && grep -q "Success! App '${STEAMAPPID}'" "${log}" && [ -f "${STEAMAPPDIR}/start-server.sh" ]; then
       rm -f "${log}"
       printf '%s\n' "${branch}" > "${marker}"
       echo "Game: ${branch} branch, build $(game_build)"

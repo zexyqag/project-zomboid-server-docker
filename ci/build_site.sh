@@ -15,7 +15,7 @@ live_index="$(mktemp)"
 status="$(curl -sS -o "${live_index}" -w '%{http_code}' "${base}/env/index.json")"
 case "${status}" in
   200)
-    jq -r '.files[].file' "${live_index}" | grep -E '^[A-Za-z0-9._-]+\.json$' | while IFS= read -r file; do
+    jq -r '.files[].file | select(test("^[A-Za-z0-9._-]+\\.json$"))' "${live_index}" | while IFS= read -r file; do
       [ -f "${env_dir}/${file}" ] && continue
       curl -fsS -o "${env_dir}/${file}" "${base}/env/${file}"
       # References from images that carried the game are labelled by image tag and are dropped.

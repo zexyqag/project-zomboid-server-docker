@@ -17,7 +17,10 @@ home="/home/steam/Zomboid"
 
 fail() {
   echo "Error: $*" >&2
-  docker logs --tail 300 "${name}" >&2 || true
+  # The start of the log has the game install and the configuration, the end what the server did last.
+  docker logs "${name}" 2>&1 | sed -n '1,150p' >&2 || true
+  echo "[...]" >&2
+  docker logs --tail 150 "${name}" >&2 || true
   exit 1
 }
 trap 'docker rm -f "${name}" >/dev/null 2>&1 || true' EXIT
@@ -51,10 +54,12 @@ docker run -d --name "${name}" --health-interval=5s \
   "${image}" >/dev/null
 wait_healthy
 
-build="$(docker logs "${name}" 2>&1 | sed -n "s/^Game: ${branch} branch, build \([0-9][0-9]*\)$/\1/p" | tail -n 1)"
-[ -n "${build}" ] || fail "the log does not say which build of the ${branch} branch was installed"
+game_lines="$(docker logs "${name}" 2>&1 | grep 'Game: ' || true)"
+build="$(sed -n "s/^Game: ${branch} branch, build \([0-9][0-9]*\)$/\1/p" <<< "${game_lines}" | tail -n 1)"
+[ -n "${build}" ] || fail "the log does not say which build of the ${branch} branch was installed. Its lines with 'Game: ' are:
+${game_lines:-none}"
 # The server logs its version at startup; java.version and the like are not it.
-version="$(docker logs "${name}" 2>&1 | grep -oE '(versionNumber|[[:space:]>]version)=[0-9]+\.[0-9]+(\.[0-9]+)?' | head -n 1 | sed 's/.*=//' || true)"
+version="$(docker logs "${name}" 2>&1 | grep -oE '(versionNumber=|[[:space:]>]version=|ZNet: Startup version )[0-9]+\.[0-9]+(\.[0-9]+)?' | head -n 1 | sed 's/.*[= ]//' || true)"
 case "${branch}" in
   public) channel=stable ;;
   unstable) channel=beta ;;
