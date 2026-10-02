@@ -138,10 +138,21 @@ jobs:
               .
 
       - name: Boot test
+        id: boot
         run: |
           bash ci/boot_test.sh "${LOCAL_IMAGE}" \
             "out/${{ matrix.channel }}-${{ matrix.version }}.json" \
             "${{ matrix.channel }}-${{ matrix.version }}-${GITHUB_SHA::7}"
+
+      # A game update can change the install layout the scripts rely on.
+      - name: Show the game install
+        if: failure() && steps.boot.outcome == 'failure'
+        run: |
+          docker run --rm --entrypoint bash "${LOCAL_IMAGE}" -c '
+            id; echo "STEAMAPPDIR=${STEAMAPPDIR}"
+            ls -la /home/steam "${STEAMAPPDIR}"
+            ls -laL "${STEAMAPPDIR}/start-server.sh"
+            head -c 300 "${STEAMAPPDIR}/start-server.sh" | od -c | head -n 12'
 
       - name: Publish image
         run: |
