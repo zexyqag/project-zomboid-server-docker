@@ -4,7 +4,7 @@ A Docker image for a Project Zomboid dedicated server, configured entirely throu
 
 * The image holds no game. The container installs it from Steam on its first start and updates it on every restart.
 * One image serves every game version Steam offers: the stable game, the beta, older versions and Build 41.
-* Every variable it reads is listed with its description for each game build at **https://zexyqag.github.io/project-zomboid-server-docker/**.
+* Every variable it reads is listed with its description for each game build at **https://gameserver-images.github.io/Project-Zomboid/**.
 
 ## Quick start
 
@@ -13,7 +13,7 @@ A Docker image for a Project Zomboid dedicated server, configured entirely throu
 ```yaml
 services:
   ProjectZomboidDedicatedServer:
-    image: ghcr.io/zexyqag/project-zomboid-server-docker:1
+    image: ghcr.io/gameserver-images/project-zomboid:1
     restart: unless-stopped
     stop_grace_period: 120s
     env_file:
@@ -48,7 +48,7 @@ On Windows with WSL2 in Docker Desktop the server starts much slower, which hurt
 
 ## Configuration
 
-There are three kinds of variables. The [env var site](https://zexyqag.github.io/project-zomboid-server-docker/) lists every one for each game build. `docker exec <container> list-env [filter]` lists them for your own server, with their current values and your mods' settings.
+There are three kinds of variables. The [env var site](https://gameserver-images.github.io/Project-Zomboid/) lists every one for each game build. `docker exec <container> list-env [filter]` lists them for your own server, with their current values and your mods' settings.
 
 | Variable | Sets | Example |
 |---|---|---|
@@ -98,13 +98,13 @@ Forward the UDP ports in your firewall or router. If you change a port variable,
 
 ## Image versions
 
-Images are published to `ghcr.io/zexyqag/project-zomboid-server-docker` with these tags:
+Images are published to `ghcr.io/gameserver-images/project-zomboid` with these tags:
 
 * `1`: the newest 1.x version. It gets fixes and new features, but nothing that needs you to change your setup. Use this one.
 * `1.2` or `1.2.3`: one minor version with its fixes, or one exact version.
 * `latest`: the newest version, including new major versions, which can need changes to your setup.
 
-The [releases page](https://github.com/zexyqag/project-zomboid-server-docker/releases) says what changed in each version and what to change for a new major one.
+The [releases page](https://github.com/Gameserver-Images/Project-Zomboid/releases) says what changed in each version and what to change for a new major one.
 
 CI boots every new version on every Steam branch and only publishes it once it runs on the stable game. It also checks Steam every hour and boots the current version on each new game build.
 
