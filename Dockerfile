@@ -30,6 +30,9 @@ RUN for locale in en_US.UTF-8 ${EXTRA_LOCALES}; do \
 RUN mkdir -p "${STEAMAPPDIR}/steamapps/workshop" "${HOMEDIR}/Zomboid" \
   && chown -R "${USER}:${USER}" "${HOMEDIR}"
 
+# A new value makes the build cache miss from here, so a game release isn't served the old game.
+ARG GAME_VERSION=""
+
 # SteamCMD runs as steam: run as root, it ignored a root-owned +force_install_dir and installed the
 # game under ~/Steam instead.
 # "-beta public" is not a valid beta, so the flag is only passed for other branches.

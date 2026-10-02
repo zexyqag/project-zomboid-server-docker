@@ -130,6 +130,7 @@ jobs:
             [ "${{ matrix.channel }}" = "unstable" ] && BRANCH="unstable"
             docker buildx build \
               --build-arg STEAMAPPBRANCH="${BRANCH}" \
+              --build-arg GAME_VERSION="${{ matrix.version }}" \
               --cache-from type=gha,scope=${{ matrix.channel }} \
               --cache-to type=gha,mode=max,scope=${{ matrix.channel }} \
               --label org.opencontainers.image.revision=${{ github.sha }} \
