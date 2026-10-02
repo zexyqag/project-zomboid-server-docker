@@ -1,8 +1,10 @@
 name: Build and Publish Docker Image
 
-# Pushes and pull requests only run the tests. Images are built by the nightly run, which
-# publishes when the game has a new version or main has commits that are not in an image yet,
-# so a day of pushes costs at most one build.
+# Pushes and pull requests run the tests, and pushes to main redeploy the docs site. The image holds
+# no game: containers install it on start. The nightly run boots the image on the current stable
+# game and, while one is open, the beta, whenever the image or the game's Steam build is new to it.
+# It publishes the image when main has commits that are not in one yet, and adds an env reference
+# per game build to the site.
 on:
   push:
     branches:
@@ -27,12 +29,13 @@ on:
   workflow_dispatch:
     inputs:
       force_rebuild:
-        description: "Rebuild and republish even if the current images are up to date"
+        description: "Test and republish the image even if nothing changed"
         type: boolean
         default: false
 
+# Test runs replace each other; a push never cancels a nightly or manual build.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'build' || 'test' }}
   cancel-in-progress: ${{ github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' }}
 
 jobs:
@@ -52,58 +55,63 @@ jobs:
     needs: test
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-      has_builds: ${{ steps.set-matrix.outputs.has_builds }}
-      repo_name_lc: ${{ steps.set-matrix.outputs.repo_name_lc }}
+      branches: ${{ steps.plan.outputs.branches }}
+      has_tests: ${{ steps.plan.outputs.has_tests }}
+      publish: ${{ steps.plan.outputs.publish }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Decide build matrix
-        id: set-matrix
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v6
+
+      - name: Decide what to test
+        id: plan
         env:
           FORCE_REBUILD: ${{ inputs.force_rebuild || false }}
+          SITE_URL: ${{ steps.pages.outputs.base_url }}
         run: |
           set -euo pipefail
-          REPO_NAME_LC="${GITHUB_REPOSITORY,,}"
-          REPO_VERSION="${GITHUB_SHA::7}"
-          eval "$(bash ci/get_latest_versions.sh)"
-
-          # An image tagged with this game version and commit means nothing changed since the last build.
-          needs_build() {
-            [ "${FORCE_REBUILD}" = "true" ] \
-              || ! docker manifest inspect "ghcr.io/${REPO_NAME_LC}:$1-$2-${REPO_VERSION}" >/dev/null 2>&1
-          }
-
-          builds=()
-          if needs_build stable "${LATEST_STABLE_VERSION}"; then
-            builds+=("stable:${LATEST_STABLE_VERSION}")
-          fi
-          if [ -n "${LATEST_UNSTABLE_VERSION}" ] && needs_build unstable "${LATEST_UNSTABLE_VERSION}"; then
-            builds+=("unstable:${LATEST_UNSTABLE_VERSION}")
+          publish=false
+          if [ "${FORCE_REBUILD}" = "true" ] \
+            || ! docker manifest inspect "ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA::7}" >/dev/null 2>&1; then
+            publish=true
           fi
 
-          matrix="$(printf '%s\n' "${builds[@]}" | jq -R -s -c '
-            split("\n") | map(select(length > 0) | split(":") | {channel: .[0], version: .[1]}) | {include: .}
-          ')"
-          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
-          echo "has_builds=$([ "${#builds[@]}" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-          echo "repo_name_lc=${REPO_NAME_LC}" >> "$GITHUB_OUTPUT"
-          echo "Builds: ${builds[*]:-none}"
+          # A new image is tested on every branch; otherwise a branch is tested when its build is new.
+          branches="$(bash ci/game_branches.sh)"
+          published="$(curl -fsS "${SITE_URL}/env/index.json" | jq -r '.files[].file' || true)"
+          tests=()
+          while read -r branch build; do
+            if [ "${publish}" = "true" ] || ! grep -qxF "${branch}-${build}.json" <<< "${published}"; then
+              tests+=("${branch}")
+            fi
+          done <<< "${branches}"
+
+          echo "Steam builds: $(paste -sd ' ' <<< "${branches}"); publish: ${publish}; testing: ${tests[*]:-nothing}"
+          {
+            echo "branches=$(printf '%s\n' "${tests[@]}" | jq -R -s -c 'split("\n") | map(select(length > 0))')"
+            echo "has_tests=$([ "${#tests[@]}" -gt 0 ] && echo true || echo false)"
+            echo "publish=${publish}"
+          } >> "$GITHUB_OUTPUT"
 
   build:
     needs: prepare
-    if: needs.prepare.outputs.has_builds == 'true'
+    if: needs.prepare.outputs.has_tests == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
+      matrix:
+        branch: ${{ fromJson(needs.prepare.outputs.branches) }}
     env:
-      IMAGE: ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}
       LOCAL_IMAGE: pz-server:candidate
     steps:
       - name: Checkout code
@@ -119,61 +127,57 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # SteamCMD downloads fail now and then, so the build is retried.
       - name: Build image
-        uses: nick-fields/retry@v4
-        with:
-          timeout_minutes: 60
-          max_attempts: 5
-          command: |
-            BRANCH="public"
-            [ "${{ matrix.channel }}" = "unstable" ] && BRANCH="unstable"
-            docker buildx build \
-              --build-arg STEAMAPPBRANCH="${BRANCH}" \
-              --build-arg GAME_VERSION="${{ matrix.version }}" \
-              --cache-from type=gha,scope=${{ matrix.channel }} \
-              --cache-to type=gha,mode=max,scope=${{ matrix.channel }} \
-              --label org.opencontainers.image.revision=${{ github.sha }} \
-              --tag "${LOCAL_IMAGE}" \
-              --load \
-              .
+        run: |
+          docker buildx build \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            --label org.opencontainers.image.revision=${{ github.sha }} \
+            --tag "${LOCAL_IMAGE}" \
+            --load \
+            .
 
       - name: Boot test
         id: boot
-        run: |
-          bash ci/boot_test.sh "${LOCAL_IMAGE}" \
-            "out/${{ matrix.channel }}-${{ matrix.version }}.json" \
-            "${{ matrix.channel }}-${{ matrix.version }}-${GITHUB_SHA::7}"
+        run: bash ci/boot_test.sh "${LOCAL_IMAGE}" "${{ matrix.branch }}" out
 
       # A game update can change the install layout the scripts rely on.
       - name: Show the game install
         if: failure() && steps.boot.outcome == 'failure'
         run: |
-          docker run --rm --entrypoint bash "${LOCAL_IMAGE}" -c '
+          docker run --rm -v pz-boot-game:/home/steam/pz-dedicated --entrypoint bash "${LOCAL_IMAGE}" -c '
             id; echo "STEAMAPPDIR=${STEAMAPPDIR}"
-            ls -la /home/steam "${STEAMAPPDIR}"
+            ls -la /home/steam "${STEAMAPPDIR}" "${STEAMAPPDIR}/steamapps"
             ls -laL "${STEAMAPPDIR}/start-server.sh"
             head -c 300 "${STEAMAPPDIR}/start-server.sh" | od -c | head -n 12'
 
       - name: Publish image
+        if: needs.prepare.outputs.publish == 'true' && matrix.branch == 'public'
         run: |
           set -euo pipefail
-          for tag in "${{ matrix.channel }}" "${{ matrix.channel }}-${{ matrix.version }}" "${{ matrix.channel }}-${{ matrix.version }}-${GITHUB_SHA::7}"; do
-            docker tag "${LOCAL_IMAGE}" "${IMAGE}:${tag}"
-            docker push "${IMAGE}:${tag}"
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          for tag in latest "${GITHUB_SHA::7}"; do
+            docker tag "${LOCAL_IMAGE}" "${image}:${tag}"
+            docker push "${image}:${tag}"
           done
 
       - name: Upload env reference
         uses: actions/upload-artifact@v7
         with:
-          name: env-${{ matrix.channel }}
-          path: out/${{ matrix.channel }}-${{ matrix.version }}.json
+          name: env-${{ matrix.branch }}
+          path: out/*.json
           if-no-files-found: error
 
+  # References only exist for boot tests that passed, so a failed branch leaves the site as it was.
   pages:
-    needs: build
-    if: needs.build.result == 'success'
+    needs: [test, prepare, build]
+    if: >-
+      always() && github.ref == 'refs/heads/main' && needs.test.result == 'success'
+      && (github.event_name == 'push' || (needs.prepare.outputs.has_tests == 'true' && needs.build.result != 'cancelled'))
     runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     permissions:
       pages: write
       id-token: write

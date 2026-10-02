@@ -1,6 +1,6 @@
 #!/bin/bash
 # Assembles the docs site: the page, the env references in <site>/env, and an index of them.
-# References for earlier tags are copied from the live site, because each deploy replaces it.
+# References for earlier game builds are copied from the live site, because each deploy replaces it.
 # Usage: build_site.sh <site dir> <live site URL>
 
 set -euo pipefail
@@ -18,8 +18,8 @@ case "${status}" in
     jq -r '.files[].file' "${live_index}" | grep -E '^[A-Za-z0-9._-]+\.json$' | while IFS= read -r file; do
       [ -f "${env_dir}/${file}" ] && continue
       curl -fsS -o "${env_dir}/${file}" "${base}/env/${file}"
-      # References from before the env var redesign use another format and other names.
-      jq -e '.vars' "${env_dir}/${file}" >/dev/null || rm "${env_dir}/${file}"
+      # References from images that carried the game are labelled by image tag and are dropped.
+      jq -e '.label' "${env_dir}/${file}" >/dev/null || rm "${env_dir}/${file}"
     done
     ;;
   404) echo "No published env references yet" ;;
@@ -27,5 +27,5 @@ case "${status}" in
 esac
 
 find "${env_dir}" -maxdepth 1 -name '*.json' ! -name index.json -print0 | sort -z \
-  | xargs -0 -r jq -c '{file: (input_filename | split("/") | last), image_tag}' \
+  | xargs -0 -r jq -c '{file: (input_filename | split("/") | last), label}' \
   | jq -s '{files: .}' > "${env_dir}/index.json"

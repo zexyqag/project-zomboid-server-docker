@@ -1,13 +1,12 @@
 services:
   ProjectZomboidDedicatedServer:
-    image: ghcr.io/zexyqag/project-zomboid-server-docker:stable
+    image: ghcr.io/zexyqag/project-zomboid-server-docker:latest
     restart: unless-stopped
     # Saving a large world on shutdown takes longer than Docker's default 10s.
     stop_grace_period: 120s
     build:
       context: .
       args:
-        - STEAMAPPBRANCH=${STEAMAPPBRANCH:-public}
         - EXTRA_LOCALES=${EXTRA_LOCALES:-}
     env_file:
       - .env
@@ -18,4 +17,4 @@ services:
     volumes:
       # The container runs as uid 1000; bind-mounted folders must be writable by it.
       - ./data:/home/steam/Zomboid
-      - ./workshop-mods:/home/steam/pz-dedicated/steamapps/workshop
+      - ./game:/home/steam/pz-dedicated

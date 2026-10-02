@@ -3,17 +3,17 @@
 A Project Zomboid dedicated server image, configured through environment variables. Images are published to GitHub Container Registry:
 
 ```
-ghcr.io/zexyqag/project-zomboid-server-docker:stable
+ghcr.io/zexyqag/project-zomboid-server-docker:latest
 ```
 
 Tags:
 
-* `stable`: the newest image for the current stable game version.
-* `stable-<pz_version>`: the newest image for that game version.
-* `stable-<pz_version>-<repo_version>`: one exact build; `<repo_version>` is the first 7 characters of the commit.
-* `unstable`, `unstable-<pz_version>`, ...: the same for the Steam beta branch, only while Project Zomboid has an open beta.
+* `latest`: the newest image.
+* `<repo_version>`: one exact build; `<repo_version>` is the first 7 characters of the commit.
 
-Only Build 42 is maintained. Images are rebuilt nightly when the game or this repo changed, and each one is booted and stopped in CI before it is published.
+The image doesn't contain the game. The container installs it from Steam on its first start and checks for an update on every start, so a restart brings the server up to date. `GAME_BRANCH` picks the stable game, the beta or Build 41, and the same image serves all of them.
+
+Each night CI boots the image on the current stable game, on the beta while one is open, and on Build 41, whenever the image or the game's build is new. An image is only published after its stable boot test passes.
 
 **WARNING:** On Windows with WSL2 in Docker Desktop, server startup is much slower. That's fine unless you run a lot of mods, where startup can take 15 to 40 minutes. Run the container on Linux or in a Linux VM if you can.
 
@@ -22,7 +22,7 @@ Only Build 42 is maintained. Images are rebuilt nightly when the game or this re
 ```yaml
 services:
   ProjectZomboidDedicatedServer:
-    image: ghcr.io/zexyqag/project-zomboid-server-docker:stable
+    image: ghcr.io/zexyqag/project-zomboid-server-docker:latest
     restart: unless-stopped
     stop_grace_period: 120s
     env_file:
@@ -33,11 +33,11 @@ services:
       - "27015:27015/tcp"
     volumes:
       - data:/home/steam/Zomboid
-      - workshop:/home/steam/pz-dedicated/steamapps/workshop
+      - game:/home/steam/pz-dedicated
 
 volumes:
   data:
-  workshop:
+  game:
 ```
 
 `.env`:
@@ -52,9 +52,11 @@ SANDBOX_ZombieLore__Transmission=3
 
 `ADMINPASSWORD` is required on the first start, when the server creates its database and admin account.
 
+The first start downloads the game, about 7 GB, into the `game` volume, which also holds the workshop mods. Later starts only download what changed. Without that volume every new container downloads the whole game again.
+
 `docker stop` (and Portainer's stop) sends `quit` to the server so it saves the world. Keep `stop_grace_period` long enough for your world to save; 120s is plenty for most.
 
-The container runs as the `steam` user (uid 1000). Named volumes work as they are. A bind-mounted folder must be writable by uid 1000: `chown -R 1000:1000 ./data ./workshop-mods`.
+The container runs as the `steam` user (uid 1000). Named volumes work as they are. A bind-mounted folder must be writable by uid 1000: `chown -R 1000:1000 ./data ./game`.
 
 To send a command to the server console, use `console`; the reply shows up in the container log:
 
@@ -76,7 +78,7 @@ docker exec <container> list-env
 docker exec <container> list-env zombielore
 ```
 
-The same list for each published image is at https://zexyqag.github.io/project-zomboid-server-docker/.
+The same list for each game build CI has booted is at https://zexyqag.github.io/project-zomboid-server-docker/.
 
 The log warns about variables the image doesn't read, such as a misspelled or renamed one. Names in all lowercase are left alone.
 
@@ -129,6 +131,10 @@ The server writes the SandboxVars file during its first start, so sandbox settin
 
 ### Image settings
 
+`GAME_BRANCH`: Steam branch of the game: `public` (the stable game, default), `unstable` (the beta, while one is open) or `legacy41` (Build 41). Changing it switches the installed game on the next start; SteamCMD then checks every file, which takes a while. Build 41 and Build 42 worlds aren't compatible, so give each its own data volume.
+
+`GAME_UPDATE`: If false, an installed game starts as it is, without contacting Steam. On by default.
+
 `ADMINUSERNAME`: Admin account name created on the first start (default: `admin`).
 
 `ADMINPASSWORD`, `ADMINPASSWORD_FILE`: Admin password. Required on the first start, when the server creates its database; ignored afterwards, so it stays out of later launch lines. The `_FILE` variant reads the password from a file (for Docker secrets) and takes precedence.
@@ -167,15 +173,13 @@ Maps from enabled mods are added to the INI's `Map=` line automatically, before 
 
 ### Backups
 
-The server makes its own backups; configure them with `INI_BackupsCount`, `INI_BackupsOnStart`, `INI_BackupsOnVersionChange` and `INI_BackupsPeriod`. `INI_BackupsOnVersionChange=true` is worth having, since a newer image can bring a newer game version.
+The server makes its own backups; configure them with `INI_BackupsCount`, `INI_BackupsOnStart`, `INI_BackupsOnVersionChange` and `INI_BackupsPeriod`. `INI_BackupsOnVersionChange=true` is worth having, since any restart can bring a newer game version.
 
 ## Building your own image
 
 ```bash
-docker build --build-arg STEAMAPPBRANCH=<branch> --build-arg EXTRA_LOCALES="es_ES.UTF-8 de_DE.UTF-8" .
+docker build --build-arg EXTRA_LOCALES="es_ES.UTF-8 de_DE.UTF-8" .
 ```
-
-`STEAMAPPBRANCH`: Steam beta branch to install; `public` (the default) is the stable release. The branches are listed on [SteamDB](https://steamdb.info/app/380870/depots/).
 
 `EXTRA_LOCALES`: Space-separated locales to install besides `en_US.UTF-8`.
 
@@ -207,5 +211,6 @@ Currently is not working correctly and will cause the server to crash when it is
 * 16261 UDP: game port (`PORT`).
 * 16262 UDP: second game port (`UDPPORT`).
 * 27015 TCP: RCON, only if you use it (`INI_RCONPort`).
+* 8766 and 8767 UDP: Steam ports, Build 41 only (`STEAMPORT1`, `STEAMPORT2`).
 
 Forward the UDP ports in your firewall/NAT. The log prints the ports the server uses on every start. The [official wiki](https://pzwiki.net/wiki/Dedicated_server) has the details.

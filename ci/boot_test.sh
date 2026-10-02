@@ -1,16 +1,18 @@
 #!/bin/bash
-# Boots a freshly built image and checks that the server starts, keeps settings written before
-# its first start, creates its database and saves on `docker stop`, then starts it again to check
-# the settings against the files the server wrote. Writes the env reference for the docs site from
-# the running server.
-# Usage: boot_test.sh <image> <reference.json> <image tag shown on the site>
+# Boots a freshly built image on a game branch and checks that it installs the game, starts the
+# server, keeps settings written before its first start, creates its database and saves on
+# `docker stop`, then starts it again to check the update and the settings against the files the
+# server wrote. Writes the env reference for the docs site to <out dir>/<branch>-<build id>.json.
+# Usage: boot_test.sh <image> <game branch> <out dir>
 
 set -euo pipefail
 
 image="$1"
-reference="$2"
-label="$3"
+branch="$2"
+out_dir="$3"
 name="pz-boot-test"
+# Kept after the test, so a failed run can be inspected.
+game_volume="pz-boot-game"
 home="/home/steam/Zomboid"
 
 fail() {
@@ -43,10 +45,23 @@ stop_server() {
 
 # SANDBOX_ only applies once the server has written SandboxVars, so it's checked on the second start.
 docker run -d --name "${name}" --health-interval=5s \
+  -v "${game_volume}:/home/steam/pz-dedicated" -e GAME_BRANCH="${branch}" \
   -e ADMINPASSWORD=boot-test -e INI_PublicName="Boot test" -e INI_Public=false \
   -e SANDBOX_ZombieLore__Transmission=4 -e CONFIG_STRICT=true \
   "${image}" >/dev/null
 wait_healthy
+
+build="$(docker logs "${name}" 2>&1 | sed -n "s/^Game: ${branch} branch, build \([0-9][0-9]*\)$/\1/p" | tail -n 1)"
+[ -n "${build}" ] || fail "the log does not say which build of the ${branch} branch was installed"
+# The server logs its version at startup; java.version and the like are not it.
+version="$(docker logs "${name}" 2>&1 | grep -oE '(versionNumber|[[:space:]>]version)=[0-9]+\.[0-9]+(\.[0-9]+)?' | head -n 1 | sed 's/.*=//' || true)"
+case "${branch}" in
+  public) channel=stable ;;
+  unstable) channel=beta ;;
+  *) channel="${branch}" ;;
+esac
+label="${version:-build ${build}} ${channel}"
+echo "Installed ${label} (${branch} branch, build ${build})"
 
 docker exec "${name}" grep -qx 'PublicName=Boot test' "${home}/Server/pzserver.ini" \
   || fail "INI_PublicName written before the first start was not kept"
@@ -66,18 +81,20 @@ done
 # Nested sandbox tables are joined with "__", so a key containing "__" could collide with a path.
 duplicates="$(cut -f2 <<< "${rows}" | sort | uniq -d)"
 [ -z "${duplicates}" ] || fail "list-env produced duplicate names: ${duplicates}"
-mkdir -p "$(dirname "${reference}")"
-jq -R -s --arg tag "${label}" '
+mkdir -p "${out_dir}"
+jq -R -s --arg label "${label}" '
   split("\n")
   | map(select(length > 0) | split("\t") | {kind: .[0], name: .[1], description: (.[3] // "")})
-  | {image_tag: $tag, vars: .}
-' <<< "${rows}" > "${reference}"
+  | {label: $label, vars: .}
+' <<< "${rows}" > "${out_dir}/${branch}-${build}.json"
 
 stop_server 1
 
 # CONFIG_STRICT now checks every variable against the server's own files.
 docker start "${name}" >/dev/null
 wait_healthy
+[ "$(docker logs "${name}" 2>&1 | grep -c "^Game: ${branch} branch, build ")" = 2 ] \
+  || fail "the second start did not check the game for updates"
 docker exec "${name}" grep -qx 'PublicName=Boot test' "${home}/Server/pzserver.ini" \
   || fail "PublicName did not survive a restart"
 docker exec "${name}" grep -qE '^[[:space:]]*Transmission = 4,' "${home}/Server/pzserver_SandboxVars.lua" \

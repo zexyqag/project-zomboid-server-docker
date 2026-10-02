@@ -28,8 +28,26 @@ new_env() {
   cp "${REPO}/smoke/fixtures/pzserver_SandboxVars.lua" "${SERVER}/pzserver_SandboxVars.lua"
   cp "${REPO}/smoke/fixtures/pzserver_spawnregions.lua" "${SERVER}/pzserver_spawnregions.lua"
   touch "${HOMEDIR}/Zomboid/db/pzserver.db"
+  export STEAMAPPID=380870 STEAMCMDDIR="${WORK}/home/steamcmd"
+  mkdir -p "${STEAMCMDDIR}"
+  # Logs its arguments and installs a fake game with build FAKE_BUILD.
+  cat > "${STEAMCMDDIR}/steamcmd.sh" <<'EOF'
+#!/bin/bash
+printf '%s\n' "$*" >> "${HOMEDIR}/steamcmd-calls"
+[ -n "${FAKE_STEAM_FAIL:-}" ] && { echo "ERROR! Failed to install app '380870' (No connection)"; exit 8; }
+[ -n "${FAKE_STEAM_SILENT:-}" ] && exit 0
+dir="$2"
+mkdir -p "${dir}/steamapps"
+[ -f "${dir}/start-server.sh" ] || printf '#!/bin/bash\n' > "${dir}/start-server.sh"
+chmod +x "${dir}/start-server.sh"
+printf '"AppState"\n{\n\t"appid"\t\t"380870"\n\t"buildid"\t\t"%s"\n}\n' "${FAKE_BUILD:-100}" > "${dir}/steamapps/appmanifest_380870.acf"
+echo "Success! App '380870' fully installed."
+EOF
+  chmod +x "${STEAMCMDDIR}/steamcmd.sh"
   # shellcheck source=scripts/configure.sh
   . "${SCRIPT_DIR}/configure.sh"
+  # shellcheck source=scripts/lib/game.sh
+  . "${SCRIPT_DIR}/lib/game.sh"
 }
 
 test_ini() {
@@ -242,16 +260,55 @@ test_vars_documented() {
   done < "${SCRIPT_DIR}/vars.tsv"
   for name in $(grep -rhoE '\$\{[A-Z][A-Z0-9_]+(:-|\+x|\})' "${SCRIPT_DIR}" | grep -oE '[A-Z][A-Z0-9_]+' | sort -u); do
     case "${name}" in
-      HOMEDIR|STEAMAPPDIR|SERVERNAME|SCRIPT_DIR|LD_LIBRARY_PATH|SERVER_*|SHUTDOWN_*|CONSOLE_FD|ARGS|VANILLA_MAP|KEY|VALUE|NAME|LOG_*) continue ;;
+      HOMEDIR|STEAMAPPDIR|STEAMAPPID|STEAMCMDDIR|SERVERNAME|SCRIPT_DIR|LD_LIBRARY_PATH|SERVER_*|SHUTDOWN_*|CONSOLE_FD|ARGS|VANILLA_MAP|KEY|VALUE|NAME|LOG_*) continue ;;
     esac
     grep -q "^${name}	" "${SCRIPT_DIR}/vars.tsv" || fail "${name} is read but not in vars.tsv"
   done
 }
 
+test_game() {
+  TEST=game
+  new_env
+  # The retries would otherwise wait 10 seconds each.
+  sleep() { :; }
+  local calls="${HOMEDIR}/steamcmd-calls"
+  update_game > "${WORK}/out" 2>&1 || fail "the first install failed"
+  expect_line "${calls}" "+force_install_dir ${STEAMAPPDIR} +login anonymous +app_update 380870 +quit"
+  expect_line "${STEAMAPPDIR}/.game-branch" public
+  expect_line "${WORK}/out" "Game: public branch, build 100"
+
+  FAKE_BUILD=101 update_game > "${WORK}/out" 2>&1
+  expect_line "${WORK}/out" "Game: public branch, build 101"
+  expect_eq "$(wc -l < "${calls}")" 2
+
+  GAME_UPDATE=false update_game > "${WORK}/out" 2>&1
+  expect_eq "$(wc -l < "${calls}")" 2
+  expect_line "${WORK}/out" "Game: public branch, build 101, not checked for updates (GAME_UPDATE=false)"
+
+  # A branch change goes through even with GAME_UPDATE=false, and SteamCMD has to forget the old beta.
+  GAME_BRANCH=unstable GAME_UPDATE=false update_game > /dev/null 2>&1
+  expect_eq "$(tail -n 1 "${calls}")" "+force_install_dir ${STEAMAPPDIR} +login anonymous +app_update 380870 -beta unstable validate +quit"
+  expect_line "${STEAMAPPDIR}/.game-branch" unstable
+  GAME_BRANCH=unstable update_game > /dev/null 2>&1
+  expect_eq "$(tail -n 1 "${calls}")" "+force_install_dir ${STEAMAPPDIR} +login anonymous +app_update 380870 -beta unstable +quit"
+
+  # Without its success line SteamCMD failed, whatever its exit code. The switch back to public has
+  # already dropped the beta's manifest by then.
+  (FAKE_STEAM_SILENT=1 update_game > /dev/null 2> "${WORK}/err") && fail "a silent SteamCMD run counted as an update"
+  [ -f "${STEAMAPPDIR}/steamapps/appmanifest_380870.acf" ] && fail "the switch back to public kept the beta's manifest"
+  expect_eq "$(tail -n 1 "${calls}")" "+force_install_dir ${STEAMAPPDIR} +login anonymous +app_update 380870 validate +quit"
+  expect_line "${STEAMAPPDIR}/.game-branch" unstable
+
+  update_game > /dev/null 2>&1
+  expect_line "${STEAMAPPDIR}/.game-branch" public
+  (FAKE_STEAM_FAIL=1 update_game > /dev/null 2> "${WORK}/err") && fail "a failed update did not stop the start"
+  expect_eq "$(tail -n 3 "${calls}" | grep -c '+app_update 380870 +quit')" 3
+  grep -q 'GAME_UPDATE=false starts the installed game' "${WORK}/err" || fail "the GAME_UPDATE hint was missing"
+}
+
 test_entry() {
   TEST=entry
   new_env
-  mkdir -p "${STEAMAPPDIR}/steamapps/workshop"
   cat > "${STEAMAPPDIR}/start-server.sh" <<'EOF'
 #!/bin/bash
 printf '%s\n' "$@" > "${HOMEDIR}/args"
@@ -281,7 +338,7 @@ EOF
   expect_line "${HOMEDIR}/args" "-servername"
 }
 
-for t in test_ini test_sandbox test_preset test_maps test_workshop test_overlaps test_unrecognized test_configure test_list_env test_vars_documented test_entry; do
+for t in test_ini test_sandbox test_preset test_maps test_workshop test_overlaps test_unrecognized test_configure test_list_env test_vars_documented test_game test_entry; do
   ( "${t}"; exit "${FAILED}" ) || FAILED=1
 done
 

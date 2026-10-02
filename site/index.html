@@ -57,7 +57,7 @@
 <main>
   <h1>Project Zomboid server env vars</h1>
   <p class="lead">
-    Every variable the <code>ghcr.io/zexyqag/project-zomboid-server-docker</code> image reads, listed from a freshly started server.
+    Every variable the <code>ghcr.io/zexyqag/project-zomboid-server-docker</code> image reads, listed from a freshly started server for each game build.
     Mods add more settings; <code>docker exec &lt;container&gt; list-env</code> lists them for your own server. Click a name to copy it.
   </p>
   <div class="layout">
@@ -67,7 +67,7 @@
     </details>
     <div>
       <div class="controls">
-        <select id="version" aria-label="Image version"></select>
+        <select id="version" aria-label="Game version"></select>
         <input id="search" type="search" placeholder="Search names and descriptions" aria-label="Search">
         <span class="count" id="count"></span>
       </div>
@@ -203,11 +203,12 @@
     try {
       const response = await fetch('env/index.json', { cache: 'no-store' });
       const files = (await response.json()).files;
-      files.sort((a, b) => b.file.localeCompare(a.file, undefined, { numeric: true }));
-      for (const f of files) versionSelect.add(new Option(f.image_tag || f.file, f.file));
+      // Stable (public branch) builds first, newest first.
+      const isStable = f => f.file.startsWith('public-');
+      files.sort((a, b) => isStable(b) - isStable(a) || b.file.localeCompare(a.file, undefined, { numeric: true }));
+      for (const f of files) versionSelect.add(new Option(f.label, f.file));
       const params = new URLSearchParams(location.search);
-      const wanted = files.find(f => f.file === params.get('version'))
-        || files.find(f => f.file.startsWith('stable-')) || files[0];
+      const wanted = files.find(f => f.file === params.get('version')) || files[0];
       if (!wanted) {
         list.innerHTML = '<p class="empty">No versions published yet.</p>';
         return;

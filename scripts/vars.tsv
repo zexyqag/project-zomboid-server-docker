@@ -1,3 +1,5 @@
+GAME_BRANCH	Steam branch of the game, installed or updated on every start: public (the stable game, default), unstable (the beta) or legacy41 (Build 41).
+GAME_UPDATE	Check Steam for a game update on every start (true/false, default true). With false an installed game starts as it is.
 ADMINUSERNAME	Admin account name created on the first start (default: admin).
 ADMINPASSWORD	Admin account password. Required on the first start, when the server creates its database; ignored afterwards.
 ADMINPASSWORD_FILE	File holding the admin password; takes precedence over ADMINPASSWORD.

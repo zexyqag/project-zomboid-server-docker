@@ -11,14 +11,17 @@ trap 'exit 143' TERM INT
 
 # shellcheck source=scripts/configure.sh
 . "${SCRIPT_DIR}/configure.sh"
+# shellcheck source=scripts/lib/game.sh
+. "${SCRIPT_DIR}/lib/game.sh"
 
-for dir in "${HOMEDIR}/Zomboid" "${STEAMAPPDIR}/steamapps/workshop"; do
+for dir in "${HOMEDIR}/Zomboid" "${STEAMAPPDIR}"; do
   if [ ! -w "${dir}" ]; then
     echo "Error: ${dir} is not writable by $(id -un) (uid $(id -u)). For a bind mount, run: chown -R $(id -u):$(id -g) <host folder>" >&2
     exit 1
   fi
 done
 
+update_game
 cd "${STEAMAPPDIR}" || exit 1
 configure_server
 
