@@ -38,7 +38,7 @@ ini_vars() {
       i = index(line, "=")
       key = substr(line, 1, i - 1)
       value = substr(line, i + 1)
-      if (tolower(key) ~ /password/ && value != "") value = "(set)"
+      if (tolower(key) ~ /password|token/ && value != "") value = "(set)"
       printf "ini\tINI_%s\t%s\t%s\n", key, value, desc
     }
     { desc = "" }

@@ -13,7 +13,6 @@ build_server_args() {
 
   is_true "${COOP:-}" && ARGS+=(-coop)
   is_true "${NOSTEAM:-}" && ARGS+=(-nosteam)
-  [ -n "${CACHEDIR:-}" ] && ARGS+=("-cachedir=${CACHEDIR}")
   [ -n "${MODFOLDERS:-}" ] && ARGS+=(-modfolders "${MODFOLDERS}")
   is_true "${DEBUG:-}" && ARGS+=(-debug)
   [ -n "${ADMINUSERNAME:-}" ] && ARGS+=(-adminusername "${ADMINUSERNAME}")

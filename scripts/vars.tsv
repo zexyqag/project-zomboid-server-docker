@@ -5,14 +5,13 @@ WORKSHOP_IDS	Workshop item and collection IDs separated by ';'. Collections are 
 STEAM_API_KEY	Steam Web API key, only needed to expand private or unlisted collections in WORKSHOP_IDS.
 SERVERPRESET	Sandbox preset (a file name in media/lua/shared/Sandbox) used to create the SandboxVars file when it does not exist.
 SERVERPRESETREPLACE	Overwrite an existing SandboxVars file with SERVERPRESET on every start (true/false).
-CONFIG_STRICT	Refuse to start when an INI_ or SANDBOX_ variable matches no setting (true/false).
+CONFIG_STRICT	Refuse to start when an INI_ or SANDBOX_ variable matches no setting or has a value of the wrong type (true/false).
 MEMORY	Java heap size, for example 4096m or 8g. Sets both -Xms and -Xmx.
 SOFTRESET	Start with a soft reset (true/false).
 DEBUG	Start the server in debug mode (true/false).
 COOP	Start as a coop server instead of a dedicated one (true/false).
 NOSTEAM	Start without Steam, for non-Steam clients (true/false).
 MODFOLDERS	Mod folder search order, for example workshop,steam,mods.
-CACHEDIR	Data folder for the server. Leave unset, the volumes expect /home/steam/Zomboid.
 IP	Address the server binds to.
 PORT	Main UDP port (default 16261).
 UDPPORT	Second UDP port (default 16262).

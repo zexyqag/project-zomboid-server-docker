@@ -6,13 +6,18 @@ SERVER_CONSOLE="/tmp/pz-console"
 SERVER_READY="/tmp/pz-ready"
 SERVER_PID_FILE="/tmp/pz-server.pid"
 
+# As PID 1 the shell ignores signals it has no trap for, so `docker stop` would wait out the grace period.
+trap 'exit 143' TERM INT
+
 # shellcheck source=scripts/configure.sh
 . "${SCRIPT_DIR}/configure.sh"
 
-if [ ! -w "${HOMEDIR}/Zomboid" ]; then
-  echo "Error: ${HOMEDIR}/Zomboid is not writable by $(id -un) (uid $(id -u)). For a bind mount, run: chown -R $(id -u):$(id -g) <host folder>" >&2
-  exit 1
-fi
+for dir in "${HOMEDIR}/Zomboid" "${STEAMAPPDIR}/steamapps/workshop"; do
+  if [ ! -w "${dir}" ]; then
+    echo "Error: ${dir} is not writable by $(id -un) (uid $(id -u)). For a bind mount, run: chown -R $(id -u):$(id -g) <host folder>" >&2
+    exit 1
+  fi
+done
 
 cd "${STEAMAPPDIR}" || exit 1
 configure_server
@@ -45,8 +50,9 @@ shutdown_server() {
   echo "*** INFO: Server stopped with exit code ${SHUTDOWN_EXIT} ***"
 }
 
-# Output passes through this loop, which marks the server ready for the health check once it has started.
-./start-server.sh "${ARGS[@]}" <"${SERVER_CONSOLE}" > >(
+# Output passes through this loop, which marks the server ready for the health check once it has
+# started. It's a child of this shell, so the last lines are waited for before the container exits.
+exec {LOG_FD}> >(
   trap '' TERM INT
   while IFS= read -r line || [ -n "${line}" ]; do
     printf '%s\n' "${line}"
@@ -54,8 +60,11 @@ shutdown_server() {
       : > "${SERVER_READY}"
     fi
   done
-) 2>&1 &
+)
+LOG_PID=$!
+./start-server.sh "${ARGS[@]}" <"${SERVER_CONSOLE}" >&"${LOG_FD}" 2>&1 &
 SERVER_PID=$!
+exec {LOG_FD}>&-
 echo "${SERVER_PID}" > "${SERVER_PID_FILE}"
 trap shutdown_server TERM INT
 
@@ -64,5 +73,8 @@ SERVER_EXIT=$?
 if [ -n "${SHUTDOWN_STARTED:-}" ]; then
   SERVER_EXIT="${SHUTDOWN_EXIT}"
 fi
+# A process the server leaves behind could hold the log pipe open, so this wait is bounded.
+{ sleep 10; kill -KILL "${LOG_PID}" 2>/dev/null; } &
+wait "${LOG_PID}"
 rm -f "${SERVER_CONSOLE}" "${SERVER_READY}" "${SERVER_PID_FILE}"
 exit "${SERVER_EXIT}"

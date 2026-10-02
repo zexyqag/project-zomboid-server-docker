@@ -43,15 +43,15 @@ set_ini_value() {
     }
     { print }
     END { if (!found) print k "=" v }
-  ' "$1" > "$1.tmp"
-  mv "$1.tmp" "$1"
+  ' "$1" > "$1.tmp" && mv "$1.tmp" "$1"
 }
 
 # Applies every INI_<Key> variable to the INI file. INI_<Key>_FILE reads the value from a file
-# (for Docker secrets) and wins over INI_<Key>. Keys missing from a non-empty file are appended
-# with a warning, because the server ignores unknown keys and a typo would otherwise go unnoticed.
+# (for Docker secrets) and wins over INI_<Key>. On the first start the INI is empty and every key
+# is written; afterwards the server has written all its keys, so a key that isn't there is a typo
+# and is reported instead of written.
 apply_ini_env() {
-  local ini_file="$1" name key value check_unknown=true unknown=""
+  local ini_file="$1" name key value old check_unknown=true unknown="" invalid=""
   [ -s "${ini_file}" ] || check_unknown=false
   while IFS= read -r name; do
     key="${name#INI_}"
@@ -66,17 +66,28 @@ apply_ini_env() {
     fi
     if [ "${check_unknown}" = true ] && ! grep -qi "^${key}=" "${ini_file}"; then
       unknown="${unknown} ${name}"
+      continue
+    fi
+    old="$(ini_value "${ini_file}" "${key}")"
+    if [[ "${old,,}" =~ ^(true|false)$ ]]; then
+      if [[ ! "${value,,}" =~ ^(true|false)$ ]]; then
+        invalid="${invalid} ${name}"
+        continue
+      fi
+      value="${value,,}"
     fi
     set_ini_value "${ini_file}" "${key}" "${value}"
     echo "Config: ${key} set from ${name}"
   done < <(compgen -e | grep '^INI_' | sort)
-  report_unknown "${unknown}" "${ini_file}"
+  report_problems "match no setting in ${ini_file}" "${unknown}"
+  report_problems "need true or false in ${ini_file}" "${invalid}"
 }
 
-# Applies every SANDBOX_<Group>__<Key> variable to the SandboxVars file. Values replace the
-# existing ones as Lua literals; a string setting keeps its quotes when the value has none.
+# Applies every SANDBOX_<Group>__<Key> variable to the SandboxVars file. The value must have the
+# type of the current one (number, true/false or string), so a typo can't break the Lua file; a
+# string setting gets its quotes added when the value has none.
 apply_sandbox_env() {
-  local lua_file="$1" name path names updates unknown
+  local lua_file="$1" name path names updates problems=""
   names="$(compgen -e | grep '^SANDBOX_' | sort || true)"
   [ -n "${names}" ] || return 0
   if [ ! -f "${lua_file}" ]; then
@@ -88,7 +99,8 @@ apply_sandbox_env() {
     path="${name#SANDBOX_}"
     printf '%s\t%s\t%s\n' "${name}" "${path//__/.}" "${!name}" >> "${updates}"
   done <<< "${names}"
-  unknown="$(awk -v updates_file="${updates}" -v out="${lua_file}.tmp" '
+  # A partly written file must not replace the real one (a full disk, for example).
+  if awk -v updates_file="${updates}" -v out="${lua_file}.tmp" '
     function trim(s) { sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s); return s }
     BEGIN {
       while ((getline line < updates_file) > 0) {
@@ -126,26 +138,44 @@ apply_sandbox_env() {
           sub(/^[^=]*=[ \t]*/, "", old)
           sub(/[ \t]*,?[ \t]*$/, "", old)
           new = value_of[path]
-          if (old ~ /^".*"$/ && new !~ /^".*"$/) {
-            gsub(/\\/, "\\\\", new)
-            gsub(/"/, "\\\"", new)
-            new = "\"" new "\""
+          applied[path] = 1
+          if (old ~ /^".*"$/) {
+            if (new !~ /^".*"$/) {
+              gsub(/\\/, "\\\\", new)
+              gsub(/"/, "\\\"", new)
+              new = "\"" new "\""
+            }
+          } else if (old ~ /^(true|false)$/) {
+            new = tolower(new)
+            if (new !~ /^(true|false)$/) { invalid[path] = 1; print line > out; next }
+          } else if (old ~ /^-?[0-9]+(\.[0-9]+)?$/) {
+            if (new !~ /^-?[0-9]+(\.[0-9]+)?$/) { invalid[path] = 1; print line > out; next }
+          } else if (new == "") {
+            invalid[path] = 1; print line > out; next
           }
           indent = line
           sub(/[^ \t].*$/, "", indent)
           print indent key " = " new "," > out
           printf "Config: sandbox %s set from %s\n", path_of[path], env_of[path] > "/dev/stderr"
-          applied[path] = 1
           next
         }
       }
       print line > out
     }
-    END { for (k in env_of) if (!(k in applied)) printf " %s", env_of[k] }
-  ' "${lua_file}")"
-  rm -f "${updates}"
-  mv "${lua_file}.tmp" "${lua_file}"
-  report_unknown "${unknown}" "${lua_file}"
+    END {
+      for (k in env_of) {
+        if (!(k in applied)) print "unknown " env_of[k]
+        else if (k in invalid) print "invalid " env_of[k]
+      }
+    }
+  ' "${lua_file}" > "${updates}.problems"; then
+    mv "${lua_file}.tmp" "${lua_file}"
+    problems="$(sort "${updates}.problems")"
+  fi
+  rm -f "${updates}" "${updates}.problems" "${lua_file}.tmp"
+  report_problems "match no setting in ${lua_file}" "$(sed -n 's/^unknown / /p' <<< "${problems}" | tr -d '\n')"
+  report_problems "need a value of the same type as the current one (number, true/false or text) in ${lua_file}" \
+    "$(sed -n 's/^invalid / /p' <<< "${problems}" | tr -d '\n')"
 }
 
 # Warns about variables that set the same thing, saying which one is used.
@@ -178,13 +208,25 @@ report_overlaps() {
   done < <(tr '[:upper:]' '[:lower:]' <<< "${names}" | sort | uniq -d)
 }
 
-report_unknown() {
-  # $1 = space-separated variable names that matched no setting, $2 = file
-  [ -n "${1// /}" ] || return 0
-  echo "Warning: these variables match no setting in $2:$1" >&2
-  echo "         Run 'docker exec <container> list-env' to see the valid names." >&2
+report_problems() {
+  # $1 = what is wrong with them, $2 = space-separated variable names (none: nothing to report)
+  [ -n "${2// /}" ] || return 0
+  echo "Warning: these variables $1, so they were not applied:$2" >&2
+  echo "         Run 'docker exec <container> list-env' to see the valid names and current values." >&2
   if is_true "${CONFIG_STRICT:-}"; then
-    echo "Error: CONFIG_STRICT is set, refusing to start with unknown settings." >&2
+    echo "Error: CONFIG_STRICT is set, refusing to start." >&2
     exit 1
   fi
+}
+
+# Warns about variables this image doesn't read, such as a misspelled or renamed one. All-lowercase
+# names are left alone, since those are conventions of other tools (http_proxy and the like).
+report_unrecognized() {
+  # $1 = file listing the variables the image sets itself
+  local image_env="$1" known unrecognized
+  [ -f "${image_env}" ] || return 0
+  known="$(cut -f1 "${SCRIPT_DIR}/vars.tsv"; cat "${image_env}"; printf '%s\n' HOSTNAME HOME OLDPWD PATH PWD SHLVL TERM TZ HTTP_PROXY HTTPS_PROXY NO_PROXY)"
+  unrecognized="$(compgen -e | grep -vE '^(INI|SANDBOX)_|^[a-z_][a-z0-9_]*$|_SERVICE_(HOST|PORT)|_PORT_[0-9]+_|^KUBERNETES_' \
+    | grep -vxF -f <(printf '%s\n' "${known}") | paste -sd ' ' || true)"
+  [ -z "${unrecognized}" ] || echo "Warning: this image does not read ${unrecognized}. Run 'docker exec <container> list-env' to see the valid names." >&2
 }

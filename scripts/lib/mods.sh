@@ -27,9 +27,9 @@ enabled_mod_ids() {
 
 mod_maps() {
   # $1 = workshop content dir, $2 = file of enabled mod IDs.
-  # Prints "<map name>\t<map dir>" for each map of an enabled mod. B41 mods keep files in
-  # mods/<mod>/, B42 mods in versioned folders such as mods/<mod>/42/ and mods/<mod>/common/.
-  local content_dir="$1" enabled_file="$2" mod_dir info id map_dir
+  # Prints "<enabled|disabled>\t<map name>\t<map dir>" for each map of a downloaded mod. B41 mods
+  # keep files in mods/<mod>/, B42 mods in versioned folders such as mods/<mod>/42/ and mods/<mod>/common/.
+  local content_dir="$1" enabled_file="$2" mod_dir info id state map_dir
   for mod_dir in "${content_dir}"/*/mods/*/; do
     [ -d "${mod_dir}" ] || continue
     id=""
@@ -38,23 +38,28 @@ mod_maps() {
       id="$(sed -n 's/^[[:space:]]*id[[:space:]]*=[[:space:]]*//p' "${info}" | tr -d '\r' | head -n 1)"
       [ -n "${id}" ] && break
     done
-    if [ -z "${id}" ] || ! grep -qxF "${id}" "${enabled_file}"; then
-      continue
-    fi
+    [ -n "${id}" ] || continue
+    state=disabled
+    grep -qxF "${id}" "${enabled_file}" && state=enabled
     for map_dir in "${mod_dir}"media/maps/*/ "${mod_dir}"*/media/maps/*/; do
-      [ -d "${map_dir}" ] || continue
-      printf '%s\t%s\n' "$(basename "${map_dir}")" "${map_dir%/}"
+      # Mods that patch the vanilla map ship a folder with its name; it's always in Map= anyway.
+      [ -d "${map_dir}" ] && [ "$(basename "${map_dir}")" != "${VANILLA_MAP}" ] || continue
+      printf '%s\t%s\t%s\n' "${state}" "$(basename "${map_dir}")" "${map_dir%/}"
     done
   done
 }
 
 merge_map_list() {
-  # $1 = current Map= value, then the map names to add. Keeps the admin's order, adds new maps
-  # before the vanilla map and keeps the vanilla map last.
+  # $1 = current Map= value, $2 = ';'-separated maps to drop, then the maps to add. Keeps the
+  # admin's order, adds new maps before the vanilla map and keeps the vanilla map last.
   local current="$1" name vanilla=false
-  shift
-  local -a merged=()
+  local -a merged=() entries=() dropped=()
   local -A present=()
+  IFS=';' read -ra dropped <<< "$2"
+  shift 2
+  for name in "${dropped[@]}"; do
+    present["${name}"]=1
+  done
   IFS=';' read -ra entries <<< "${current}"
   for name in "${entries[@]}"; do
     [ -n "${name}" ] || continue
@@ -87,14 +92,23 @@ add_spawn_region() {
       printf "\t\t{ name = \"%s\", file = \"media/maps/%s/spawnpoints.lua\" },\n", ENVIRON["NAME"], ENVIRON["NAME"]
       done = 1
     }
-  ' "${file}" > "${file}.tmp"
-  mv "${file}.tmp" "${file}"
+  ' "${file}" > "${file}.tmp" && mv "${file}.tmp" "${file}"
   echo "Config: spawn region added for ${name}"
 }
 
+remove_spawn_region() {
+  # $1 = spawnregions file, $2 = map name
+  local file="$1" name="$2"
+  grep -qF "media/maps/${name}/spawnpoints.lua" "${file}" || return 0
+  grep -vF "media/maps/${name}/spawnpoints.lua" "${file}" > "${file}.tmp" && mv "${file}.tmp" "${file}"
+  echo "Config: spawn region removed for ${name}"
+}
+
+# Adds the maps of enabled mods to Map= and their spawn points to the spawnregions file, and
+# removes the maps of downloaded mods that are no longer enabled, which the server can't load.
 apply_mod_maps() {
   # $1 = INI file, $2 = spawnregions file, $3 = workshop content dir
-  local ini_file="$1" spawn_file="$2" content_dir="$3" enabled maps current merged name dir
+  local ini_file="$1" spawn_file="$2" content_dir="$3" enabled maps current merged state name dir
   [ -d "${content_dir}" ] || return 0
   enabled="$(mktemp)"
   enabled_mod_ids "${ini_file}" > "${enabled}"
@@ -102,21 +116,32 @@ apply_mod_maps() {
   rm -f "${enabled}"
   [ -n "${maps}" ] || return 0
 
-  current="$(ini_value "${ini_file}" Map)"
-  local -a names=()
-  while IFS=$'\t' read -r name dir; do
-    names+=("${name}")
+  local -a added=() dropped=()
+  local -A enabled_map=()
+  while IFS=$'\t' read -r state name dir; do
+    if [ "${state}" = enabled ]; then
+      added+=("${name}")
+      enabled_map["${name}"]=1
+    fi
   done <<< "${maps}"
-  merged="$(merge_map_list "${current}" "${names[@]}")"
+  while IFS=$'\t' read -r state name dir; do
+    [ "${state}" = disabled ] && [ -z "${enabled_map[${name}]+x}" ] && dropped+=("${name}")
+  done <<< "${maps}"
+
+  current="$(ini_value "${ini_file}" Map)"
+  merged="$(merge_map_list "${current}" "$(IFS=';'; printf '%s' "${dropped[*]}")" "${added[@]}")"
   if [ "${merged}" != "${current}" ]; then
     set_ini_value "${ini_file}" Map "${merged}"
     echo "Config: Map set to ${merged}"
   fi
 
-  if [ ! -f "${spawn_file}" ]; then
-    return 0
-  fi
-  while IFS=$'\t' read -r name dir; do
-    [ -f "${dir}/spawnpoints.lua" ] && add_spawn_region "${spawn_file}" "${name}"
+  [ -f "${spawn_file}" ] || return 0
+  while IFS=$'\t' read -r state name dir; do
+    if [ -n "${enabled_map[${name}]+x}" ]; then
+      [ -f "${dir}/spawnpoints.lua" ] && add_spawn_region "${spawn_file}" "${name}"
+    else
+      remove_spawn_region "${spawn_file}" "${name}"
+    fi
   done <<< "${maps}"
+  return 0
 }

@@ -35,19 +35,24 @@ new_env() {
 test_ini() {
   TEST=ini
   new_env
-  export INI_PublicName='My "best" server & co | $HOME \x' INI_public=true INI_NewKey=1
+  export INI_PublicName='My "best" server & co | $HOME \x' INI_public=TRUE INI_NewKey=1
   apply_ini_env "${SERVER}/pzserver.ini" > /dev/null 2> "${WORK}/err"
   expect_line "${SERVER}/pzserver.ini" 'PublicName=My "best" server & co | $HOME \x'
   expect_line "${SERVER}/pzserver.ini" 'Public=true'
-  expect_line "${SERVER}/pzserver.ini" 'NewKey=1'
   expect_line "${SERVER}/pzserver.ini" '# Players can hurt and kill other players'
+  grep -q '^NewKey=' "${SERVER}/pzserver.ini" && fail "an unknown key was written to an existing INI"
   grep -q 'match no setting.*INI_NewKey' "${WORK}/err" || fail "unknown INI key was not reported"
   grep -q 'INI_public' "${WORK}/err" && fail "a known key in other case was reported unknown"
-  (INI_Other=1 CONFIG_STRICT=true apply_ini_env "${SERVER}/pzserver.ini" > /dev/null 2>&1) && fail "CONFIG_STRICT did not stop on an unknown key"
+  (CONFIG_STRICT=true apply_ini_env "${SERVER}/pzserver.ini" > /dev/null 2>&1) && fail "CONFIG_STRICT did not stop on an unknown key"
+  unset INI_NewKey
+
+  INI_PVP=1 apply_ini_env "${SERVER}/pzserver.ini" > /dev/null 2> "${WORK}/err"
+  expect_line "${SERVER}/pzserver.ini" 'PVP=true'
+  grep -q 'need true or false.*INI_PVP' "${WORK}/err" || fail "a non-boolean value for a boolean key was not reported"
 
   # On the first start the INI is empty, so nothing can be checked yet and every key is appended.
   : > "${SERVER}/pzserver.ini"
-  (CONFIG_STRICT=true apply_ini_env "${SERVER}/pzserver.ini" > /dev/null 2> "${WORK}/err") || fail "first start failed in strict mode"
+  (INI_NewKey=1 CONFIG_STRICT=true apply_ini_env "${SERVER}/pzserver.ini" > /dev/null 2> "${WORK}/err") || fail "first start failed in strict mode"
   expect_line "${SERVER}/pzserver.ini" 'NewKey=1'
   [ -s "${WORK}/err" ] && fail "first start reported unknown keys"
 }
@@ -56,18 +61,24 @@ test_sandbox() {
   TEST=sandbox
   new_env
   export SANDBOX_Zombies=2 SANDBOX_ZombieLore__Transmission=3 SANDBOX_zombielore__mortality=7 \
-    SANDBOX_Map__MapAllKnown=true SANDBOX_WorldItemRemovalList='Base.Hat, Base.Glasses' SANDBOX_Nope__Key=1
+    SANDBOX_Map__MapAllKnown=TRUE SANDBOX_WorldItemRemovalList='Base.Hat, "Base.Glasses"' SANDBOX_Nope__Key=1
   apply_sandbox_env "${SERVER}/pzserver_SandboxVars.lua" 2> "${WORK}/err"
   local lua="${SERVER}/pzserver_SandboxVars.lua"
   expect_line "${lua}" '    Zombies = 2,'
   expect_line "${lua}" '        Transmission = 3,'
   expect_line "${lua}" '        Mortality = 7,'
   expect_line "${lua}" '        MapAllKnown = true,'
-  expect_line "${lua}" '    WorldItemRemovalList = "Base.Hat, Base.Glasses",'
+  expect_line "${lua}" '    WorldItemRemovalList = "Base.Hat, \"Base.Glasses\"",'
   expect_line "${lua}" '    -- Default = Normal'
-  grep -q 'SANDBOX_Nope__Key' "${WORK}/err" || fail "unknown sandbox path was not reported"
+  grep -q 'match no setting.*SANDBOX_Nope__Key' "${WORK}/err" || fail "unknown sandbox path was not reported"
   (CONFIG_STRICT=true apply_sandbox_env "${lua}" 2>/dev/null) && fail "CONFIG_STRICT did not stop on an unknown path"
   unset SANDBOX_Nope__Key
+
+  # A value of the wrong type would break the Lua file or the setting, so the old line stays.
+  SANDBOX_Zombies=lots SANDBOX_Map__MapAllKnown=1 apply_sandbox_env "${lua}" 2> "${WORK}/err"
+  expect_line "${lua}" '    Zombies = 2,'
+  expect_line "${lua}" '        MapAllKnown = true,'
+  grep -q 'same type.*SANDBOX_Map__MapAllKnown SANDBOX_Zombies' "${WORK}/err" || fail "wrong value types were not reported"
 
   rm "${lua}"
   apply_sandbox_env "${lua}" 2> "${WORK}/err"
@@ -102,26 +113,35 @@ make_mod() {
 test_maps() {
   TEST=maps
   new_env
+  local content="${STEAMAPPDIR}/steamapps/workshop/content/108600" ini="${SERVER}/pzserver.ini" spawn="${SERVER}/pzserver_spawnregions.lua"
   make_mod 100 RavenCreek RavenCreekMod 42 "Raven Creek"
   make_mod 200 Bedford BedfordFalls "" "Bedford Falls"
   make_mod 300 Unused UnusedMod 42 "Unused Map"
-  mkdir -p "${STEAMAPPDIR}/steamapps/workshop/content/108600/100/mods/RavenCreek/common/media/maps/Raven Creek Extra"
-  local ini="${SERVER}/pzserver.ini"
-  set_ini_value "${ini}" Mods '\RavenCreekMod;2392709985\BedfordFalls'
-  set_ini_value "${ini}" Map 'Admin Map;Muldraugh, KY'
-  apply_mod_maps "${ini}" "${SERVER}/pzserver_spawnregions.lua" "${STEAMAPPDIR}/steamapps/workshop/content/108600" >/dev/null
+  make_mod 400 Patch VanillaPatch 42 "Muldraugh, KY"
+  mkdir -p "${content}/100/mods/RavenCreek/common/media/maps/Raven Creek Extra"
+  set_ini_value "${ini}" Mods '\RavenCreekMod;2392709985\BedfordFalls;\VanillaPatch'
+  set_ini_value "${ini}" Map 'Admin Map;Unused Map;Muldraugh, KY'
+  apply_mod_maps "${ini}" "${spawn}" "${content}" >/dev/null
   expect_line "${ini}" 'Map=Admin Map;Raven Creek;Raven Creek Extra;Bedford Falls;Muldraugh, KY'
-  expect_line "${SERVER}/pzserver_spawnregions.lua" '		{ name = "Raven Creek", file = "media/maps/Raven Creek/spawnpoints.lua" },'
+  expect_line "${spawn}" '		{ name = "Raven Creek", file = "media/maps/Raven Creek/spawnpoints.lua" },'
 
   # A second start changes nothing.
   cp "${ini}" "${WORK}/ini.before"
-  cp "${SERVER}/pzserver_spawnregions.lua" "${WORK}/spawn.before"
-  apply_mod_maps "${ini}" "${SERVER}/pzserver_spawnregions.lua" "${STEAMAPPDIR}/steamapps/workshop/content/108600" >/dev/null
+  cp "${spawn}" "${WORK}/spawn.before"
+  apply_mod_maps "${ini}" "${spawn}" "${content}" >/dev/null
   cmp -s "${ini}" "${WORK}/ini.before" || fail "the Map line changed on the second start"
-  cmp -s "${SERVER}/pzserver_spawnregions.lua" "${WORK}/spawn.before" || fail "spawnregions changed on the second start"
+  cmp -s "${spawn}" "${WORK}/spawn.before" || fail "spawnregions changed on the second start"
 
-  expect_eq "$(merge_map_list "" "A")" "A;Muldraugh, KY"
-  expect_eq "$(merge_map_list "B;Muldraugh, KY;B" "A")" "B;A;Muldraugh, KY"
+  # Disabling a mod takes its maps and spawn points out again.
+  set_ini_value "${ini}" Mods '2392709985\BedfordFalls'
+  apply_mod_maps "${ini}" "${spawn}" "${content}" >/dev/null
+  expect_line "${ini}" 'Map=Admin Map;Bedford Falls;Muldraugh, KY'
+  grep -q 'Raven Creek' "${spawn}" && fail "the spawn region of a disabled mod was kept"
+  expect_line "${spawn}" '		{ name = "Muldraugh, KY", file = "media/maps/Muldraugh, KY/spawnpoints.lua" },'
+
+  expect_eq "$(merge_map_list "" "" "A")" "A;Muldraugh, KY"
+  expect_eq "$(merge_map_list "B;Muldraugh, KY;B" "" "A")" "B;A;Muldraugh, KY"
+  expect_eq "$(merge_map_list "B;C;Muldraugh, KY" "C;D" "A")" "B;A;Muldraugh, KY"
 }
 
 test_workshop() {
@@ -157,6 +177,19 @@ test_overlaps() {
   grep -q 'INI_Public INI_public differ only in case' "${WORK}/err" || fail "case duplicate not reported"
   grep -q 'ADMINPASSWORD_FILE is used' "${WORK}/err" || fail "ADMINPASSWORD overlap not reported"
   expect_eq "$(wc -l < "${WORK}/err")" 5
+}
+
+test_unrecognized() {
+  TEST=unrecognized
+  new_env
+  # Everything the test runner itself exports counts as the image's own, except what bash adds.
+  compgen -e | grep -vxE 'OLDPWD|PWD|SHLVL' > "${WORK}/image-env"
+  export PASSWORD=x ini__pzserver__Public=true MEMORY=4g INI_Public=true http_proxy=x TZ=UTC
+  report_unrecognized "${WORK}/image-env" 2> "${WORK}/err"
+  grep -q 'does not read PASSWORD ini__pzserver__Public\.' "${WORK}/err" || { fail "unknown variables were not reported as expected"; cat "${WORK}/err" >&2; }
+  unset PASSWORD ini__pzserver__Public
+  report_unrecognized "${WORK}/image-env" 2> "${WORK}/err"
+  [ -s "${WORK}/err" ] && fail "known variables were reported"
 }
 
 test_configure() {
@@ -195,6 +228,8 @@ test_list_env() {
   bash "${SCRIPT_DIR}/list_env.sh" zombielore > "${WORK}/out"
   grep -q '^INI_' "${WORK}/out" && fail "the filter kept unrelated rows"
   grep -q '^SANDBOX_ZombieLore__Mortality=' "${WORK}/out" || fail "the filter dropped matching rows"
+  set_ini_value "${SERVER}/pzserver.ini" DiscordToken abc
+  bash "${SCRIPT_DIR}/list_env.sh" | grep -qxF 'INI_DiscordToken=(set)' || fail "the Discord token was shown"
   bash "${SCRIPT_DIR}/list_env.sh" --tsv > "${WORK}/out"
   expect_line "${WORK}/out" "$(printf 'sandbox\tSANDBOX_ZombieLore__Mortality\t5\tDefault = Instant')"
 }
@@ -207,7 +242,7 @@ test_vars_documented() {
   done < "${SCRIPT_DIR}/vars.tsv"
   for name in $(grep -rhoE '\$\{[A-Z][A-Z0-9_]+(:-|\+x|\})' "${SCRIPT_DIR}" | grep -oE '[A-Z][A-Z0-9_]+' | sort -u); do
     case "${name}" in
-      HOMEDIR|STEAMAPPDIR|SERVERNAME|SCRIPT_DIR|LD_LIBRARY_PATH|SERVER_*|SHUTDOWN_*|CONSOLE_FD|ARGS|VANILLA_MAP|KEY|VALUE|NAME) continue ;;
+      HOMEDIR|STEAMAPPDIR|SERVERNAME|SCRIPT_DIR|LD_LIBRARY_PATH|SERVER_*|SHUTDOWN_*|CONSOLE_FD|ARGS|VANILLA_MAP|KEY|VALUE|NAME|LOG_*) continue ;;
     esac
     grep -q "^${name}	" "${SCRIPT_DIR}/vars.tsv" || fail "${name} is read but not in vars.tsv"
   done
@@ -216,12 +251,13 @@ test_vars_documented() {
 test_entry() {
   TEST=entry
   new_env
+  mkdir -p "${STEAMAPPDIR}/steamapps/workshop"
   cat > "${STEAMAPPDIR}/start-server.sh" <<'EOF'
 #!/bin/bash
 printf '%s\n' "$@" > "${HOMEDIR}/args"
 echo "LOG  : Network      f:0> *** SERVER STARTED ****"
 while IFS= read -r line; do
-  [ "${line}" = quit ] && { echo "saving"; exit 0; }
+  [ "${line}" = quit ] && { echo "saving"; sleep 0.2; echo "saved"; exit 0; }
   echo "command: ${line}"
 done
 EOF
@@ -240,11 +276,12 @@ EOF
   wait "${pid}"
   expect_eq "$?" 0
   grep -q saving "${WORK}/entry.log" || fail "the server did not receive quit"
+  grep -q saved "${WORK}/entry.log" || fail "the last server output was lost"
   bash "${SCRIPT_DIR}/healthcheck.sh" && fail "the health check passed after the server stopped"
   expect_line "${HOMEDIR}/args" "-servername"
 }
 
-for t in test_ini test_sandbox test_preset test_maps test_workshop test_overlaps test_configure test_list_env test_vars_documented test_entry; do
+for t in test_ini test_sandbox test_preset test_maps test_workshop test_overlaps test_unrecognized test_configure test_list_env test_vars_documented test_entry; do
   ( "${t}"; exit "${FAILED}" ) || FAILED=1
 done
 

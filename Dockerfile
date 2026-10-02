@@ -43,11 +43,13 @@ RUN set -x \
      done \
   # Created here so new named volumes start out owned by the steam user.
   && mkdir -p "${HOMEDIR}/Zomboid" "${STEAMAPPDIR}/steamapps/workshop" \
-  && chown -R "${USER}:${USER}" "${STEAMAPPDIR}" "${HOMEDIR}/Zomboid"
+  && chown -R "${USER}:${USER}" "${HOMEDIR}"
 
 COPY --chmod=755 scripts /server/scripts
+# image-env lists the variables the image sets itself, so startup can warn about unknown ones.
 RUN ln -s /server/scripts/list_env.sh /usr/local/bin/list-env \
-  && ln -s /server/scripts/console.sh /usr/local/bin/console
+  && ln -s /server/scripts/console.sh /usr/local/bin/console \
+  && env | cut -d= -f1 | sort > /server/scripts/image-env
 
 USER ${USER}
 WORKDIR ${HOMEDIR}

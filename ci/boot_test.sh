@@ -1,7 +1,8 @@
 #!/bin/bash
 # Boots a freshly built image and checks that the server starts, keeps settings written before
-# its first start, creates its database and saves on `docker stop`. Then writes the env reference
-# for the docs site from the running server.
+# its first start, creates its database and saves on `docker stop`, then starts it again to check
+# the settings against the files the server wrote. Writes the env reference for the docs site from
+# the running server.
 # Usage: boot_test.sh <image> <reference.json> <image tag shown on the site>
 
 set -euo pipefail
@@ -19,19 +20,33 @@ fail() {
 }
 trap 'docker rm -f "${name}" >/dev/null 2>&1 || true' EXIT
 
-docker run -d --name "${name}" --health-interval=5s \
-  -e ADMINPASSWORD=boot-test -e INI_PublicName="Boot test" -e CONFIG_STRICT=true \
-  "${image}" >/dev/null
+wait_healthy() {
+  local status=""
+  echo "Waiting for the server to start"
+  for _ in $(seq 1 240); do
+    status="$(docker inspect -f '{{.State.Health.Status}}' "${name}")"
+    [ "${status}" = healthy ] && return 0
+    [ "$(docker inspect -f '{{.State.Running}}' "${name}")" = true ] || fail "the server exited before it started"
+    sleep 5
+  done
+  fail "the server did not start within 20 minutes"
+}
 
-echo "Waiting for the server to start"
-status=""
-for _ in $(seq 1 240); do
-  status="$(docker inspect -f '{{.State.Health.Status}}' "${name}")"
-  [ "${status}" = healthy ] && break
-  [ "$(docker inspect -f '{{.State.Running}}' "${name}")" = true ] || fail "the server exited before it started"
-  sleep 5
-done
-[ "${status}" = healthy ] || fail "the server did not start within 20 minutes"
+stop_server() {
+  # $1 = how many clean stops the log should show by now
+  echo "Stopping the server"
+  docker stop -t 120 "${name}" >/dev/null
+  exit_code="$(docker inspect -f '{{.State.ExitCode}}' "${name}")"
+  [ "${exit_code}" = 0 ] || fail "the server exited with ${exit_code} on docker stop instead of saving and exiting cleanly"
+  [ "$(docker logs "${name}" 2>&1 | grep -c "Server stopped with exit code 0")" = "$1" ] || fail "the shutdown did not go through quit"
+}
+
+# SANDBOX_ only applies once the server has written SandboxVars, so it's checked on the second start.
+docker run -d --name "${name}" --health-interval=5s \
+  -e ADMINPASSWORD=boot-test -e INI_PublicName="Boot test" -e INI_Public=false \
+  -e SANDBOX_ZombieLore__Transmission=4 -e CONFIG_STRICT=true \
+  "${image}" >/dev/null
+wait_healthy
 
 docker exec "${name}" grep -qx 'PublicName=Boot test' "${home}/Server/pzserver.ini" \
   || fail "INI_PublicName written before the first start was not kept"
@@ -58,9 +73,17 @@ jq -R -s --arg tag "${label}" '
   | {image_tag: $tag, vars: .}
 ' <<< "${rows}" > "${reference}"
 
-echo "Stopping the server"
-docker stop -t 120 "${name}" >/dev/null
-exit_code="$(docker inspect -f '{{.State.ExitCode}}' "${name}")"
-[ "${exit_code}" = 0 ] || fail "the server exited with ${exit_code} on docker stop instead of saving and exiting cleanly"
-docker logs "${name}" 2>&1 | grep -q "Server stopped with exit code 0" || fail "the shutdown did not go through quit"
+stop_server 1
+
+# CONFIG_STRICT now checks every variable against the server's own files.
+docker start "${name}" >/dev/null
+wait_healthy
+docker exec "${name}" grep -qx 'PublicName=Boot test' "${home}/Server/pzserver.ini" \
+  || fail "PublicName did not survive a restart"
+docker exec "${name}" grep -qE '^[[:space:]]*Transmission = 4,' "${home}/Server/pzserver_SandboxVars.lua" \
+  || fail "SANDBOX_ZombieLore__Transmission was not applied on the second start"
+# Once the database exists the admin password must stay out of the command line.
+docker exec "${name}" sh -c 'cat /proc/[0-9]*/cmdline 2>/dev/null | tr "\0" " "' | grep -q -- '-adminpassword' \
+  && fail "-adminpassword was passed although the database exists"
+stop_server 2
 echo "Boot test passed"

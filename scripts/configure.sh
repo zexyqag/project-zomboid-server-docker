@@ -43,6 +43,7 @@ configure_server() {
   local admin_password=""
 
   check_locale
+  report_unrecognized "${SCRIPT_DIR}/image-env"
   report_overlaps
 
   # The server keeps the values in an existing INI and fills in the rest, so creating it lets

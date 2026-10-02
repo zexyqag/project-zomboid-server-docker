@@ -78,7 +78,7 @@ docker exec <container> list-env zombielore
 
 The same list for each published image is at https://zexyqag.github.io/project-zomboid-server-docker/.
 
-Boolean options accept `1`, `true`, `yes`, `y` or `on`; anything else is false.
+The log warns about variables the image doesn't read, such as a misspelled or renamed one. Names in all lowercase are left alone.
 
 ### Server settings: `INI_<Key>`
 
@@ -101,9 +101,14 @@ INI_Password_FILE=/run/secrets/pz_password
 INI_RCONPassword_FILE=/run/secrets/pz_rcon_password
 ```
 
-`list-env` shows password settings as `(set)` instead of their value.
+`list-env` shows password and token settings as `(set)` instead of their value.
 
-Settings apply from the very first start. A variable that matches no key in an existing INI is still written, with a warning in the log, since it's usually a typo. Set `CONFIG_STRICT=true` to refuse to start instead.
+Settings apply from the very first start. From the second start on, the INI holds every setting the server knows, so the variables are checked against it:
+
+* A variable that matches no key isn't written, and the log warns about it, since it's usually a typo.
+* A key that holds `true` or `false` only takes `true` or `false` (in any case). Other values aren't written, and the log warns about them.
+
+Set `CONFIG_STRICT=true` to refuse to start on these instead.
 
 A variable you remove leaves the last value in the INI. Set it to an empty value to clear it.
 
@@ -118,7 +123,7 @@ SANDBOX_ZombieLore__Mortality=7
 SANDBOX_Map__AllowMiniMap=true
 ```
 
-Values are Lua literals. A setting that holds a string keeps its quotes, so `SANDBOX_WorldItemRemovalList=Base.Hat,Base.Glasses` works without quoting.
+A value must have the type of the current one: a number, `true`/`false`, or text. Text needs no quotes, so `SANDBOX_WorldItemRemovalList=Base.Hat,Base.Glasses` works as it is. A name that matches no setting or a value of the wrong type isn't applied, and the log warns about it (or the start fails with `CONFIG_STRICT=true`).
 
 The server writes the SandboxVars file during its first start, so sandbox settings apply from the second start. To have them on the first start, set `SERVERPRESET`, which creates the file from a preset before the server starts.
 
@@ -136,15 +141,15 @@ The server writes the SandboxVars file during its first start, so sandbox settin
 
 `SERVERPRESETREPLACE`: If true, overwrite an existing SandboxVars file with `SERVERPRESET` on every start.
 
-`CONFIG_STRICT`: If true, refuse to start when an `INI_` or `SANDBOX_` variable matches no setting.
+`CONFIG_STRICT`: If true, refuse to start when an `INI_` or `SANDBOX_` variable matches no setting or has a value of the wrong type.
 
 `MEMORY`: Java heap size, for example `4096m` or `8g`. Sets both `-Xms` and `-Xmx`.
 
 `SOFTRESET`, `DEBUG`, `COOP`, `NOSTEAM`: Start the server with `-Dsoftreset`, `-debug`, `-coop` or `-nosteam`.
 
-`MODFOLDERS`: Mod folder search order, for example `workshop,steam,mods`.
+On/off image settings accept `1`, `true`, `yes`, `y` or `on`; anything else is off.
 
-`CACHEDIR`: Data folder for the server. Leave it unset; the volumes expect `/home/steam/Zomboid`.
+`MODFOLDERS`: Mod folder search order, for example `workshop,steam,mods`.
 
 `IP`, `PORT`, `UDPPORT`, `STEAMPORT1`, `STEAMPORT2`: Network options passed to the server. Change the published ports to match.
 
@@ -152,11 +157,13 @@ The server writes the SandboxVars file during its first start, so sandbox settin
 
 `LANG`: Locale for the server, for example `en_US.UTF-8`. Only `en_US.UTF-8` is installed; add others with the `EXTRA_LOCALES` build argument. The log warns about a locale that isn't installed.
 
+`TZ`: Time zone for the server's own log files, for example `Europe/Copenhagen`.
+
 ### Mods and maps
 
 Enable mods with `INI_Mods` and download them with `WORKSHOP_IDS`. The server downloads workshop items during its start.
 
-Maps from enabled mods are added to the INI's `Map=` line automatically, before the vanilla map, keeping the order of maps that are already there. Their spawn points are added to `pzserver_spawnregions.lua` when the mod ships them. Because the downloads happen while the server starts, new maps are added on the start after the one that downloaded them.
+Maps from enabled mods are added to the INI's `Map=` line automatically, before the vanilla map, keeping the order of maps that are already there. Their spawn points are added to `pzserver_spawnregions.lua` when the mod ships them. Because the downloads happen while the server starts, new maps are added on the start after the one that downloaded them. When you take a map mod out of `INI_Mods`, its maps and spawn points are removed again.
 
 ### Backups
 
