@@ -26,6 +26,13 @@ case "${status}" in
   *) echo "Error: ${base}/env/index.json returned ${status}" >&2; exit 1 ;;
 esac
 
+# A beta build that went public is listed as public.
+for file in "${env_dir}"/unstable-*.json; do
+  if [ -e "${env_dir}/public-${file##*/unstable-}" ]; then
+    rm "${file}"
+  fi
+done
+
 find "${env_dir}" -maxdepth 1 -name '*.json' ! -name index.json -print0 | sort -z \
   | xargs -0 -r jq -c '{file: (input_filename | split("/") | last), label}' \
   | jq -s '{files: .}' > "${env_dir}/index.json"

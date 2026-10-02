@@ -23,8 +23,11 @@ branches="$(awk '
 ' <<< "${info}")"
 
 echo "Steam branches: $(cut -d' ' -f1 <<< "${branches}" | paste -sd ' ')" >&2
-grep -E '^(public|unstable|legacy41) [0-9]+$' <<< "${branches}" || true
-if ! grep -qE '^public [0-9]+$' <<< "${branches}"; then
+selected="$(grep -E '^(public|unstable|legacy41) [0-9]+$' <<< "${branches}" || true)"
+public_build="$(sed -n 's/^public //p' <<< "${selected}")"
+if [ -z "${public_build}" ]; then
   echo "Error: no build id for the public branch in SteamCMD's app info" >&2
   exit 1
 fi
+# Between betas the unstable branch carries the public build.
+grep -vxF "unstable ${public_build}" <<< "${selected}"
