@@ -3,13 +3,10 @@ REPLACES=""
 DEPENDS_ON="WORKSHOP_IDS"
 
 manual_apply() {
-  # Fixes EOL in script file for good measure
-  sed -i 's/\r$//' /server/scripts/search_folder.sh
-  # Check 'search_folder.sh' script for details
-  if [ -e "${HOMEDIR}/pz-dedicated/steamapps/workshop/content/108600" ]; then
+  if [ -d "${HOMEDIR}/pz-dedicated/steamapps/workshop/content/108600" ]; then
 
     map_list=""
-    source /server/scripts/search_folder.sh "${HOMEDIR}/pz-dedicated/steamapps/workshop/content/108600"
+    bash /server/scripts/search_folder.sh "${HOMEDIR}/pz-dedicated/steamapps/workshop/content/108600"
     if [ -f "${HOMEDIR}/maps.txt" ]; then
       map_list=$(<"${HOMEDIR}/maps.txt")
       rm "${HOMEDIR}/maps.txt"
