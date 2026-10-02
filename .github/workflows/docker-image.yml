@@ -101,6 +101,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
   build:
+    name: Boot test on ${{ matrix.branch }}
     needs: prepare
     if: needs.prepare.outputs.has_tests == 'true'
     runs-on: ubuntu-latest
