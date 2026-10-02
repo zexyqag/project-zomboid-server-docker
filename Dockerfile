@@ -26,29 +26,32 @@ RUN for locale in en_US.UTF-8 ${EXTRA_LOCALES}; do \
      done \
   && locale-gen
 
+# Created here so new named volumes start out owned by the steam user.
+RUN mkdir -p "${STEAMAPPDIR}/steamapps/workshop" "${HOMEDIR}/Zomboid" \
+  && chown -R "${USER}:${USER}" "${HOMEDIR}"
+
+# SteamCMD runs as steam: run as root, it ignored a root-owned +force_install_dir and installed the
+# game under ~/Steam instead.
 # "-beta public" is not a valid beta, so the flag is only passed for other branches.
-# SteamCMD updates itself on its first run and restarts, and the restarted run can ignore
-# +force_install_dir and install the game into ~/Steam instead, so it's updated on its own first.
-# The install can also fail with "Missing configuration" until the app info is cached, hence the retries.
+# SteamCMD can fail the first attempt with "Missing configuration" until the app info is cached.
+USER ${USER}
 RUN set -x \
-  && mkdir -p "${STEAMAPPDIR}" \
   && if [ "${STEAMAPPBRANCH}" = "public" ]; then BETA_ARGS=""; \
      else BETA_ARGS="-beta ${STEAMAPPBRANCH}"; fi \
-  && bash "${STEAMCMDDIR}/steamcmd.sh" +quit \
   && for attempt in 1 2 3; do \
        bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" \
          +login anonymous \
          +app_update "${STEAMAPPID}" ${BETA_ARGS} validate \
          +quit \
        && [ -f "${STEAMAPPDIR}/start-server.sh" ] && break; \
-       if [ "${attempt}" = "3" ]; then echo "The game was not installed in ${STEAMAPPDIR}" >&2; exit 1; fi; \
+       if [ "${attempt}" = "3" ]; then \
+         echo "The game is not in ${STEAMAPPDIR}. start-server.sh found at: $(find "${HOMEDIR}" -name start-server.sh)" >&2; \
+         exit 1; \
+       fi; \
        sleep 10; \
-     done \
-  && rm -rf "${HOMEDIR}/Steam/steamapps/common" \
-  # Created here so new named volumes start out owned by the steam user.
-  && mkdir -p "${HOMEDIR}/Zomboid" "${STEAMAPPDIR}/steamapps/workshop" \
-  && chown -R "${USER}:${USER}" "${HOMEDIR}"
+     done
 
+USER root
 COPY --chmod=755 scripts /server/scripts
 # image-env lists the variables the image sets itself, so startup can warn about unknown ones.
 RUN ln -s /server/scripts/list_env.sh /usr/local/bin/list-env \
