@@ -331,6 +331,35 @@ jobs:
           merge-multiple: true
           path: _site/env
 
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v6
+
+      # Each deploy replaces the whole site, so docs for earlier tags are copied from the live one.
+      - name: Carry forward docs for earlier tags
+        run: |
+          set -euo pipefail
+          base="${{ steps.pages.outputs.base_url }}"
+          status="$(curl -sS -o live-index.json -w '%{http_code}' "${base}/env/index.json")"
+          if [ "${status}" = "404" ]; then
+            echo "No published env docs yet"
+          elif [ "${status}" = "200" ]; then
+            jq -r '.files[].file' live-index.json | grep -E '^[A-Za-z0-9._-]+\.json$' | while IFS= read -r file; do
+              [ -f "_site/env/${file}" ] || curl -fsS -o "_site/env/${file}" "${base}/env/${file}"
+            done
+          else
+            echo "Error: ${base}/env/index.json returned ${status}" >&2
+            exit 1
+          fi
+
+          # One-time import from the old docs/env branch; remove once that branch is deleted.
+          if git fetch -q origin docs/env 2>/dev/null; then
+            git ls-tree --name-only FETCH_HEAD docs/env/ | grep -E '\.json$' | grep -v '/index\.json$' | while IFS= read -r path; do
+              file="$(basename "${path}")"
+              [ -f "_site/env/${file}" ] || git show "FETCH_HEAD:${path}" > "_site/env/${file}"
+            done
+          fi
+
       - name: Assemble site
         run: |
           cp site/index.html _site/index.html
