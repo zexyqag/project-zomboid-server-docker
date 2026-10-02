@@ -16,17 +16,37 @@
       }
     }
     * { box-sizing: border-box; }
+    html { scroll-padding-top: 112px; }
     body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, sans-serif; }
-    main { max-width: 1000px; margin: 0 auto; padding: 24px 16px 64px; }
+    main { max-width: 1240px; margin: 0 auto; padding: 24px 16px 64px; }
     h1 { font-size: 1.4rem; margin: 0 0 4px; }
-    p.lead { color: var(--muted); margin: 0 0 20px; }
+    p.lead { color: var(--muted); margin: 0 0 20px; max-width: 760px; }
     code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.9em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
-    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; position: sticky; top: 0; background: var(--bg); padding: 8px 0; }
+    .layout { display: grid; gap: 16px; }
+    #toc { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; }
+    #toc summary { cursor: pointer; font-weight: 600; }
+    #toc ul { list-style: none; margin: 0; padding: 0; }
+    #toc > ul { margin-top: 8px; }
+    #toc ul ul { margin: 2px 0 6px 10px; padding-left: 10px; border-left: 1px solid var(--border); }
+    #toc a { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; color: var(--text); text-decoration: none; font-size: 0.92rem; }
+    #toc > ul > li > a { font-weight: 600; }
+    #toc a:hover { color: var(--accent); }
+    #toc .n { color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+    @media (min-width: 960px) {
+      html { scroll-padding-top: 64px; }
+      .layout { grid-template-columns: 230px minmax(0, 1fr); align-items: start; gap: 24px; }
+      #toc { position: sticky; top: 8px; max-height: calc(100vh - 16px); overflow-y: auto; }
+      #toc summary { display: none; }
+      #toc > ul { margin-top: 0; }
+    }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; position: sticky; top: 0; z-index: 1; background: var(--bg); padding: 8px 0; }
     input, select { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; }
     input { flex: 1 1 260px; min-width: 0; }
     .count { color: var(--muted); align-self: center; font-size: 0.9rem; }
     section { margin-bottom: 28px; }
-    h2 { font-size: 1.05rem; margin: 0 0 8px; }
+    h2 { font-size: 1.15rem; margin: 0 0 10px; }
+    h3 { font-size: 1rem; margin: 18px 0 8px; }
+    .file { color: var(--muted); font-weight: 400; font-size: 0.85em; margin-left: 6px; }
     .row { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; margin-bottom: 6px; }
     .name { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 600; color: var(--accent); overflow-wrap: anywhere; cursor: copy; }
     .desc { color: var(--muted); font-size: 0.92rem; overflow-wrap: anywhere; }
@@ -40,55 +60,130 @@
     Every variable the <code>ghcr.io/zexyqag/project-zomboid-server-docker</code> image reads, listed from a freshly started server.
     Mods add more settings; <code>docker exec &lt;container&gt; list-env</code> lists them for your own server. Click a name to copy it.
   </p>
-  <div class="controls">
-    <select id="version" aria-label="Image version"></select>
-    <input id="search" type="search" placeholder="Search names and descriptions" aria-label="Search">
-    <span class="count" id="count"></span>
+  <div class="layout">
+    <details id="toc" open>
+      <summary>Contents</summary>
+      <ul id="toc-list"></ul>
+    </details>
+    <div>
+      <div class="controls">
+        <select id="version" aria-label="Image version"></select>
+        <input id="search" type="search" placeholder="Search names and descriptions" aria-label="Search">
+        <span class="count" id="count"></span>
+      </div>
+      <div id="list"></div>
+    </div>
   </div>
-  <div id="list"></div>
 </main>
 <script>
   const kinds = [
-    ['image', 'Image settings'],
-    ['ini', 'Server settings (pzserver.ini)'],
-    ['sandbox', 'Sandbox settings (pzserver_SandboxVars.lua)'],
+    ['image', 'Image settings', ''],
+    ['ini', 'Server settings', 'pzserver.ini'],
+    ['sandbox', 'Sandbox settings', 'pzserver_SandboxVars.lua'],
   ];
   const versionSelect = document.getElementById('version');
   const search = document.getElementById('search');
   const list = document.getElementById('list');
   const count = document.getElementById('count');
+  const toc = document.getElementById('toc');
+  const tocList = document.getElementById('toc-list');
+  const wide = matchMedia('(min-width: 960px)');
   let vars = [];
+
+  // Sandbox names are SANDBOX_<table>__<key>; settings outside a table go under General.
+  function sandboxGroups(rows) {
+    const groups = new Map([['', []]]);
+    for (const v of rows) {
+      const table = v.name.slice('SANDBOX_'.length).split('__').slice(0, -1).join('__');
+      if (!groups.has(table)) groups.set(table, []);
+      groups.get(table).push(v);
+    }
+    return [...groups]
+      .filter(([, groupRows]) => groupRows.length)
+      .map(([table, groupRows]) => ({
+        id: table ? `sandbox-${table}` : 'sandbox-general',
+        title: table ? table.replaceAll('__', ' / ') : 'General',
+        rows: groupRows,
+      }));
+  }
+
+  function chapters(shown) {
+    return kinds
+      .map(([kind, title, file]) => {
+        const rows = shown.filter(v => v.kind === kind);
+        return { id: kind, title, file, rows, groups: kind === 'sandbox' ? sandboxGroups(rows) : [] };
+      })
+      .filter(chapter => chapter.rows.length);
+  }
+
+  function tocLink(id, title, n) {
+    const link = document.createElement('a');
+    link.href = `#${id}`;
+    const label = document.createElement('span');
+    label.textContent = title;
+    const number = document.createElement('span');
+    number.className = 'n';
+    number.textContent = n;
+    link.append(label, number);
+    return link;
+  }
+
+  function renderRow(v) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const name = document.createElement('div');
+    name.className = 'name';
+    name.textContent = v.name;
+    name.title = 'Copy';
+    name.addEventListener('click', () => navigator.clipboard?.writeText(v.name));
+    row.append(name);
+    if (v.description) {
+      const desc = document.createElement('div');
+      desc.className = 'desc';
+      desc.textContent = v.description;
+      row.append(desc);
+    }
+    return row;
+  }
 
   function render() {
     const query = search.value.trim().toLowerCase();
     const shown = vars.filter(v => !query || (v.name + ' ' + v.description).toLowerCase().includes(query));
     count.textContent = `${shown.length} of ${vars.length}`;
     list.replaceChildren();
-    for (const [kind, title] of kinds) {
-      const rows = shown.filter(v => v.kind === kind);
-      if (!rows.length) continue;
+    tocList.replaceChildren();
+    for (const chapter of chapters(shown)) {
       const section = document.createElement('section');
       const heading = document.createElement('h2');
-      heading.textContent = title;
+      heading.id = chapter.id;
+      heading.textContent = chapter.title;
+      if (chapter.file) {
+        const file = document.createElement('span');
+        file.className = 'file';
+        file.textContent = chapter.file;
+        heading.append(file);
+      }
       section.append(heading);
-      for (const v of rows) {
-        const row = document.createElement('div');
-        row.className = 'row';
-        const name = document.createElement('div');
-        name.className = 'name';
-        name.textContent = v.name;
-        name.title = 'Copy';
-        name.addEventListener('click', () => navigator.clipboard?.writeText(v.name));
-        row.append(name);
-        if (v.description) {
-          const desc = document.createElement('div');
-          desc.className = 'desc';
-          desc.textContent = v.description;
-          row.append(desc);
+
+      const item = document.createElement('li');
+      item.append(tocLink(chapter.id, chapter.title, chapter.rows.length));
+      if (chapter.groups.length) {
+        const sublist = document.createElement('ul');
+        for (const group of chapter.groups) {
+          const subheading = document.createElement('h3');
+          subheading.id = group.id;
+          subheading.textContent = group.title;
+          section.append(subheading, ...group.rows.map(renderRow));
+          const subitem = document.createElement('li');
+          subitem.append(tocLink(group.id, group.title, group.rows.length));
+          sublist.append(subitem);
         }
-        section.append(row);
+        item.append(sublist);
+      } else {
+        section.append(...chapter.rows.map(renderRow));
       }
       list.append(section);
+      tocList.append(item);
     }
     if (!shown.length) list.innerHTML = '<p class="empty">Nothing matches.</p>';
   }
@@ -119,12 +214,17 @@
       }
       versionSelect.value = wanted.file;
       search.value = params.get('q') || '';
-      loadVersion(wanted.file);
+      await loadVersion(wanted.file);
+      document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
     } catch (error) {
       list.innerHTML = '<p class="error">Could not load the version list.</p>';
     }
   }
 
+  // The index is a sidebar on wide screens and a collapsed section above the list on narrow ones.
+  const syncToc = () => { toc.open = wide.matches; };
+  wide.addEventListener('change', syncToc);
+  syncToc();
   versionSelect.addEventListener('change', () => loadVersion(versionSelect.value));
   search.addEventListener('input', render);
   init();
