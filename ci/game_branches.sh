@@ -1,6 +1,6 @@
 #!/bin/bash
-# Prints "<branch> <build id>" for the Steam branches the nightly run tests: public, unstable while
-# Project Zomboid has an open beta, and legacy41 for Build 41. Asks SteamCMD in the base image, or
+# Prints "<branch> <build id>" for the Steam branches the nightly run tests: every branch without a
+# password, the same list as the game's "Betas" tab in Steam. Asks SteamCMD in the base image, or
 # reads a saved app_info_print output.
 # Usage: game_branches.sh [app_info_print output file]
 
@@ -17,17 +17,19 @@ branches="$(awk '
   { line = $0; gsub(/[\r"]/, "", line); sub(/^[ \t]+/, "", line) }
   !done && line == "branches" { inside = 1; depth = 0; next }
   inside && line == "{" { depth++; next }
+  inside && line == "}" && depth == 2 && build != "" && !pwd { print name, build }
   inside && line == "}" { if (--depth == 0) { inside = 0; done = 1 } next }
-  inside && depth == 1 && line !~ /[ \t]/ { name = line; next }
-  inside && depth == 2 && line ~ /^buildid[ \t]/ { split(line, f, /[ \t]+/); print name, f[2] }
+  inside && depth == 1 && line !~ /[ \t]/ { name = line; build = ""; pwd = 0; next }
+  inside && depth == 2 && line ~ /^buildid[ \t]/ { split(line, f, /[ \t]+/); build = f[2] }
+  inside && depth == 2 && line ~ /^pwdrequired[ \t]+1$/ { pwd = 1 }
 ' <<< "${info}")"
 
 echo "Steam branches: $(cut -d' ' -f1 <<< "${branches}" | paste -sd ' ')" >&2
-selected="$(grep -E '^(public|unstable|legacy41) [0-9]+$' <<< "${branches}" || true)"
+selected="$(grep -E '^[A-Za-z0-9._-]+ [0-9]+$' <<< "${branches}" || true)"
 public_build="$(sed -n 's/^public //p' <<< "${selected}")"
 if [ -z "${public_build}" ]; then
   echo "Error: no build id for the public branch in SteamCMD's app info" >&2
   exit 1
 fi
-# Between betas the unstable branch carries the public build.
-grep -vxF "unstable ${public_build}" <<< "${selected}"
+# Other branches with the public build add nothing, like unstable between betas.
+awk -v build="${public_build}" '$1 == "public" || $2 != build' <<< "${selected}"

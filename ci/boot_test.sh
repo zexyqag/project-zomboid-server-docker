@@ -63,10 +63,10 @@ version="$(docker logs "${name}" 2>&1 | grep -oE '(versionNumber=|[[:space:]>]ve
 case "${branch}" in
   public) channel=stable ;;
   unstable) channel=beta ;;
-  *) channel="${branch}" ;;
+  *) channel="(${branch} branch)" ;;
 esac
 label="${version:-build ${build}} ${channel}"
-echo "Installed ${label} (${branch} branch, build ${build})"
+echo "Installed ${label}, build ${build}"
 
 docker exec "${name}" grep -qx 'PublicName=Boot test' "${home}/Server/pzserver.ini" \
   || fail "INI_PublicName written before the first start was not kept"

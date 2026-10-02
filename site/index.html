@@ -205,7 +205,7 @@
       const files = (await response.json()).files;
       // Stable (public branch) builds first, newest first.
       const isStable = f => f.file.startsWith('public-');
-      files.sort((a, b) => isStable(b) - isStable(a) || b.file.localeCompare(a.file, undefined, { numeric: true }));
+      files.sort((a, b) => isStable(b) - isStable(a) || b.label.localeCompare(a.label, undefined, { numeric: true }));
       for (const f of files) versionSelect.add(new Option(f.label, f.file));
       const params = new URLSearchParams(location.search);
       const wanted = files.find(f => f.file === params.get('version')) || files[0];

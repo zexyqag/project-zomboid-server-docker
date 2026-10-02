@@ -26,9 +26,10 @@ case "${status}" in
   *) echo "Error: ${base}/env/index.json returned ${status}" >&2; exit 1 ;;
 esac
 
-# A beta build that went public is listed as public.
-for file in "${env_dir}"/unstable-*.json; do
-  if [ -e "${env_dir}/public-${file##*/unstable-}" ]; then
+# A build that is also the public one (a beta that went public) is listed as public.
+for file in "${env_dir}"/*-*.json; do
+  name="${file##*/}"
+  if [ "${name%-*}" != public ] && [ -e "${env_dir}/public-${name##*-}" ]; then
     rm "${file}"
   fi
 done

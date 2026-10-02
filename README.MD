@@ -11,9 +11,9 @@ Tags:
 * `latest`: the newest image.
 * `<repo_version>`: one exact build; `<repo_version>` is the first 7 characters of the commit.
 
-The image doesn't contain the game. The container installs it from Steam on its first start and checks for an update on every start, so a restart brings the server up to date. `GAME_BRANCH` picks the stable game, the beta or Build 41, and the same image serves all of them.
+The image doesn't contain the game. The container installs it from Steam on its first start and checks for an update on every start, so a restart brings the server up to date. `GAME_BRANCH` picks a branch from the game's "Betas" list in Steam, such as the stable game, the beta, an older version or Build 41, and the same image serves all of them.
 
-Each night CI boots the image on the current stable game, on the beta while one is open, and on Build 41, whenever the image or the game's build is new. An image is only published after its stable boot test passes.
+Each night CI boots the image on every branch in that list, whenever the image or the branch's build is new. An image is only published after its stable boot test passes.
 
 **WARNING:** On Windows with WSL2 in Docker Desktop, server startup is much slower. That's fine unless you run a lot of mods, where startup can take 15 to 40 minutes. Run the container on Linux or in a Linux VM if you can.
 
@@ -131,7 +131,7 @@ The server writes the SandboxVars file during its first start, so sandbox settin
 
 ### Image settings
 
-`GAME_BRANCH`: Steam branch of the game: `public` (the stable game, default), `unstable` (the beta, while one is open) or `legacy41` (Build 41). Changing it switches the installed game on the next start; SteamCMD then checks every file, which takes a while. Build 41 and Build 42 worlds aren't compatible, so give each its own data volume.
+`GAME_BRANCH`: Steam branch of the game, as listed under "Betas" in the game's properties in Steam: `public` (the stable game, default), `unstable` (the beta, while one is open), an older version such as `42.19`, or `legacy41` (Build 41). Changing it switches the installed game on the next start; SteamCMD then checks every file, which takes a while. Build 41 and Build 42 worlds aren't compatible, so give each its own data volume.
 
 `GAME_UPDATE`: If false, an installed game starts as it is, without contacting Steam. On by default.
 
