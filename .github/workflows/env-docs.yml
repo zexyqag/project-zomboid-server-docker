@@ -30,7 +30,7 @@ jobs:
       has_tags: ${{ steps.set-matrix.outputs.has_tags }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -54,7 +54,9 @@ jobs:
             chmod +x scripts/get_latest_versions.sh
             eval "$(scripts/get_latest_versions.sh)"
             tags+=("stable-${LATEST_STABLE_VERSION}")
-            tags+=("unstable-${LATEST_UNSTABLE_VERSION}")
+            if [ -n "${LATEST_UNSTABLE_VERSION}" ]; then
+              tags+=("unstable-${LATEST_UNSTABLE_VERSION}")
+            fi
           else
             raw_inputs=()
             if [ -n "${{ inputs.env_docs_tag }}" ]; then
@@ -84,6 +86,10 @@ jobs:
                   tags+=("stable-${LATEST_STABLE_VERSION}")
                   ;;
                 unstable)
+                  if [ -z "${LATEST_UNSTABLE_VERSION}" ]; then
+                    echo "No open beta, so there is no unstable tag to document." >&2
+                    exit 1
+                  fi
                   tags+=("unstable-${LATEST_UNSTABLE_VERSION}")
                   ;;
                 *)
@@ -123,7 +129,7 @@ jobs:
       matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -254,7 +260,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 

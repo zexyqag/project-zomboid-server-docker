@@ -28,7 +28,7 @@ Tag meanings:
 * `stable-<pz_version>` / `unstable-<pz_version>` track the newest repo build for that PZ version.
 * `stable-<pz_version>-<repo_version>` / `unstable-<pz_version>-<repo_version>` pin an exact repo snapshot.
 
-If you want **Build 42** multiplayer, use an `unstable` image tag. If you build the image yourself, set `STEAMAPPBRANCH=unstable` at build time.
+Build 42 is the stable build, so the `stable` tag runs it. `unstable` images are only published while Project Zomboid has an open beta on Steam.
 
 **WARNING:** Running the image on Windows using WSL2 in Docker Desktop will make the server startup times significantly slower. This is fine unless you are running a lot of mods in which case server startup times may vary from 15 - 40 minutes. The best way to solve this problem is to run your container on a Linux based system or in a Linux VM.
 
@@ -172,12 +172,12 @@ This is due to the server creating its config and data on the first start, downl
 
 Only used when you build the image yourself. Ignore these when using a prebuilt tag.
 
-`STEAMAPPBRANCH:` Sets the Project Zomboid branch to download (e.g., `unstable`). If not set, the stable (public) branch will be downloaded. You can see a list of branches in the [SteamDB website](https://steamdb.info/app/108600/depots/).
+`STEAMAPPBRANCH:` Sets the Project Zomboid beta branch to download. If not set, the stable (public) branch will be downloaded. You can see the branches that currently exist on the [SteamDB website](https://steamdb.info/app/380870/depots/).
 
 If you are building the image using the `docker build` command, pass it as a build arg, for example:
 
 ```bash
-docker build --compress --no-cache --build-arg STEAMAPPBRANCH=unstable .
+docker build --compress --no-cache --build-arg STEAMAPPBRANCH=<branch-name> .
 ```
 
 ## Soft Reset
