@@ -1,5 +1,3 @@
-.docs/env_sources/
-docs/env_sources/
 data/*
 !data/.gitkeep
 workshop-mods/*

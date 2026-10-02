@@ -62,8 +62,14 @@ Create a `.env` file with the settings you need (examples are shown below).
 
 Boolean options accept: `1`, `true`, `yes`, `y`, `on` and `0`, `false`, `no`, `n`, `off`.
 
-Generated env var references are published to the docs/env branch of this repository. The branch contains JSON files per tag for the full, runtime-derived list.
-You can browse them at https://github.com/zexyqag/project-zomboid-server-docker/tree/docs/env/docs/env.
+Every env var for the current `stable` (and `unstable`, while a beta is open) image is listed at https://zexyqag.github.io/project-zomboid-server-docker/.
+
+To list the env vars for your own server, including settings added by mods, run `list-env` inside the running container. An optional argument filters the output:
+
+```bash
+docker exec <container> list-env
+docker exec <container> list-env zombielore
+```
 
 The image supports the following environment variables:
 `ADMINUSERNAME:` Sets the administrator username, otherwise `admin` will be used.

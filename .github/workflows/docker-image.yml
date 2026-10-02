@@ -13,8 +13,8 @@ on:
       - 'scripts/**'
       - 'smoke/**'
       - 'Dockerfile'
+      - 'site/**'
       - '.github/workflows/docker-image.yml'
-      - '.github/workflows/env-docs.yml'
   schedule:
     - cron: "0 0 * * *" # daily at midnight UTC
   workflow_dispatch:
@@ -95,6 +95,7 @@ jobs:
       repo_version: ${{ steps.set-matrix.outputs.repo_version }}
       latest_stable: ${{ steps.set-matrix.outputs.latest_stable }}
       latest_unstable: ${{ steps.set-matrix.outputs.latest_unstable }}
+      docs_matrix: ${{ steps.set-matrix.outputs.docs_matrix }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -174,6 +175,12 @@ jobs:
             } >> "$GITHUB_OUTPUT"
           fi
 
+          docs_tags=("stable-${LATEST_STABLE_VERSION}")
+          if [ -n "${LATEST_UNSTABLE_VERSION}" ]; then
+            docs_tags+=("unstable-${LATEST_UNSTABLE_VERSION}")
+          fi
+          echo "docs_matrix=$(printf '%s\n' "${docs_tags[@]}" | jq -R -s -c 'split("\n") | map(select(length>0)) | {tag:.}')" >> "$GITHUB_OUTPUT"
+
           echo "repo_name_lc=${REPO_NAME_LC}" >> "$GITHUB_OUTPUT"
           echo "repo_version=${REPO_VERSION}" >> "$GITHUB_OUTPUT"
           echo "latest_stable=${LATEST_STABLE_VERSION}" >> "$GITHUB_OUTPUT"
@@ -221,8 +228,119 @@ jobs:
               $BRANCH_ARG \
               --cache-from type=gha \
               --cache-to type=gha,mode=max \
+              --label org.opencontainers.image.revision=${{ github.sha }} \
               --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }}-${VERSION} \
               --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }}-${VERSION}-${{ needs.prepare.outputs.repo_version }} \
               --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }} \
               --push \
               .
+
+  docs:
+    needs: [prepare, build]
+    if: needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prepare.outputs.docs_matrix) }}
+    steps:
+      - name: Generate env docs from a booted server
+        run: |
+          set -euo pipefail
+          IMAGE="ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.tag }}"
+          docker pull "${IMAGE}"
+          REVISION="$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "${IMAGE}")"
+          if [ -z "${REVISION}" ] || [ "${REVISION}" = "<no value>" ]; then
+            echo "Error: ${IMAGE} has no revision label" >&2
+            exit 1
+          fi
+
+          mkdir -p zomboid out
+          INI=zomboid/Server/pzserver.ini
+          LUA=zomboid/Server/pzserver_SandboxVars.lua
+          docker run -d --name pz-docs -e ADMINPASSWORD=envdocs -v "$PWD/zomboid:/home/steam/Zomboid" "${IMAGE}"
+
+          # The server writes the INI first and SandboxVars later; wait until both stop growing.
+          previous=""
+          ready=false
+          for _ in $(seq 1 150); do
+            if sudo test -f "${INI}" && sudo test -f "${LUA}"; then
+              current="$(sudo stat -c %s "${INI}" "${LUA}" | paste -sd ' ')"
+              if [ "${current}" = "${previous}" ]; then
+                ready=true
+                break
+              fi
+              previous="${current}"
+            fi
+            sleep 2
+          done
+          if [ "${ready}" != true ]; then
+            echo "Error: the server did not write ${INI} and ${LUA}; container logs:" >&2
+            docker logs pz-docs >&2
+            exit 1
+          fi
+
+          docker exec \
+            -e SERVERNAME=pzserver \
+            -e ENV_SOURCES_DIR=/home/steam/Zomboid \
+            -e OUTPUT_PATH=/tmp/env.json \
+            -e IMAGE_TAG="${{ matrix.tag }}-${REVISION::7}" \
+            -e ENV_DOCS_FAIL_ON_DUPLICATES=true \
+            pz-docs bash /server/scripts/generate_env_docs.sh
+          docker cp pz-docs:/tmp/env.json "out/${{ matrix.tag }}.json"
+          docker rm -f pz-docs
+
+      - name: Check replaced_by mappings
+        run: |
+          set -euo pipefail
+          DOC="out/${{ matrix.tag }}.json"
+          jq -e '[.env.generated.lua | .. | objects | select(has("env_name"))] | length > 0' "${DOC}" >/dev/null
+          jq -e '.env.custom.mods.MOD_IDS.env_name == "MOD_IDS"' "${DOC}" >/dev/null
+          jq -e '.env.custom.mods.WORKSHOP_IDS.env_name == "WORKSHOP_IDS"' "${DOC}" >/dev/null
+          jq -e '.env.custom.security.PASSWORD.env_name == "PASSWORD"' "${DOC}" >/dev/null
+          jq -e '.env.custom.security.RCONPASSWORD.env_name == "RCONPASSWORD"' "${DOC}" >/dev/null
+          for pair in Mods:MOD_IDS WorkshopItems:WORKSHOP_IDS Password:PASSWORD RCONPassword:RCONPASSWORD; do
+            jq -e --arg key "${pair%%:*}" --arg by "${pair##*:}" \
+              '(.env.generated.ini.pzserver[""][$key] | type) != "object" or (.env.generated.ini.pzserver[""][$key].replaced_by | index($by)) != null' \
+              "${DOC}" >/dev/null
+          done
+
+      - name: Upload env docs
+        uses: actions/upload-artifact@v7
+        with:
+          name: env-docs-${{ matrix.tag }}
+          path: out/${{ matrix.tag }}.json
+          if-no-files-found: error
+
+  pages:
+    needs: docs
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Download env docs
+        uses: actions/download-artifact@v8
+        with:
+          pattern: env-docs-*
+          merge-multiple: true
+          path: _site/env
+
+      - name: Assemble site
+        run: |
+          cp site/index.html _site/index.html
+          bash scripts/generate_env_index.sh _site/env _site/env/index.json
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

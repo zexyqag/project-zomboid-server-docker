@@ -18,6 +18,7 @@ ENV STEAMAPPBRANCH=$STEAMAPPBRANCH
 RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
   dos2unix \
+  gawk \
   jq \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
@@ -71,9 +72,11 @@ RUN chmod 550 /server/scripts/apply_ini_vars.sh
 # Copy custom env scripts (hooks/args/vars)
 COPY --chown=${USER}:${USER} scripts/custom /server/scripts/custom
 
-# Copy env source extractor for docs
-COPY --chown=${USER}:${USER} scripts/extract_env_sources.sh /server/scripts/extract_env_sources.sh
-RUN chmod 550 /server/scripts/extract_env_sources.sh
+# Copy env docs generator and the list-env command built on it
+COPY --chown=${USER}:${USER} scripts/generate_env_docs.sh /server/scripts/generate_env_docs.sh
+RUN chmod 550 /server/scripts/generate_env_docs.sh
+COPY scripts/list_env.sh /usr/local/bin/list-env
+RUN chmod 755 /usr/local/bin/list-env
 
 # Create required folders to keep their permissions on mount
 RUN mkdir -p "${HOMEDIR}/Zomboid"
