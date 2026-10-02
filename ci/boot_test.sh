@@ -40,6 +40,10 @@ docker exec "${name}" test -f "${home}/db/pzserver.db" \
 docker exec "${name}" test -s "${home}/Server/pzserver_SandboxVars.lua" \
   || fail "the server did not write pzserver_SandboxVars.lua"
 
+# INI_ and SANDBOX_ cover these two files; a new settings file from the game needs its own prefix.
+others="$(docker exec "${name}" find "${home}/Server" -maxdepth 1 -type f ! -name pzserver.ini ! -name pzserver_SandboxVars.lua ! -name pzserver_spawnregions.lua ! -name pzserver_spawnpoints.lua ! -name '*.bak' -printf '%f ')"
+[ -z "${others}" ] || echo "::warning title=New server files::No env vars cover ${others}"
+
 rows="$(docker exec "${name}" list-env --tsv)"
 for kind in image ini sandbox; do
   grep -q "^${kind}	" <<< "${rows}" || fail "list-env found no ${kind} settings"
