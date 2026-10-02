@@ -44,6 +44,9 @@ rows="$(docker exec "${name}" list-env --tsv)"
 for kind in image ini sandbox; do
   grep -q "^${kind}	" <<< "${rows}" || fail "list-env found no ${kind} settings"
 done
+# Nested sandbox tables are joined with "__", so a key containing "__" could collide with a path.
+duplicates="$(cut -f2 <<< "${rows}" | sort | uniq -d)"
+[ -z "${duplicates}" ] || fail "list-env produced duplicate names: ${duplicates}"
 mkdir -p "$(dirname "${reference}")"
 jq -R -s --arg tag "${label}" '
   split("\n")
