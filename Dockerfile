@@ -9,31 +9,27 @@ ENV STEAMAPPDIR="${HOMEDIR}/${STEAMAPP}-dedicated"
 # Fix for a new installation problem in the Steamcmd client
 ENV HOME="${HOMEDIR}"
 
-# Receive the value from docker-compose as an ARG
+# Steam beta branch to install; "public" is the stable release.
 ARG STEAMAPPBRANCH="public"
-# Promote the ARG value to an ENV for runtime
 ENV STEAMAPPBRANCH=$STEAMAPPBRANCH
+# Space-separated locales to install besides en_US.UTF-8, for example "es_ES.UTF-8 de_DE.UTF-8".
+ARG EXTRA_LOCALES=""
 
-# Install required packages
 RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
-  dos2unix \
-  gawk \
   jq \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# Generate locales to allow other languages in the PZ Server
-RUN sed -i 's/^# *\(es_ES.UTF-8\)/\1/' /etc/locale.gen \
-  # Generate locale
+RUN for locale in en_US.UTF-8 ${EXTRA_LOCALES}; do \
+       sed -i "s/^# *\(${locale}\)/\1/" /etc/locale.gen; \
+     done \
   && locale-gen
 
-# Download the Project Zomboid dedicated server app using the steamcmd app.
 # "-beta public" is not a valid beta, so the flag is only passed for other branches.
 # SteamCMD can fail the first attempt with "Missing configuration" until the app info is cached.
 RUN set -x \
   && mkdir -p "${STEAMAPPDIR}" \
-  && chown -R "${USER}:${USER}" "${STEAMAPPDIR}" \
   && if [ "${STEAMAPPBRANCH}" = "public" ]; then BETA_ARGS=""; \
      else BETA_ARGS="-beta ${STEAMAPPBRANCH}"; fi \
   && for attempt in 1 2 3; do \
@@ -44,46 +40,22 @@ RUN set -x \
        && break; \
        if [ "${attempt}" = "3" ]; then exit 1; fi; \
        sleep 10; \
-     done
+     done \
+  # Created here so new named volumes start out owned by the steam user.
+  && mkdir -p "${HOMEDIR}/Zomboid" "${STEAMAPPDIR}/steamapps/workshop" \
+  && chown -R "${USER}:${USER}" "${STEAMAPPDIR}" "${HOMEDIR}/Zomboid"
 
-# Copy the entry point file
-COPY --chown=${USER}:${USER} scripts/entry.sh /server/scripts/entry.sh
-RUN chmod 550 /server/scripts/entry.sh
+COPY --chmod=755 scripts /server/scripts
+RUN ln -s /server/scripts/list_env.sh /usr/local/bin/list-env
 
-# Copy runtime helpers
-COPY --chown=${USER}:${USER} scripts/lib /server/scripts/lib
-
-# Copy resolve_workshop_collection.sh
-COPY --chown=${USER}:${USER} scripts/resolve_workshop_collection.sh /server/scripts/resolve_workshop_collection.sh
-RUN chmod 550 /server/scripts/resolve_workshop_collection.sh
-
-# Copy Lua vars helper
-COPY --chown=${USER}:${USER} scripts/apply_lua_vars.sh /server/scripts/apply_lua_vars.sh
-RUN chmod 550 /server/scripts/apply_lua_vars.sh
-
-# Copy workshop map scanner
-COPY --chown=${USER}:${USER} scripts/search_folder.sh /server/scripts/search_folder.sh
-RUN chmod 550 /server/scripts/search_folder.sh
-
-# Copy INI vars helper
-COPY --chown=${USER}:${USER} scripts/apply_ini_vars.sh /server/scripts/apply_ini_vars.sh
-RUN chmod 550 /server/scripts/apply_ini_vars.sh
-
-# Copy custom env scripts (hooks/args/vars)
-COPY --chown=${USER}:${USER} scripts/custom /server/scripts/custom
-
-# Copy env docs generator and the list-env command built on it
-COPY --chown=${USER}:${USER} scripts/generate_env_docs.sh /server/scripts/generate_env_docs.sh
-RUN chmod 550 /server/scripts/generate_env_docs.sh
-COPY scripts/list_env.sh /usr/local/bin/list-env
-RUN chmod 755 /usr/local/bin/list-env
-
-# Create required folders to keep their permissions on mount
-RUN mkdir -p "${HOMEDIR}/Zomboid"
-
+USER ${USER}
 WORKDIR ${HOMEDIR}
-# Expose ports
+
 EXPOSE 16261-16262/udp \
   27015/tcp
+
+# Large modded servers can take a long time to start; the check only counts once the server is up.
+HEALTHCHECK --start-period=30m --interval=30s --timeout=10s --retries=3 \
+  CMD ["/server/scripts/healthcheck.sh"]
 
 ENTRYPOINT ["/server/scripts/entry.sh"]

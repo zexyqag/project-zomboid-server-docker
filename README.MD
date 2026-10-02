@@ -1,186 +1,162 @@
 # Project Zomboid dedicated server container
 
-This Dockerfile downloads the Project Zomboid dedicated server using SteamCMD. Will allow you to deploy with ease a server in Kubernetes, Docker...
+A Project Zomboid dedicated server image, configured through environment variables. Images are published to GitHub Container Registry:
 
-The ready to use image is published automatically to GitHub Container Registry (GHCR).
-
-Example image URL:
 ```
 ghcr.io/zexyqag/project-zomboid-server-docker:stable
 ```
 
-Additional tags are published for stable/unstable and versioned builds:
+Tags:
 
-* `stable` / `unstable`
-* `stable-<pz_version>` / `unstable-<pz_version>`
-* `stable-<pz_version>-<repo_version>` / `unstable-<pz_version>-<repo_version>`
+* `stable`: the newest image for the current stable game version.
+* `stable-<pz_version>`: the newest image for that game version.
+* `stable-<pz_version>-<repo_version>`: one exact build; `<repo_version>` is the first 7 characters of the commit.
+* `unstable`, `unstable-<pz_version>`, ...: the same for the Steam beta branch, only while Project Zomboid has an open beta.
 
-`<pz_version>` is the Project Zomboid server version.
-`<repo_version>` is the first 7 characters of the Git commit SHA.
+Only Build 42 is maintained. Images are rebuilt nightly when the game or this repo changed, and each one is booted and stopped in CI before it is published.
 
-Tag meanings:
+**WARNING:** On Windows with WSL2 in Docker Desktop, server startup is much slower. That's fine unless you run a lot of mods, where startup can take 15 to 40 minutes. Run the container on Linux or in a Linux VM if you can.
 
-* `stable` points to the newest stable build.
-* `unstable` points to the newest unstable build.
-* `stable-<pz_version>` / `unstable-<pz_version>` track the newest repo build for that PZ version.
-* `stable-<pz_version>-<repo_version>` / `unstable-<pz_version>-<repo_version>` pin an exact repo snapshot.
-
-Build 42 is the stable build, so the `stable` tag runs it. `unstable` images are only published while Project Zomboid has an open beta on Steam.
-
-**WARNING:** Running the image on Windows using WSL2 in Docker Desktop will make the server startup times significantly slower. This is fine unless you are running a lot of mods in which case server startup times may vary from 15 - 40 minutes. The best way to solve this problem is to run your container on a Linux based system or in a Linux VM.
-
-## Using prebuilt images
-
-Pick the tag you want (`stable` or `unstable`) and run with docker-compose.
-
-Example (stable):
+## Quick start
 
 ```yaml
 services:
-	ProjectZomboidDedicatedServer:
-		image: ghcr.io/zexyqag/project-zomboid-server-docker:stable
-		stop_grace_period: 120s
-		env_file:
-			- .env
-		ports:
-			- "16261:16261/udp"
-			- "16262:16262/udp"
-			- "27015:27015/tcp"
-		volumes:
-			- ./data:/home/steam/Zomboid
-			- ./workshop-mods:/home/steam/pz-dedicated/steamapps/workshop
+  ProjectZomboidDedicatedServer:
+    image: ghcr.io/zexyqag/project-zomboid-server-docker:stable
+    restart: unless-stopped
+    stop_grace_period: 120s
+    env_file:
+      - .env
+    ports:
+      - "16261:16261/udp"
+      - "16262:16262/udp"
+      - "27015:27015/tcp"
+    volumes:
+      - data:/home/steam/Zomboid
+      - workshop:/home/steam/pz-dedicated/steamapps/workshop
+
+volumes:
+  data:
+  workshop:
 ```
 
-If you want unstable, change the image tag to `unstable`.
+`.env`:
 
-## Building your own image
+```bash
+ADMINPASSWORD=change-me
+PASSWORD=change-me-too
+INI_PublicName=My server
+INI_Public=false
+SANDBOX_ZombieLore__Transmission=3
+```
 
-If you want to build locally, set `STEAMAPPBRANCH` at build time (see Build time environment variables).
+`ADMINPASSWORD` is required on the first start, when the server creates its database and admin account.
 
-Create a `.env` file with the settings you need (examples are shown below).
+`docker stop` (and Portainer's stop) sends `quit` to the server so it saves the world. Keep `stop_grace_period` long enough for your world to save; 120s is plenty for most.
 
-## Run time environment variables
+The container runs as the `steam` user (uid 1000). Named volumes work as they are. A bind-mounted folder must be writable by uid 1000: `chown -R 1000:1000 ./data ./workshop-mods`.
 
-Boolean options accept: `1`, `true`, `yes`, `y`, `on` and `0`, `false`, `no`, `n`, `off`.
+The image has a health check: the container is `healthy` once the server has started, which can take a while with many mods.
 
-Every env var for the current `stable` (and `unstable`, while a beta is open) image is listed at https://zexyqag.github.io/project-zomboid-server-docker/.
+## Configuration
 
-To list the env vars for your own server, including settings added by mods, run `list-env` inside the running container. An optional argument filters the output:
+Run `list-env` in the container to see every variable it reads, with the current value and the description from the server's own files, mod settings included. An optional argument filters by name or description:
 
 ```bash
 docker exec <container> list-env
 docker exec <container> list-env zombielore
 ```
 
-The image supports the following environment variables:
-`ADMINUSERNAME:` Sets the administrator username, otherwise `admin` will be used.
+The same list for each published image is at https://zexyqag.github.io/project-zomboid-server-docker/.
 
+Boolean options accept `1`, `true`, `yes`, `y` or `on`; anything else is false.
 
-`ADMINPASSWORD:` Sets the admin password when the server creates its database on the first start. This is mandatory at first startup or the server will fail to start. Once the database exists it is no longer passed to the server, so it stays out of later launch lines, and you may remove this variable.
+### Server settings: `INI_<Key>`
 
-`ADMINPASSWORD_FILE:` Path to a file containing the admin password. If set and the file exists, it takes precedence over `ADMINPASSWORD`. Same safe handling applies as above.
-
-
-`PASSWORD:` Sets or changes the server password in the INI file on every start. Is optional.
-
-`PASSWORD_FILE:` Path to a file containing the server password. If set and the file exists, it takes precedence over `PASSWORD`.
-
-`RCONPASSWORD:` Sets or changes the RCON password in the INI file on every start. Must be secure.
-
-`RCONPASSWORD_FILE:` Path to a file containing the RCON password. If set and the file exists, it takes precedence over `RCONPASSWORD`.
-
-
-
-**Server configuration:**
-
-- Set server INI/Lua options using the generated docs-style env names (`ini__...` / `lua__...`).
-- The exact available keys depend on the image tag and source config files; see the generated env docs JSON for your tag.
-- The default server name is fixed to `pzserver` to keep env var prefixes consistent.
-- For admin, server, and RCON passwords, use only `ADMINPASSWORD`, `ADMINPASSWORD_FILE`, `PASSWORD`, `PASSWORD_FILE`, `RCONPASSWORD`, or `RCONPASSWORD_FILE`.
-
-
-`ini__*:` Overrides for any `.ini` under `Zomboid/Server`.
-
-- Default server INI (e.g., `pzserver.ini`): `ini__pzserver__Key=Value`
-- Sectioned INI: `ini__pzserver__Section__Key=Value`
-- Additional INI files: `ini__<file>__Section__Key=Value` or `ini__<file>__Key=Value`
-
-**Note:** Password keys are managed by dedicated variables. Use `PASSWORD` / `PASSWORD_FILE` / `RCONPASSWORD` / `RCONPASSWORD_FILE`.
-
-`INI_CTRL_DRY_RUN:` If true, logs the changes that would be applied without modifying the ini file.
-
-`INI_CTRL_STRICT:` If true, exits with an error when an env var does not match any key in the ini file.
-
-Example INI overrides:
+Each `INI_<Key>` variable sets `Key` in `Zomboid/Server/pzserver.ini` on every start. Keys are matched case-insensitively; values are written as they are.
 
 ```bash
-# Flat ini keys
-ini__pzserver__Public=true
-ini__pzserver__PublicName="My Server"
-
-# Sectioned ini keys (if your ini uses [Section] headers)
-ini__pzserver__ServerOptions__Public=true
-ini__pzserver__ServerOptions__PublicName="My Server"
-
-# Password and RCONPassword must use dedicated variables:
-# PASSWORD, PASSWORD_FILE, RCONPASSWORD, RCONPASSWORD_FILE
+INI_Public=true
+INI_PublicName=My server
+INI_MaxPlayers=16
+INI_Mods=\ModOne;\ModTwo
+INI_AntiCheatProtectionType12=false
 ```
 
-`lua__*:` Overrides for any `.lua` under `Zomboid/Server`.
+On Build 42, `Mods=` entries start with a backslash (`\ModId`). In an env file, write a single backslash; it is passed through unchanged.
 
-- Default server Lua file (e.g., `pzserver_SandboxVars.lua`): `lua__pzserver_SandboxVars__...=Value`
-- Additional Lua files: `lua__<file>__...=Value`
-- Lua paths are represented by `__`-separated table keys.
-- For files with a named root table (e.g., `SandboxVars = { ... }`), include that root key in the env name.
+Settings apply from the very first start. A variable that matches no key in an existing INI is still written, with a warning in the log, since it's usually a typo. Set `CONFIG_STRICT=true` to refuse to start instead.
 
-`LUA_CTRL_DRY_RUN:` If true, logs the changes that would be applied without modifying the Lua file.
+A variable you remove leaves the last value in the INI. Set it to an empty value to clear it.
 
-`LUA_CTRL_STRICT:` If true, exits with an error when an env var does not match any key in the Lua file.
+### Sandbox settings: `SANDBOX_<Group>__<Key>`
 
-`LUA_CTRL_CASE_SENSITIVE:` If true, matches Lua keys case-sensitively.
-
-Example Lua overrides:
+Each `SANDBOX_` variable sets a value in `Zomboid/Server/pzserver_SandboxVars.lua`. Nested tables are separated with `__`:
 
 ```bash
-# Example for <servername>_SandboxVars.lua
-lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Transmission=4
-lua__pzserver_SandboxVars__SandboxVars__World__Event=2
-
-# Example for <servername>_othersettings.lua
-lua__pzserver_othersettings__SomeTable__SomeKey=true
+SANDBOX_Zombies=4
+SANDBOX_ZombieLore__Transmission=3
+SANDBOX_ZombieLore__Mortality=7
+SANDBOX_Map__AllowMiniMap=true
 ```
 
-`CLEAN_WORKSHOP:` If true, removes workshop items on disk that are not listed in `WORKSHOP_IDS` (after collection resolution). This only runs when `WORKSHOP_IDS` is set and collection resolution succeeds to avoid wiping everything by accident.
+Values are Lua literals. A setting that holds a string keeps its quotes, so `SANDBOX_WorldItemRemovalList=Base.Hat,Base.Glasses` works without quoting.
 
-`CLEAN_WORKSHOP_DRY_RUN:` If true, logs which workshop items would be removed without deleting anything. Requires `CLEAN_WORKSHOP=true`.
+The server writes the SandboxVars file during its first start, so sandbox settings apply from the second start. To have them on the first start, set `SERVERPRESET`, which creates the file from a preset before the server starts.
 
-`CLEAN_WORKSHOP_ALLOW_REMOVE_ALL:` If true, allows cleanup to remove all workshop items when none of the keep IDs are found on disk. Default is false for safety.
+### Image settings
 
-`CLEAN_WORKSHOP_KEEP_FILE:` Optional path to write the resolved workshop keep list (one ID per line).
+`ADMINUSERNAME`: Admin account name created on the first start (default: `admin`).
 
-`MOD_IDS:` Semicolon separated list of Mod IDs to install to the server. NOTE - B42 changes the way mod IDs must be supplied (\mod1;\mod2 inside the pzserver.ini file) when defining this variable, precede each mod id with two backslashes (\\) to escape the backslash into the ini file. Leaving this empty will clear any existing Mods value.
+`ADMINPASSWORD`, `ADMINPASSWORD_FILE`: Admin password. Required on the first start, when the server creates its database; ignored afterwards, so it stays out of later launch lines. The `_FILE` variant reads the password from a file (for Docker secrets) and takes precedence.
 
-`MAP_SCAN_VERBOSE:` If true, logs per-item progress during workshop map scanning.
+`PASSWORD`, `PASSWORD_FILE`: Server password, written to the INI on every start.
 
-`MAP_SCAN_DRY_RUN:` If true, scans and reports maps but skips copying them.
+`RCONPASSWORD`, `RCONPASSWORD_FILE`: RCON password, written to the INI on every start.
 
-`LANG:` This env variable will set the container locales, which will be used by the pz server to set the language. Example (en_EN.UTF-8, es_ES.UTF-8...). Note: the image currently generates `es_ES.UTF-8` by default; if you need other locales, customize the Dockerfile.
+`WORKSHOP_IDS`: Workshop item and collection IDs separated by `;`. Collections are expanded through the Steam API and written to `WorkshopItems`. Set it empty to clear `WorkshopItems`. Enable the mods themselves with `INI_Mods`.
 
-INI settings, mods and workshop items apply on the first start. Sandbox (`lua__...`) settings apply from the second start, and maps are added on the second start, after the workshop content has been downloaded.
+`STEAM_API_KEY`: Steam Web API key, only needed to expand private or unlisted collections.
 
-This is because the server writes its SandboxVars file and downloads workshop content during the first start, and maps can only be wired once they exist on disk. You can still change `MOD_IDS` and `WORKSHOP_IDS` later; updates apply on restart, but workshop downloads may require an extra restart. Changing maps on an existing world may require a new save depending on the map.
+`SERVERPRESET`: Sandbox preset used to create the SandboxVars file when it doesn't exist. The names are the files in `media/lua/shared/Sandbox` of the game; the log lists them if the name is wrong.
 
-## Build time environment variables
+`SERVERPRESETREPLACE`: If true, overwrite an existing SandboxVars file with `SERVERPRESET` on every start.
 
-Only used when you build the image yourself. Ignore these when using a prebuilt tag.
+`CONFIG_STRICT`: If true, refuse to start when an `INI_` or `SANDBOX_` variable matches no setting.
 
-`STEAMAPPBRANCH:` Sets the Project Zomboid beta branch to download. If not set, the stable (public) branch will be downloaded. You can see the branches that currently exist on the [SteamDB website](https://steamdb.info/app/380870/depots/).
+`MEMORY`: Java heap size, for example `4096m` or `8g`. Sets both `-Xms` and `-Xmx`.
 
-If you are building the image using the `docker build` command, pass it as a build arg, for example:
+`SOFTRESET`, `DEBUG`, `COOP`, `NOSTEAM`: Start the server with `-Dsoftreset`, `-debug`, `-coop` or `-nosteam`.
+
+`MODFOLDERS`: Mod folder search order, for example `workshop,steam,mods`.
+
+`CACHEDIR`: Data folder for the server. Leave it unset; the volumes expect `/home/steam/Zomboid`.
+
+`IP`, `PORT`, `UDPPORT`, `STEAMPORT1`, `STEAMPORT2`: Network options passed to the server. Change the published ports to match.
+
+`STEAMVAC`: `true` or `false` to turn Valve Anti-Cheat on or off.
+
+`LANG`: Locale for the server, for example `en_US.UTF-8`. Only `en_US.UTF-8` is installed; add others with the `EXTRA_LOCALES` build argument. The log warns about a locale that isn't installed.
+
+### Mods and maps
+
+Enable mods with `INI_Mods` and download them with `WORKSHOP_IDS`. The server downloads workshop items during its start.
+
+Maps from enabled mods are added to the INI's `Map=` line automatically, before the vanilla map, keeping the order of maps that are already there. Their spawn points are added to `pzserver_spawnregions.lua` when the mod ships them. Because the downloads happen while the server starts, new maps are added on the start after the one that downloaded them.
+
+### Backups
+
+The server makes its own backups; configure them with `INI_BackupsCount`, `INI_BackupsOnStart`, `INI_BackupsOnVersionChange` and `INI_BackupsPeriod`. `INI_BackupsOnVersionChange=true` is worth having, since a newer image can bring a newer game version.
+
+## Building your own image
 
 ```bash
-docker build --compress --no-cache --build-arg STEAMAPPBRANCH=<branch-name> .
+docker build --build-arg STEAMAPPBRANCH=<branch> --build-arg EXTRA_LOCALES="es_ES.UTF-8 de_DE.UTF-8" .
 ```
+
+`STEAMAPPBRANCH`: Steam beta branch to install; `public` (the default) is the stable release. The branches are listed on [SteamDB](https://steamdb.info/app/380870/depots/).
+
+`EXTRA_LOCALES`: Space-separated locales to install besides `en_US.UTF-8`.
 
 ## Soft Reset
 
@@ -205,41 +181,10 @@ Removing the following files in the Server data folder (ToDo: I have to search t
 
 Currently is not working correctly and will cause the server to crash when it is active. Also the above points are not performed so nothing will change in the server.
 
-## Required ports
+## Ports
 
-The required ports are documented in the [Official wiki](https://pzwiki.net/wiki/Dedicated_Server#Forwarding_Required_Ports)
+* 16261 UDP: game port (`PORT`).
+* 16262 UDP: second game port (`UDPPORT`).
+* 27015 TCP: RCON, only if you use it (`INI_RCONPort`).
 
-For now the ports are the following, but it can change.
-
-### Steam clients ports
-
-These ports are used by the Steam clients to connect with the server, so it must be opened in firewall and configured in NAT.
-
-* 8766 UDP
-* 8767 UDP
-* 16261 UDP (configurable)
-
-### Non Steam clients ports
-
-These ports are used by the No Steam clients to connect with the server, so it must be opened in firewall and configured in NAT.
-
-* 8766 UDP
-* 8767 UDP
-* 16261 UDP (configurable)
-* 16262 - 16272 TCP (range depends of the above port and the clients slots)
-
-### Notes
-
-* The 16261 port can be changed using the PORT environment variable. This will affect at the TCP ports range, changing it to the next port. For example, if PORT is set to 12234, the TCP range will be 12234 - 12244.
-* The TCP ports range is used by the clients, so every client slot will need a port. If your server plans to host 50 clients, then you will need to open 50 ports in firewall/nat... (16262 - 16312).
-* The Wiki says that Non Steam ports are supposed to be for non steam clients, but I am using the steam client and those ports are used too.
-
-When using docker-compose, be sure to map the UDP ports you need (16261 + 16262, or the range for your slot count) and the TCP port range if clients fail to connect.
-
-## How to use the image
-
-To setup the server you can use the docker-compose program:
-
-* Create a `.env` file and set the variables you want. The only mandatory variable is ADMINPASSWORD and just the first time the server is executed (once is started at least once, it can be removed). The other variables are optional.
-* Run the `docker-compose up -d` command to start the server.
-
+Forward the UDP ports in your firewall/NAT. The log prints the ports the server uses on every start. The [official wiki](https://pzwiki.net/wiki/Dedicated_server) has the details.

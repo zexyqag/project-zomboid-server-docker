@@ -1,4 +1,3 @@
-version: "3.7"
 services:
   ProjectZomboidDedicatedServer:
     image: ghcr.io/zexyqag/project-zomboid-server-docker:stable
@@ -7,19 +6,16 @@ services:
     stop_grace_period: 120s
     build:
       context: .
-      dockerfile: Dockerfile
       args:
-        # Reads STEAMAPPBRANCH from your .env file to set the build version (ARG).
-        - STEAMAPPBRANCH=${STEAMAPPBRANCH}
+        - STEAMAPPBRANCH=${STEAMAPPBRANCH:-public}
+        - EXTRA_LOCALES=${EXTRA_LOCALES:-}
     env_file:
       - .env
     ports:
       - "16261:16261/udp"
       - "16262:16262/udp"
       - "27015:27015/tcp"
-      # If you increase slots or change PORT, map the TCP range (PORT+1..PORT+10) as needed.
     volumes:
-      # Server data
+      # The container runs as uid 1000; bind-mounted folders must be writable by it.
       - ./data:/home/steam/Zomboid
-      # Workshop mods folder
       - ./workshop-mods:/home/steam/pz-dedicated/steamapps/workshop

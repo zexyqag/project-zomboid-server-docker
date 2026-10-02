@@ -1,40 +1,31 @@
 #!/bin/bash
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. "${SCRIPT_DIR}/lib/runtime_helpers.sh"
-. "${SCRIPT_DIR}/lib/hooks.sh"
+SERVERNAME="pzserver"
+SERVER_CONSOLE="/tmp/pz-console"
+SERVER_READY="/tmp/pz-ready"
+SERVER_PID_FILE="/tmp/pz-server.pid"
+
+# shellcheck source=scripts/configure.sh
+. "${SCRIPT_DIR}/configure.sh"
+
+if [ ! -w "${HOMEDIR}/Zomboid" ]; then
+  echo "Error: ${HOMEDIR}/Zomboid is not writable by $(id -un) (uid $(id -u)). For a bind mount, run: chown -R $(id -u):$(id -g) <host folder>" >&2
+  exit 1
+fi
 
 cd "${STEAMAPPDIR}" || exit 1
+configure_server
 
-SERVERNAME="pzserver"
+# start-server.sh preloads libjsig.so, which is only found through this path.
+export LD_LIBRARY_PATH="${STEAMAPPDIR}/jre64/lib:${LD_LIBRARY_PATH:-}"
+export LANG
 
-ARGS=()
-
-# The server keeps the values in an existing INI and fills in the rest, so creating it lets the
-# hooks apply settings on the very first start.
-INI_FILE="${HOMEDIR}/Zomboid/Server/${SERVERNAME}.ini"
-mkdir -p "$(dirname "${INI_FILE}")"
-[ -f "${INI_FILE}" ] || touch "${INI_FILE}"
-
-run_env_hooks "${SCRIPT_DIR}/custom"
-
-# Fix to a bug in start-server.sh that causes to no preload a library:
-# ERROR: ld.so: object 'libjsig.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
-export LD_LIBRARY_PATH="${STEAMAPPDIR}/jre64/lib:${LD_LIBRARY_PATH}"
-
-## Fix the permissions in the data and workshop folders
-STEAM_UID=$(id -u steam 2>/dev/null || echo 1000)
-STEAM_GID=$(id -g steam 2>/dev/null || echo 1000)
-chown -R "${STEAM_UID}:${STEAM_GID}" /home/steam/pz-dedicated/steamapps/workshop /home/steam/Zomboid
-# When binding a host folder with Docker to the container, the resulting folder has these permissions "d---" (i.e. NO `rwx`) 
-# which will cause runtime issues after launching the server.
-# Fix it the adding back `rwx` permissions for the file owner (steam user)
-chmod 755 /home/steam/Zomboid
+echo "Server ports: ${PORT:-16261}/udp and ${UDPPORT:-16262}/udp"
 
 # The server saves the world on the console command `quit`. Docker only signals PID 1, so stdin is a
 # FIFO held open here and SIGTERM/SIGINT write `quit` into it instead of killing the JVM.
-SERVER_CONSOLE="/tmp/pz-console"
-rm -f "${SERVER_CONSOLE}"
+rm -f "${SERVER_CONSOLE}" "${SERVER_READY}"
 mkfifo "${SERVER_CONSOLE}"
 exec {CONSOLE_FD}<>"${SERVER_CONSOLE}"
 
@@ -54,10 +45,18 @@ shutdown_server() {
   echo "*** INFO: Server stopped with exit code ${SHUTDOWN_EXIT} ***"
 }
 
-# runuser execs the command without a shell, so each ARGS element reaches the server as one argument.
-export LANG
-runuser -u steam -- ./start-server.sh "${ARGS[@]}" <"${SERVER_CONSOLE}" &
+# Output passes through this loop, which marks the server ready for the health check once it has started.
+./start-server.sh "${ARGS[@]}" <"${SERVER_CONSOLE}" > >(
+  trap '' TERM INT
+  while IFS= read -r line || [ -n "${line}" ]; do
+    printf '%s\n' "${line}"
+    if [[ "${line}" == *"*** SERVER STARTED ***"* ]]; then
+      : > "${SERVER_READY}"
+    fi
+  done
+) 2>&1 &
 SERVER_PID=$!
+echo "${SERVER_PID}" > "${SERVER_PID_FILE}"
 trap shutdown_server TERM INT
 
 wait "${SERVER_PID}"
@@ -65,5 +64,5 @@ SERVER_EXIT=$?
 if [ -n "${SHUTDOWN_STARTED:-}" ]; then
   SERVER_EXIT="${SHUTDOWN_EXIT}"
 fi
-rm -f "${SERVER_CONSOLE}"
+rm -f "${SERVER_CONSOLE}" "${SERVER_READY}" "${SERVER_PID_FILE}"
 exit "${SERVER_EXIT}"

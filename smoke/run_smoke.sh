@@ -1,851 +1,235 @@
 #!/bin/bash
+# Tests the startup scripts against fixture files and a stub server. Run: bash smoke/run_smoke.sh
 
-set -euo pipefail
+set -uo pipefail
 
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-ROOT_DIR=$(cd "${SCRIPT_DIR}/.." && pwd)
-TMP_DIR=$(mktemp -d)
-trap 'rm -rf "${TMP_DIR}"' EXIT
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="${REPO}/scripts"
+WORK="$(mktemp -d)"
+trap 'rm -rf "${WORK}"' EXIT
+FAILED=0
 
-normalize_file() {
-  local src="$1"
-  local dst="$2"
-  tr -d '\r' < "$src" > "$dst"
+fail() { echo "FAIL [${TEST}]: $*" >&2; FAILED=1; }
+expect_line() {
+  # $1 = file, $2 = exact line
+  grep -qxF -- "$2" "$1" || fail "expected line '$2' in $(basename "$1")"
+}
+expect_eq() {
+  [ "$1" = "$2" ] || fail "expected '$2', got '$1'"
 }
 
-run_ini_dry_run() {
-  cp "${SCRIPT_DIR}/sample.ini" "${TMP_DIR}/sample.ini"
-  (
-    export ini__sample__Public=true
-    export ini__sample__PublicName="New Name"
-    export ini__sample__Mods="ModA"
-    export ini__sample__ServerOptions__PVP=false
-    export ini__sample__ServerOptions__DropOffWhiteList=false
-    export INI_CTRL_DRY_RUN=true
-    bash "${ROOT_DIR}/scripts/apply_ini_vars.sh" "${TMP_DIR}/sample.ini"
-  )
-  normalize_file "${SCRIPT_DIR}/sample.ini" "${TMP_DIR}/sample.norm.ini"
-  normalize_file "${TMP_DIR}/sample.ini" "${TMP_DIR}/sample.out.ini"
-  if ! diff -u "${TMP_DIR}/sample.norm.ini" "${TMP_DIR}/sample.out.ini" >/dev/null; then
-    echo "INI dry-run modified file" >&2
-    exit 1
-  fi
+# Each test runs in a subshell with a fresh fake HOMEDIR/STEAMAPPDIR and no INI_/SANDBOX_ leftovers.
+new_env() {
+  rm -rf "${WORK:?}/home"
+  export HOMEDIR="${WORK}/home" STEAMAPPDIR="${WORK}/home/pz-dedicated" SERVERNAME=pzserver
+  SERVER="${HOMEDIR}/Zomboid/Server"
+  mkdir -p "${SERVER}" "${STEAMAPPDIR}/media/lua/shared/Sandbox" "${HOMEDIR}/Zomboid/db"
+  cp "${REPO}/smoke/fixtures/pzserver.ini" "${SERVER}/pzserver.ini"
+  cp "${REPO}/smoke/fixtures/pzserver_SandboxVars.lua" "${SERVER}/pzserver_SandboxVars.lua"
+  cp "${REPO}/smoke/fixtures/pzserver_spawnregions.lua" "${SERVER}/pzserver_spawnregions.lua"
+  touch "${HOMEDIR}/Zomboid/db/pzserver.db"
+  # shellcheck source=scripts/configure.sh
+  . "${SCRIPT_DIR}/configure.sh"
 }
 
-run_ini_load() {
-  cp "${SCRIPT_DIR}/sample.ini" "${TMP_DIR}/sample.ini"
-  (
-    export ini__sample__Public=true
-    export ini__sample__PublicName="New Name"
-    export ini__sample__Mods="ModA"
-    export ini__sample__ServerOptions__PVP=false
-    export ini__sample__ServerOptions__DropOffWhiteList=false
-    bash "${ROOT_DIR}/scripts/apply_ini_vars.sh" "${TMP_DIR}/sample.ini"
-  )
-  normalize_file "${SCRIPT_DIR}/expected.ini" "${TMP_DIR}/expected.norm.ini"
-  normalize_file "${TMP_DIR}/sample.ini" "${TMP_DIR}/sample.out.ini"
-  diff -u "${TMP_DIR}/expected.norm.ini" "${TMP_DIR}/sample.out.ini" >/dev/null
+test_ini() {
+  TEST=ini
+  new_env
+  export INI_PublicName='My "best" server & co | $HOME \x' INI_public=true INI_NewKey=1
+  apply_ini_env "${SERVER}/pzserver.ini" > /dev/null 2> "${WORK}/err"
+  expect_line "${SERVER}/pzserver.ini" 'PublicName=My "best" server & co | $HOME \x'
+  expect_line "${SERVER}/pzserver.ini" 'Public=true'
+  expect_line "${SERVER}/pzserver.ini" 'NewKey=1'
+  expect_line "${SERVER}/pzserver.ini" '# Players can hurt and kill other players'
+  grep -q 'match no setting.*INI_NewKey' "${WORK}/err" || fail "unknown INI key was not reported"
+  grep -q 'INI_public' "${WORK}/err" && fail "a known key in other case was reported unknown"
+  (INI_Other=1 CONFIG_STRICT=true apply_ini_env "${SERVER}/pzserver.ini" > /dev/null 2>&1) && fail "CONFIG_STRICT did not stop on an unknown key"
+
+  # On the first start the INI is empty, so nothing can be checked yet and every key is appended.
+  : > "${SERVER}/pzserver.ini"
+  (CONFIG_STRICT=true apply_ini_env "${SERVER}/pzserver.ini" > /dev/null 2> "${WORK}/err") || fail "first start failed in strict mode"
+  expect_line "${SERVER}/pzserver.ini" 'NewKey=1'
+  [ -s "${WORK}/err" ] && fail "first start reported unknown keys"
 }
 
-run_ini_load_docs_style() {
-  cp "${SCRIPT_DIR}/sample.ini" "${TMP_DIR}/sample.ini"
-  (
-    export ini__sample__Public=true
-    export ini__sample__PublicName="New Name"
-    export ini__sample__Mods="ModA"
-    export ini__sample__ServerOptions__PVP=false
-    export ini__sample__ServerOptions__DropOffWhiteList=false
-    bash "${ROOT_DIR}/scripts/apply_ini_vars.sh" "${TMP_DIR}/sample.ini"
-  )
-  normalize_file "${SCRIPT_DIR}/expected.ini" "${TMP_DIR}/expected.docs.norm.ini"
-  normalize_file "${TMP_DIR}/sample.ini" "${TMP_DIR}/sample.docs.out.ini"
-  diff -u "${TMP_DIR}/expected.docs.norm.ini" "${TMP_DIR}/sample.docs.out.ini" >/dev/null
+test_sandbox() {
+  TEST=sandbox
+  new_env
+  export SANDBOX_Zombies=2 SANDBOX_ZombieLore__Transmission=3 SANDBOX_zombielore__mortality=7 \
+    SANDBOX_Map__MapAllKnown=true SANDBOX_WorldItemRemovalList='Base.Hat, Base.Glasses' SANDBOX_Nope__Key=1
+  apply_sandbox_env "${SERVER}/pzserver_SandboxVars.lua" 2> "${WORK}/err"
+  local lua="${SERVER}/pzserver_SandboxVars.lua"
+  expect_line "${lua}" '    Zombies = 2,'
+  expect_line "${lua}" '        Transmission = 3,'
+  expect_line "${lua}" '        Mortality = 7,'
+  expect_line "${lua}" '        MapAllKnown = true,'
+  expect_line "${lua}" '    WorldItemRemovalList = "Base.Hat, Base.Glasses",'
+  expect_line "${lua}" '    -- Default = Normal'
+  grep -q 'SANDBOX_Nope__Key' "${WORK}/err" || fail "unknown sandbox path was not reported"
+  (CONFIG_STRICT=true apply_sandbox_env "${lua}" 2>/dev/null) && fail "CONFIG_STRICT did not stop on an unknown path"
+  unset SANDBOX_Nope__Key
+
+  rm "${lua}"
+  apply_sandbox_env "${lua}" 2> "${WORK}/err"
+  grep -q 'apply from the next start' "${WORK}/err" || fail "missing SandboxVars file was not reported"
 }
 
-run_replaced_generated_ini_env_ignored_smoke() {
-  cat > "${TMP_DIR}/pzserver.ini" <<'EOF'
-Password=OldSecret
-Public=false
+test_preset() {
+  TEST=preset
+  new_env
+  printf 'return {\r\n    Zombies = 4,\r\n}\r\n' > "${STEAMAPPDIR}/media/lua/shared/Sandbox/Apocalypse.lua"
+  rm "${SERVER}/pzserver_SandboxVars.lua"
+  SERVERPRESET=Apocalypse apply_preset "${SERVER}/pzserver_SandboxVars.lua" >/dev/null
+  expect_line "${SERVER}/pzserver_SandboxVars.lua" 'SandboxVars = {'
+  expect_line "${SERVER}/pzserver_SandboxVars.lua" '    Zombies = 4,'
+  (SERVERPRESET=Missing apply_preset "${SERVER}/pzserver_SandboxVars.lua" 2> "${WORK}/err") && fail "a missing preset did not stop the start"
+  grep -q 'Available presets: Apocalypse' "${WORK}/err" || fail "available presets were not listed"
+}
+
+make_mod() {
+  # $1 = workshop item, $2 = mod folder, $3 = mod id, $4 = path of the version folder ("" for B41), $5.. = maps
+  local item="$1" mod="$2" id="$3" version="$4"
+  shift 4
+  local base="${STEAMAPPDIR}/steamapps/workshop/content/108600/${item}/mods/${mod}"
+  mkdir -p "${base}/${version}"
+  printf 'name=%s\r\nid=%s\r\n' "${mod}" "${id}" > "${base}/${version}/mod.info"
+  for map in "$@"; do
+    mkdir -p "${base}/${version:-.}/media/maps/${map}"
+    [ "${map}" = "Raven Creek" ] && touch "${base}/${version:-.}/media/maps/${map}/spawnpoints.lua"
+  done
+}
+
+test_maps() {
+  TEST=maps
+  new_env
+  make_mod 100 RavenCreek RavenCreekMod 42 "Raven Creek"
+  make_mod 200 Bedford BedfordFalls "" "Bedford Falls"
+  make_mod 300 Unused UnusedMod 42 "Unused Map"
+  mkdir -p "${STEAMAPPDIR}/steamapps/workshop/content/108600/100/mods/RavenCreek/common/media/maps/Raven Creek Extra"
+  local ini="${SERVER}/pzserver.ini"
+  set_ini_value "${ini}" Mods '\RavenCreekMod;2392709985\BedfordFalls'
+  set_ini_value "${ini}" Map 'Admin Map;Muldraugh, KY'
+  apply_mod_maps "${ini}" "${SERVER}/pzserver_spawnregions.lua" "${STEAMAPPDIR}/steamapps/workshop/content/108600" >/dev/null
+  expect_line "${ini}" 'Map=Admin Map;Raven Creek;Raven Creek Extra;Bedford Falls;Muldraugh, KY'
+  expect_line "${SERVER}/pzserver_spawnregions.lua" '		{ name = "Raven Creek", file = "media/maps/Raven Creek/spawnpoints.lua" },'
+
+  # A second start changes nothing.
+  cp "${ini}" "${WORK}/ini.before"
+  cp "${SERVER}/pzserver_spawnregions.lua" "${WORK}/spawn.before"
+  apply_mod_maps "${ini}" "${SERVER}/pzserver_spawnregions.lua" "${STEAMAPPDIR}/steamapps/workshop/content/108600" >/dev/null
+  cmp -s "${ini}" "${WORK}/ini.before" || fail "the Map line changed on the second start"
+  cmp -s "${SERVER}/pzserver_spawnregions.lua" "${WORK}/spawn.before" || fail "spawnregions changed on the second start"
+
+  expect_eq "$(merge_map_list "" "A")" "A;Muldraugh, KY"
+  expect_eq "$(merge_map_list "B;Muldraugh, KY;B" "A")" "B;A;Muldraugh, KY"
+}
+
+test_workshop() {
+  TEST=workshop
+  new_env
+  # A fake Steam API: 111 is a collection holding item 333 and collection 444 (item 555); 222 is an item.
+  mkdir -p "${WORK}/bin"
+  cat > "${WORK}/bin/curl" <<'CURL'
+#!/bin/bash
+if [[ "$*" == *"=444"* ]]; then
+  echo '{"response":{"collectiondetails":[{"publishedfileid":"444","children":[{"publishedfileid":"555","filetype":0}]}]}}'
+else
+  echo '{"response":{"collectiondetails":[{"publishedfileid":"111","children":[{"publishedfileid":"333","filetype":0},{"publishedfileid":"444","filetype":2}]},{"publishedfileid":"222","result":9}]}}'
+fi
+CURL
+  chmod +x "${WORK}/bin/curl"
+  PATH="${WORK}/bin:${PATH}" WORKSHOP_IDS='111;222' apply_workshop_ids "${SERVER}/pzserver.ini" > /dev/null
+  expect_line "${SERVER}/pzserver.ini" 'WorkshopItems=222;333;555'
+  printf '#!/bin/bash\nexit 6\n' > "${WORK}/bin/curl"
+  PATH="${WORK}/bin:${PATH}" WORKSHOP_IDS='111' apply_workshop_ids "${SERVER}/pzserver.ini" > /dev/null 2>&1
+  expect_line "${SERVER}/pzserver.ini" 'WorkshopItems=222;333;555'
+}
+
+test_configure() {
+  TEST=configure
+  new_env
+  echo 'rcon from file' > "${WORK}/rcon"
+  export PASSWORD='p&ss|word' RCONPASSWORD_FILE="${WORK}/rcon" ADMINPASSWORD='p@ss word$USER' \
+    MEMORY=2048m DEBUG=true ADMINUSERNAME=boss PORT=17000 STEAMVAC=TRUE WORKSHOP_IDS=""
+  configure_server > /dev/null 2>&1
+  expect_line "${SERVER}/pzserver.ini" 'Password=p&ss|word'
+  expect_line "${SERVER}/pzserver.ini" 'RCONPassword=rcon from file'
+  expect_line "${SERVER}/pzserver.ini" 'WorkshopItems='
+  expect_eq "$(printf '%q ' "${ARGS[@]}")" "-Xms2048m -Xmx2048m -- -debug -adminusername boss -servername pzserver -port 17000 -steamvac true "
+
+  # Without the database the admin password is passed, and required.
+  rm "${HOMEDIR}/Zomboid/db/pzserver.db"
+  configure_server > /dev/null 2>&1
+  expect_eq "${ARGS[*]: -2}" "-adminpassword p@ss word\$USER"
+  unset ADMINPASSWORD
+  (configure_server > /dev/null 2> "${WORK}/err") && fail "the first start went ahead without ADMINPASSWORD"
+  grep -q 'ADMINPASSWORD' "${WORK}/err" || fail "the missing ADMINPASSWORD was not explained"
+}
+
+test_list_env() {
+  TEST=list-env
+  new_env
+  export PASSWORD=secret
+  bash "${SCRIPT_DIR}/list_env.sh" > "${WORK}/out"
+  expect_line "${WORK}/out" '# Players can hurt and kill other players'
+  expect_line "${WORK}/out" 'INI_PVP=true'
+  expect_line "${WORK}/out" 'SANDBOX_ZombieLore__Transmission=1'
+  expect_line "${WORK}/out" 'PASSWORD=(set)'
+  expect_line "${WORK}/out" '## Sandbox settings (pzserver_SandboxVars.lua)'
+  bash "${SCRIPT_DIR}/list_env.sh" zombielore > "${WORK}/out"
+  grep -q '^INI_' "${WORK}/out" && fail "the filter kept unrelated rows"
+  grep -q '^SANDBOX_ZombieLore__Mortality=' "${WORK}/out" || fail "the filter dropped matching rows"
+  bash "${SCRIPT_DIR}/list_env.sh" --tsv > "${WORK}/out"
+  expect_line "${WORK}/out" "$(printf 'sandbox\tSANDBOX_ZombieLore__Mortality\t5\tDefault = Instant')"
+}
+
+test_vars_documented() {
+  TEST=vars
+  local name
+  while IFS=$'\t' read -r name _; do
+    grep -rq --include='*.sh' -- "${name}" "${SCRIPT_DIR}" || fail "${name} is documented but never read"
+  done < "${SCRIPT_DIR}/vars.tsv"
+  for name in $(grep -rhoE '\$\{[A-Z][A-Z0-9_]+(:-|\+x|\})' "${SCRIPT_DIR}" | grep -oE '[A-Z][A-Z0-9_]+' | sort -u); do
+    case "${name}" in
+      HOMEDIR|STEAMAPPDIR|SERVERNAME|SCRIPT_DIR|LD_LIBRARY_PATH|SERVER_*|SHUTDOWN_*|CONSOLE_FD|ARGS|VANILLA_MAP|KEY|VALUE|NAME) continue ;;
+    esac
+    grep -q "^${name}	" "${SCRIPT_DIR}/vars.tsv" || fail "${name} is read but not in vars.tsv"
+  done
+}
+
+test_entry() {
+  TEST=entry
+  new_env
+  cat > "${STEAMAPPDIR}/start-server.sh" <<'EOF'
+#!/bin/bash
+printf '%s\n' "$@" > "${HOMEDIR}/args"
+echo "LOG  : Network      f:0> *** SERVER STARTED ****"
+while IFS= read -r line; do
+  [ "${line}" = quit ] && { echo "saving"; exit 0; }
+done
 EOF
-
-  (
-    export PZ_REPLACED_ENV_TOKENS="INI_Password ini__pzserver__Password"
-    export ini__pzserver__Password=NewSecret
-    export ini__pzserver__Public=true
-    bash "${ROOT_DIR}/scripts/apply_ini_vars.sh" "${TMP_DIR}/pzserver.ini"
-  )
-
-  if ! grep -q '^Password=OldSecret$' "${TMP_DIR}/pzserver.ini"; then
-    echo "Replaced generated env var unexpectedly changed Password" >&2
-    exit 1
-  fi
-  if ! grep -q '^Public=true$' "${TMP_DIR}/pzserver.ini"; then
-    echo "Non-replaced env var did not apply while testing replacement filtering" >&2
-    exit 1
-  fi
+  chmod +x "${STEAMAPPDIR}/start-server.sh"
+  (cd "${WORK}" && exec bash "${SCRIPT_DIR}/entry.sh") > "${WORK}/entry.log" 2>&1 &
+  local pid=$! healthy=false
+  for _ in $(seq 1 50); do
+    bash "${SCRIPT_DIR}/healthcheck.sh" && { healthy=true; break; }
+    sleep 0.1
+  done
+  [ "${healthy}" = true ] || { fail "the health check never passed"; cat "${WORK}/entry.log" >&2; }
+  kill -TERM "${pid}"
+  wait "${pid}"
+  expect_eq "$?" 0
+  grep -q saving "${WORK}/entry.log" || fail "the server did not receive quit"
+  bash "${SCRIPT_DIR}/healthcheck.sh" && fail "the health check passed after the server stopped"
+  expect_line "${HOMEDIR}/args" "-servername"
 }
 
-run_lua_dry_run() {
-  cp "${SCRIPT_DIR}/sample_sandbox.lua" "${TMP_DIR}/sample_sandbox.lua"
-  (
-    export lua__sample_sandbox__SandboxVars__ZombieLore__Transmission=4
-    export lua__sample_sandbox__SandboxVars__World__Event=2
-    export LUA_CTRL_DRY_RUN=true
-    bash "${ROOT_DIR}/scripts/apply_lua_vars.sh" "${TMP_DIR}/sample_sandbox.lua" "SandboxVars"
-  )
-  normalize_file "${SCRIPT_DIR}/sample_sandbox.lua" "${TMP_DIR}/sample_sandbox.norm.lua"
-  normalize_file "${TMP_DIR}/sample_sandbox.lua" "${TMP_DIR}/sample_sandbox.out.lua"
-  if ! diff -u "${TMP_DIR}/sample_sandbox.norm.lua" "${TMP_DIR}/sample_sandbox.out.lua" >/dev/null; then
-    echo "Lua dry-run modified file" >&2
-    exit 1
-  fi
-}
-
-run_lua_load() {
-  cp "${SCRIPT_DIR}/sample_sandbox.lua" "${TMP_DIR}/sample_sandbox.lua"
-  (
-    export lua__sample_sandbox__SandboxVars__ZombieLore__Transmission=4
-    export lua__sample_sandbox__SandboxVars__World__Event=2
-    bash "${ROOT_DIR}/scripts/apply_lua_vars.sh" "${TMP_DIR}/sample_sandbox.lua" "SandboxVars"
-  )
-  if ! grep -q "Transmission = 4" "${TMP_DIR}/sample_sandbox.lua"; then
-    echo "Lua apply did not update Transmission" >&2
-    exit 1
-  fi
-  if ! grep -q "Event = 2" "${TMP_DIR}/sample_sandbox.lua"; then
-    echo "Lua apply did not update Event" >&2
-    exit 1
-  fi
-}
-
-run_lua_load_docs_style() {
-  cp "${SCRIPT_DIR}/sample_sandbox.lua" "${TMP_DIR}/sample_sandbox.lua"
-  (
-    export lua__sample_sandbox__SandboxVars__ZombieLore__Transmission=4
-    export lua__sample_sandbox__SandboxVars__World__Event=2
-    bash "${ROOT_DIR}/scripts/apply_lua_vars.sh" "${TMP_DIR}/sample_sandbox.lua" "SandboxVars"
-  )
-  if ! grep -q "Transmission = 4" "${TMP_DIR}/sample_sandbox.lua"; then
-    echo "Lua docs-style apply did not update Transmission" >&2
-    exit 1
-  fi
-  if ! grep -q "Event = 2" "${TMP_DIR}/sample_sandbox.lua"; then
-    echo "Lua docs-style apply did not update Event" >&2
-    exit 1
-  fi
-}
-
-run_env_docs_smoke() {
-  local env_dir="${TMP_DIR}/env_sources"
-  local out_json="${TMP_DIR}/env.json"
-  local index_json="${TMP_DIR}/index.json"
-  mkdir -p "${env_dir}/Server"
-  cp "${SCRIPT_DIR}/sample.ini" "${env_dir}/Server/pzserver.ini"
-  cp "${SCRIPT_DIR}/sample_sandbox.lua" "${env_dir}/Server/pzserver_SandboxVars.lua"
-
-  SERVERNAME=pzserver ENV_SOURCES_DIR="${env_dir}" OUTPUT_PATH="${out_json}" IMAGE_TAG="smoke" bash "${ROOT_DIR}/scripts/generate_env_docs.sh"
-
-  if [ ! -s "${out_json}" ]; then
-    echo "Env docs did not generate output" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.ini.pzserver[""].Public.env_name' "${out_json}")" != "ini__pzserver__Public" ]; then
-    echo "Env docs missing ini__pzserver__Public" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_SandboxVars.ZombieLore.Transmission.env_name' "${out_json}")" != "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Transmission" ]; then
-    echo "Env docs missing lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Transmission" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.meta.sources.ini_pzserver' "${out_json}")" != "${env_dir}/Server/pzserver.ini" ]; then
-    echo "Env docs missing expected meta source mapping for ini_pzserver" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.meta.sources.lua_pzserver_SandboxVars' "${out_json}")" != "${env_dir}/Server/pzserver_SandboxVars.lua" ]; then
-    echo "Env docs missing expected meta source mapping for lua_pzserver_SandboxVars" >&2
-    exit 1
-  fi
-  bash "${ROOT_DIR}/scripts/generate_env_index.sh" "${TMP_DIR}" "${index_json}"
-  if [ ! -s "${index_json}" ]; then
-    echo "Env docs index did not generate output" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.files[] | select(.file=="env.json") | .file' "${index_json}" | head -n1)" != "env.json" ]; then
-    echo "Env docs index missing env.json" >&2
-    exit 1
-  fi
-}
-
-run_env_docs_roundtrip_smoke() {
-  local env_dir="${TMP_DIR}/env_sources_roundtrip"
-  local out_json="${TMP_DIR}/env-roundtrip.json"
-  mkdir -p "${env_dir}/Server"
-  cp "${SCRIPT_DIR}/sample.ini" "${env_dir}/Server/pzserver.ini"
-  cp "${SCRIPT_DIR}/sample_sandbox.lua" "${env_dir}/Server/pzserver_SandboxVars.lua"
-
-  SERVERNAME=pzserver ENV_SOURCES_DIR="${env_dir}" OUTPUT_PATH="${out_json}" IMAGE_TAG="smoke-roundtrip" bash "${ROOT_DIR}/scripts/generate_env_docs.sh"
-
-  local ini_public ini_public_name ini_pvp ini_dropoff
-  local lua_transmission lua_event
-
-  ini_public="$(jq -r '.env.generated.ini.pzserver[""].Public.env_name' "${out_json}")"
-  ini_public_name="$(jq -r '.env.generated.ini.pzserver[""].PublicName.env_name' "${out_json}")"
-  ini_pvp="$(jq -r '.env.generated.ini.pzserver.ServerOptions.PVP.env_name' "${out_json}")"
-  ini_dropoff="$(jq -r '.env.generated.ini.pzserver.ServerOptions.DropOffWhiteList.env_name' "${out_json}")"
-  lua_transmission="$(jq -r '.env.generated.lua.pzserver_SandboxVars.ZombieLore.Transmission.env_name' "${out_json}")"
-  lua_event="$(jq -r '.env.generated.lua.pzserver_SandboxVars.World.Event.env_name' "${out_json}")"
-
-  if [ -z "${ini_public}" ] || [ -z "${ini_public_name}" ] || [ -z "${ini_pvp}" ] || [ -z "${ini_dropoff}" ] || [ -z "${lua_transmission}" ] || [ -z "${lua_event}" ]; then
-    echo "Roundtrip smoke failed to extract generated env names" >&2
-    exit 1
-  fi
-
-  (
-    export "${ini_public}=true"
-    export "${ini_public_name}=New Name"
-    export "${ini_pvp}=false"
-    export "${ini_dropoff}=false"
-    bash "${ROOT_DIR}/scripts/apply_ini_vars.sh" "${env_dir}/Server/pzserver.ini"
-
-    export "${lua_transmission}=4"
-    export "${lua_event}=2"
-    bash "${ROOT_DIR}/scripts/apply_lua_vars.sh" "${env_dir}/Server/pzserver_SandboxVars.lua" "SandboxVars"
-  )
-
-  if ! grep -q '^Public=true$' "${env_dir}/Server/pzserver.ini"; then
-    echo "Roundtrip INI apply did not update Public" >&2
-    exit 1
-  fi
-  if ! grep -q '^PublicName=New Name$' "${env_dir}/Server/pzserver.ini"; then
-    echo "Roundtrip INI apply did not update PublicName" >&2
-    exit 1
-  fi
-  if ! grep -q '^PVP=false$' "${env_dir}/Server/pzserver.ini"; then
-    echo "Roundtrip INI apply did not update ServerOptions.PVP" >&2
-    exit 1
-  fi
-  if ! grep -q '^DropOffWhiteList=false$' "${env_dir}/Server/pzserver.ini"; then
-    echo "Roundtrip INI apply did not update ServerOptions.DropOffWhiteList" >&2
-    exit 1
-  fi
-
-  if ! grep -q "Transmission = 4" "${env_dir}/Server/pzserver_SandboxVars.lua"; then
-    echo "Roundtrip Lua apply did not update Transmission" >&2
-    exit 1
-  fi
-  if ! grep -q "Event = 2" "${env_dir}/Server/pzserver_SandboxVars.lua"; then
-    echo "Roundtrip Lua apply did not update Event" >&2
-    exit 1
-  fi
-}
-
-run_env_docs_replaced_by_smoke() {
-  local env_dir="${TMP_DIR}/env_sources_replaced_by"
-  local out_json="${TMP_DIR}/env-replaced-by.json"
-  mkdir -p "${env_dir}/Server"
-
-  cat > "${env_dir}/Server/pzserver.ini" <<'EOF'
-Password=old
-RCONPassword=oldrcon
-Mods=
-WorkshopItems=
-EOF
-
-  SERVERNAME=pzserver ENV_SOURCES_DIR="${env_dir}" OUTPUT_PATH="${out_json}" IMAGE_TAG="smoke-replaced-by" bash "${ROOT_DIR}/scripts/generate_env_docs.sh"
-
-  if [ "$(jq -r '.env.generated.ini.pzserver[""].Password.replaced_by | index("PASSWORD") != null' "${out_json}")" != "true" ]; then
-    echo "Env docs missing replaced_by mapping for ini__pzserver__Password -> PASSWORD" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.ini.pzserver[""].RCONPassword.replaced_by | index("RCONPASSWORD") != null' "${out_json}")" != "true" ]; then
-    echo "Env docs missing replaced_by mapping for ini__pzserver__RCONPassword -> RCONPASSWORD" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.ini.pzserver[""].Mods.replaced_by | index("MOD_IDS") != null' "${out_json}")" != "true" ]; then
-    echo "Env docs missing replaced_by mapping for ini__pzserver__Mods -> MOD_IDS" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.ini.pzserver[""].WorkshopItems.replaced_by | index("WORKSHOP_IDS") != null' "${out_json}")" != "true" ]; then
-    echo "Env docs missing replaced_by mapping for ini__pzserver__WorkshopItems -> WORKSHOP_IDS" >&2
-    exit 1
-  fi
-}
-
-run_env_name_contract_smoke() {
-  local env_dir="${TMP_DIR}/env_sources_contract"
-  local out_json="${TMP_DIR}/env-contract.json"
-  mkdir -p "${env_dir}/Server"
-
-  cat > "${env_dir}/Server/pzserver_network.ini" <<'EOF'
-Voice__Quality=1
-
-[Voice]
-Quality=4
-EOF
-
-  cat > "${env_dir}/Server/pzserver_SandboxVars.lua" <<'EOF'
-SandboxVars = {
-  ZombieLore = {
-    Transmission = 2,
-  },
-}
-EOF
-
-  cat > "${env_dir}/Server/pzserver_LootRules.lua" <<'EOF'
-return {
-  Enabled = true,
-  Zones = {
-    Town = {
-      Weapons = 2,
-    },
-  },
-}
-EOF
-
-  cat > "${env_dir}/Server/pzserver_MultiTables.lua" <<'EOF'
-SandboxVars = {
-  ZombieLore = {
-    Transmission = 2,
-  },
-}
-SandboxVars2 = {
-  ZombieLore = {
-    Transmission = 4,
-  },
-}
-EOF
-
-  SERVERNAME=pzserver ENV_SOURCES_DIR="${env_dir}" OUTPUT_PATH="${out_json}" IMAGE_TAG="smoke-contract" bash "${ROOT_DIR}/scripts/generate_env_docs.sh"
-
-  if [ "$(jq -r '.env.generated.ini.pzserver_network[""].Voice__Quality.env_name' "${out_json}")" != "ini__pzserver_network__Voice__Quality" ]; then
-    echo "Contract smoke missing root INI underscore key name" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.ini.pzserver_network.Voice.Quality.env_name' "${out_json}")" != "ini__pzserver_network__Voice__Quality" ]; then
-    echo "Contract smoke missing section INI key name" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_SandboxVars.ZombieLore.Transmission.env_name' "${out_json}")" != "lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Transmission" ]; then
-    echo "Contract smoke missing single-table Lua key name" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_LootRules.Zones.Town__Weapons.env_name' "${out_json}")" != "lua__pzserver_LootRules__Zones__Town__Weapons" ]; then
-    echo "Contract smoke missing return-table Lua key name" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MultiTables.SandboxVars.ZombieLore__Transmission.env_name' "${out_json}")" != "lua__pzserver_MultiTables__SandboxVars__ZombieLore__Transmission" ]; then
-    echo "Contract smoke missing multi-table first key name" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MultiTables.SandboxVars2.ZombieLore__Transmission.env_name' "${out_json}")" != "lua__pzserver_MultiTables__SandboxVars2__ZombieLore__Transmission" ]; then
-    echo "Contract smoke missing multi-table second key name" >&2
-    exit 1
-  fi
-
-  (
-    export ini__pzserver_network__Voice__Quality=9
-    bash "${ROOT_DIR}/scripts/apply_ini_vars.sh" "${env_dir}/Server/pzserver_network.ini"
-
-    export lua__pzserver_SandboxVars__SandboxVars__ZombieLore__Transmission=7
-    bash "${ROOT_DIR}/scripts/apply_lua_vars.sh" "${env_dir}/Server/pzserver_SandboxVars.lua" "SandboxVars"
-  )
-
-  if ! grep -q '^Quality=9$' "${env_dir}/Server/pzserver_network.ini"; then
-    echo "Contract smoke runtime apply failed for INI docs-style name" >&2
-    exit 1
-  fi
-  if ! grep -q 'Transmission = 7' "${env_dir}/Server/pzserver_SandboxVars.lua"; then
-    echo "Contract smoke runtime apply failed for Lua docs-style name" >&2
-    exit 1
-  fi
-}
-
-# Runs every hook against a server home in $1 with the remaining arguments as environment,
-# then prints the launch args one per line.
-run_hooks_in() {
-  local home="$1"
-  shift
-  mkdir -p "${home}/Zomboid/Server"
-  touch "${home}/Zomboid/Server/pzserver.ini"
-  env -i PATH="${PATH}" HOMEDIR="${home}" "$@" bash -c '
-    SCRIPT_DIR="$1/scripts"
-    . "${SCRIPT_DIR}/lib/runtime_helpers.sh"
-    . "${SCRIPT_DIR}/lib/hooks.sh"
-    SERVERNAME=pzserver
-    INI_FILE="${HOMEDIR}/Zomboid/Server/pzserver.ini"
-    ARGS=()
-    run_env_hooks "${SCRIPT_DIR}/custom" >/dev/null 2>&1
-    printf "%s\n" "${ARGS[@]}"
-  ' _ "${ROOT_DIR}"
-}
-
-run_first_boot_config_smoke() {
-  local home="${TMP_DIR}/first_boot_home"
-  local ini="${home}/Zomboid/Server/pzserver.ini"
-  printf 'secret-from-file\n' > "${TMP_DIR}/rcon_secret"
-  run_hooks_in "${home}" \
-    'MOD_IDS=\\ModA;\\ModB' PASSWORD='p&ss|word' RCONPASSWORD_FILE="${TMP_DIR}/rcon_secret" \
-    ini__pzserver__Public=true ini__pzserver__Mods=ignored >/dev/null
-  local expected
-  expected="$(printf '%s\n' 'Mods=\\ModA;\\ModB' 'Password=p&ss|word' 'RCONPassword=secret-from-file' 'WorkshopItems=' 'Public=true')"
-  if [ "$(sort "${ini}")" != "$(echo "${expected}" | sort)" ]; then
-    echo "Unexpected first boot INI:" >&2
-    diff <(echo "${expected}" | sort) <(sort "${ini}") >&2
-    exit 1
-  fi
-}
-
-run_launch_args_smoke() {
-  local actual
-  actual="$(run_hooks_in "${TMP_DIR}/launch_home" \
-    MEMORY=2048m DEBUG=true ADMINUSERNAME=boss PORT=17000 ADMINPASSWORD='p@ss word$USER')"
-  local expected
-  expected="$(printf '%s\n' -Xms2048m -Xmx2048m -- -debug -adminusername boss -servername pzserver -port 17000 -adminpassword 'p@ss word$USER')"
-  if [ "${actual}" != "${expected}" ]; then
-    echo "Unexpected launch args:" >&2
-    diff <(echo "${expected}") <(echo "${actual}") >&2
-    exit 1
-  fi
-}
-
-run_env_docs_rich_smoke() {
-  local env_dir="${TMP_DIR}/env_sources_rich"
-  local out_json="${TMP_DIR}/env-rich.json"
-  local index_json="${TMP_DIR}/index.json"
-  local gen_log="${TMP_DIR}/env-rich.log"
-  mkdir -p "${env_dir}/Server"
-
-  cat > "${env_dir}/Server/pzserver.ini" <<'EOF'
-# Global options
-Public=true
-PublicName=Rich Server
-
-[ServerOptions]
-# PvP flag
-PVP=false
-MaxPlayers=24 ; max players inline
-
-[Steam]
-SteamVAC=true
-EOF
-
-  cat > "${env_dir}/Server/pzserver_spawnregions.ini" <<'EOF'
-[WestPoint]
-# points to lua region file
-file=media/maps/West Point, KY/spawnpoints.lua
-
-[Muldraugh]
-file=media/maps/Muldraugh, KY/spawnpoints.lua
-EOF
-
-  cat > "${env_dir}/Server/pzserver_network.ini" <<'EOF'
-# network tuning
-UDPBuffer=65536
-Voice__Quality=1
-
-[Voice]
-# voice enabled
-Enabled=true
-Quality=4 ; voice quality inline
-
-[Connection]
-MaxConnections=128
-EOF
-
-  cat > "${env_dir}/Server/pzserver_case.ini" <<'EOF'
-[Case]
-PVP=true
-pvp=false
-EOF
-
-  cat > "${env_dir}/Server/pzserver_parser.ini" <<'EOF'
-[Quotes]
-Welcome="hello;world # not comment" ; quoted comment kept
-DupKey=1
-DupKey=2
-EOF
-
-  cat > "${env_dir}/Server/pzserver_SandboxVars.lua" <<'EOF'
-SandboxVars = {
-  ZombieLore = {
-    -- spread mode
-    Transmission = 2,
-    Mortality = 5,
-  },
-  World = {
-    Event = 3,
-    Temperature = 4,
-  },
-  Farming = {
-    Abundance = 2,
-  },
-}
-EOF
-
-  cat > "${env_dir}/Server/pzserver_MapSettings.lua" <<'EOF'
-MapSettings = {
-  Zones = {
-    Forest = {
-      Loot = 2,
-      Threat = 1,
-    },
-    City = {
-      Loot = 4,
-      Threat = 4,
-    }
-  },
-  Weather = {
-    Rain = 3,
-  }
-}
-EOF
-
-  cat > "${env_dir}/Server/pzserver_AdvancedSettings.lua" <<'EOF'
-AdvancedSettings = {
-  -- enable advanced mode
-  Enabled = true,
-  Loot = {
-    Containers = {
-      House = {
-        -- deep rarity value
-        RareChance = 6,
-      },
-      Warehouse = {
-        RareChance = 9,
-      },
-    },
-  },
-  Zombies = {
-    Speeds = {
-      Day = 2,
-      Night = 4,
-    },
-  },
-}
-EOF
-
-  cat > "${env_dir}/Server/pzserver_LootRules.lua" <<'EOF'
-return {
-  -- root enabled flag
-  Enabled = true,
-  Multipliers = {
-    Food = 2,
-    Weapons = 1,
-  },
-  Zones = {
-    Town = {
-      -- town weapon multiplier
-      Weapons = 2,
-    },
-    Rural = {
-      Weapons = 1,
-    },
-  },
-}
-EOF
-
-  cat > "${env_dir}/Server/pzserver_MultiTables.lua" <<'EOF'
-SandboxVars = {
-  ZombieLore = {
-    Transmission = 2,
-  },
-}
-SandboxVars2 = {
-  ZombieLore = {
-    Transmission = 4,
-  },
-}
-EOF
-
-  cat > "${env_dir}/Server/pzserver_BracketKeys.lua" <<'EOF'
-return {
-  Zones = {
-    ["Town-Center"] = 2, -- bracket key description
-    ["A\"B"] = 3, -- escaped quote bracket key
-    ['A\'B'] = 5, -- escaped single quote bracket key
-    ['Semi;Colon'] = "A--B", -- single quote bracket key
-    [42] = 7, -- numeric bracket key
-  },
-  Banner = "--literal value", -- banner description
-  Literal = "--no inline comment",
-  Dup = 1,
-  Dup = 2,
-}
-EOF
-
-  cat > "${env_dir}/Server/pzserver_MixedBracketNested.lua" <<'EOF'
-return {
-  Mix = {
-    ["x"] = {
-      [1] = {
-        ['y'] = 11, -- mixed nested value
-      },
-    },
-  },
-  ArrayLike = {
-    10,
-    20,
-    30,
-  },
-}
-EOF
-
-  cat > "${env_dir}/Server/pzserver_MalformedBracket.lua" <<'EOF'
-return {
-  Bad = {
-    ["MissingEnd = 1, -- malformed bracket key
-    ['AlsoBad] = 2, -- malformed bracket key
-    [abc] = 3, -- unsupported bare identifier bracket key
-    Good = 4, -- valid neighbor key
-  },
-}
-EOF
-
-  SERVERNAME=pzserver ENV_SOURCES_DIR="${env_dir}" OUTPUT_PATH="${out_json}" IMAGE_TAG="smoke-rich" bash "${ROOT_DIR}/scripts/generate_env_docs.sh" 2>"${gen_log}"
-
-  if [ ! -s "${out_json}" ]; then
-    echo "Rich env docs did not generate output" >&2
-    exit 1
-  fi
-
-  if [ "$(jq -r '[
-      (.env.generated.ini // {} | .. | objects | select(has("name") and has("source_ids")) | select((.source_ids | length) == 0)),
-      (.env.generated.lua // {} | .. | objects | select(has("name") and has("source_ids")) | select((.source_ids | length) == 0))
-    ] | length' "${out_json}")" != "0" ]; then
-    echo "Rich env docs contains malformed generated entries with empty source_ids" >&2
-    exit 1
-  fi
-
-  if [ "$(jq -r '.env.custom | has("mods") and has("security") and has("config") and has("runtime") and has("server") and has("network") and has("jvm")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing expected merged env.custom feature groups" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.meta.sources | has("hooks_args") and has("hooks") and has("hooks_vars")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing expected handcrafted source IDs" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.meta.sources.lua_pzserver_MultiTables' "${out_json}")" != "${env_dir}/Server/pzserver_MultiTables.lua" ]; then
-    echo "Rich env docs missing expected meta source mapping for lua_pzserver_MultiTables" >&2
-    exit 1
-  fi
-
-  if [ "$(jq -r '.env.generated.ini.pzserver | has("") and has("ServerOptions")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing nested INI sections for pzserver.ini" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.ini.pzserver_spawnregions | has("WestPoint") and has("Muldraugh")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing nested INI sections for spawnregions" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.ini.pzserver_network | has("") and has("Voice") and has("Connection")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing nested INI sections for network" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.ini.pzserver_case | has("Case")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing nested INI sections for case file" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.ini.pzserver_parser | has("Quotes")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing nested INI sections for parser file" >&2
-    exit 1
-  fi
-
-  if [ "$(jq -r '.env.generated.lua.pzserver_SandboxVars | has("ZombieLore") and has("World") and has("Farming")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing trimmed Lua groups for SandboxVars" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MapSettings | has("Zones") and has("Weather")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing trimmed Lua groups for MapSettings" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_AdvancedSettings | has("") and has("Loot") and has("Zombies")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing trimmed Lua groups for AdvancedSettings" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_LootRules | has("") and has("Multipliers") and has("Zones")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing nested Lua groups for LootRules" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MultiTables | has("SandboxVars") and has("SandboxVars2")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing retained top-level Lua groups for MultiTables" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys | has("") and has("Zones")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing Lua groups for bracket-keys file" >&2
-    exit 1
-  fi
-
-  if [ "$(jq -r '.env.generated.ini.pzserver.ServerOptions.MaxPlayers.description' "${out_json}")" != "max players inline" ]; then
-    echo "Rich env docs missing inline INI description extraction" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_SandboxVars.ZombieLore.Transmission.description' "${out_json}")" != "spread mode" ]; then
-    echo "Rich env docs missing Lua comment description extraction" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.ini.pzserver_network.Voice.Quality.description' "${out_json}")" != "voice quality inline" ]; then
-    echo "Rich env docs missing inline INI description extraction for network" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.ini.pzserver_network[""].Voice__Quality.env_name' "${out_json}")" != "ini__pzserver_network__Voice__Quality" ]; then
-    echo "Rich env docs missing collision-safe INI promoted name for root Voice__Quality" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.ini.pzserver_parser.Quotes.Welcome.description' "${out_json}")" != "quoted comment kept" ]; then
-    echo "Rich env docs failed quote-aware INI inline comment parsing" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.ini.pzserver_case.Case.PVP.env_name' "${out_json}")" != "ini__pzserver_case__Case__PVP" ]; then
-    echo "Rich env docs missing case-sensitive INI key PVP" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.ini.pzserver_case.Case.pvp.env_name' "${out_json}")" != "ini__pzserver_case__Case__pvp" ]; then
-    echo "Rich env docs missing case-sensitive INI key pvp" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_AdvancedSettings[""].Enabled.description' "${out_json}")" != "enable advanced mode" ]; then
-    echo "Rich env docs missing top-level Lua description extraction" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_AdvancedSettings.Loot.Containers__House__RareChance.description' "${out_json}")" != "deep rarity value" ]; then
-    echo "Rich env docs missing deep nested Lua description extraction" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_LootRules[""].Enabled.description' "${out_json}")" != "root enabled flag" ]; then
-    echo "Rich env docs missing return-table top-level Lua description extraction" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_LootRules.Zones.Town__Weapons.description' "${out_json}")" != "town weapon multiplier" ]; then
-    echo "Rich env docs missing return-table nested Lua description extraction" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MultiTables.SandboxVars.ZombieLore__Transmission.env_name' "${out_json}")" != "lua__pzserver_MultiTables__SandboxVars__ZombieLore__Transmission" ]; then
-    echo "Rich env docs missing first top-level Lua group extraction in MultiTables" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MultiTables.SandboxVars2.ZombieLore__Transmission.env_name' "${out_json}")" != "lua__pzserver_MultiTables__SandboxVars2__ZombieLore__Transmission" ]; then
-    echo "Rich env docs missing second top-level Lua group extraction in MultiTables" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys.Zones["Town-Center"].description' "${out_json}")" != "bracket key description" ]; then
-    echo "Rich env docs missing double-quoted Lua bracket key extraction" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys.Zones["Semi;Colon"].description' "${out_json}")" != "single quote bracket key" ]; then
-    echo "Rich env docs missing single-quoted Lua bracket key extraction" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys.Zones["42"].description' "${out_json}")" != "numeric bracket key" ]; then
-    echo "Rich env docs missing numeric Lua bracket key extraction" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys.Zones["A\"B"].env_name' "${out_json}")" != "lua__pzserver_BracketKeys__Zones__A\"B" ]; then
-    echo "Rich env docs missing escaped-quote Lua bracket key extraction" >&2
-    exit 1
-  fi
-  if [ "$(jq -r ".env.generated.lua.pzserver_BracketKeys.Zones[\"A'B\"].env_name" "${out_json}")" != "lua__pzserver_BracketKeys__Zones__A'B" ]; then
-    echo "Rich env docs missing escaped-single-quote Lua bracket key extraction" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MixedBracketNested.Mix.x__1__y.description' "${out_json}")" != "mixed nested value" ]; then
-    echo "Rich env docs missing mixed bracket nested Lua extraction" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MixedBracketNested.ArrayLike // {} | has("1") or has("2") or has("3")' "${out_json}")" != "false" ]; then
-    echo "Rich env docs unexpectedly generated Lua array index entries" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MalformedBracket | has("Bad")' "${out_json}")" != "true" ]; then
-    echo "Rich env docs missing malformed-bracket Lua group" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_MalformedBracket.Bad.Good.description' "${out_json}")" != "valid neighbor key" ]; then
-    echo "Rich env docs failed to extract valid key adjacent to malformed bracket keys" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '[.env.generated.lua.pzserver_MalformedBracket.Bad[]?.env_name | select(test("MissingEnd|AlsoBad|abc"))] | length' "${out_json}")" != "0" ]; then
-    echo "Rich env docs unexpectedly extracted malformed Lua bracket keys" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys[""].Banner.description' "${out_json}")" != "banner description" ]; then
-    echo "Rich env docs failed quote-aware Lua inline comment parsing" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.env.generated.lua.pzserver_BracketKeys[""].Literal.description' "${out_json}")" != "" ]; then
-    echo "Rich env docs falsely parsed Lua inline comment inside quoted value" >&2
-    exit 1
-  fi
-  if ! grep -q 'Warning: duplicate INI generated env name ini__pzserver_parser__Quotes__DupKey (occurrences=2)' "${gen_log}"; then
-    echo "Rich env docs missing duplicate INI warning" >&2
-    exit 1
-  fi
-  if ! grep -q 'Warning: duplicate LUA generated env name lua__pzserver_BracketKeys__Dup (occurrences=2)' "${gen_log}"; then
-    echo "Rich env docs missing duplicate Lua warning" >&2
-    exit 1
-  fi
-  if SERVERNAME=pzserver ENV_SOURCES_DIR="${env_dir}" OUTPUT_PATH="${TMP_DIR}/env-rich-strict.json" IMAGE_TAG="smoke-rich-strict" ENV_DOCS_FAIL_ON_DUPLICATES=true bash "${ROOT_DIR}/scripts/generate_env_docs.sh" >/dev/null 2>"${TMP_DIR}/env-rich-strict.log"; then
-    echo "Rich env docs strict duplicate mode did not fail on duplicates" >&2
-    exit 1
-  fi
-  if ! grep -q 'Error: duplicate generated env names found' "${TMP_DIR}/env-rich-strict.log"; then
-    echo "Rich env docs strict duplicate mode missing failure message" >&2
-    exit 1
-  fi
-  bash "${ROOT_DIR}/scripts/generate_env_index.sh" "${TMP_DIR}" "${index_json}"
-  if [ ! -s "${index_json}" ]; then
-    echo "Rich env docs index did not generate output" >&2
-    exit 1
-  fi
-  if [ "$(jq -r '.files[] | select(.file=="env-rich.json") | .file' "${index_json}" | head -n1)" != "env-rich.json" ]; then
-    echo "Rich env docs index missing env-rich.json" >&2
-    exit 1
-  fi
-}
-
-echo "Running INI helper smoke tests..."
-run_ini_dry_run
-echo "INI dry-run ok"
-run_ini_load
-echo "INI apply ok"
-run_ini_load_docs_style
-echo "INI docs-style apply ok"
-run_replaced_generated_ini_env_ignored_smoke
-echo "INI replaced-env filtering ok"
-
-echo "Running Lua helper smoke tests..."
-run_lua_dry_run
-echo "Lua dry-run ok"
-run_lua_load
-echo "Lua apply ok"
-run_lua_load_docs_style
-echo "Lua docs-style apply ok"
-
-echo "Running env docs smoke test..."
-run_env_docs_smoke
-echo "Env docs ok"
-
-echo "Running env docs roundtrip smoke test..."
-run_env_docs_roundtrip_smoke
-echo "Env docs roundtrip ok"
-
-echo "Running env docs replaced_by smoke test..."
-run_env_docs_replaced_by_smoke
-echo "Env docs replaced_by ok"
-
-echo "Running env name contract smoke test..."
-run_env_name_contract_smoke
-echo "Env name contract ok"
-
-echo "Running rich env docs smoke test..."
-run_env_docs_rich_smoke
-echo "Rich env docs ok"
-
-echo "Running first boot config smoke test..."
-run_first_boot_config_smoke
-echo "First boot config ok"
-
-echo "Running launch args smoke test..."
-run_launch_args_smoke
-echo "Launch args ok"
-
-echo "Smoke tests passed."
+for t in test_ini test_sandbox test_preset test_maps test_workshop test_configure test_list_env test_vars_documented test_entry; do
+  ( "${t}"; exit "${FAILED}" ) || FAILED=1
+done
+
+if [ "${FAILED}" -ne 0 ]; then
+  echo "Smoke tests failed" >&2
+  exit 1
+fi
+echo "Smoke tests passed"

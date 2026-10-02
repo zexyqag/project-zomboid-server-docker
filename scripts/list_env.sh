@@ -1,15 +1,93 @@
 #!/bin/bash
-# Prints every env var this image understands for the server's current INI and Lua files,
-# including settings added by mods. Optional argument: a case-insensitive filter.
+# Lists every environment variable the image reads: its own variables, then one INI_ and
+# SANDBOX_ variable per setting in the server's current files, mod settings included.
+# Usage: list-env [--tsv] [filter]
 
 set -euo pipefail
 
-out="$(mktemp)"
-trap 'rm -f "${out}"' EXIT
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+SERVER_DIR="${HOMEDIR}/Zomboid/Server"
 
-SERVERNAME=pzserver ENV_SOURCES_DIR="${HOMEDIR}/Zomboid" OUTPUT_PATH="${out}" IMAGE_TAG=local \
-  bash /server/scripts/generate_env_docs.sh >/dev/null
+tsv=false
+if [ "${1:-}" = "--tsv" ]; then
+  tsv=true
+  shift
+fi
+filter="${1:-}"
 
-jq -r '.env | .. | objects | select(has("env_name") and .env_name != "") | [.env_name, .description] | @tsv' "${out}" \
-  | sort -u \
-  | grep -i -- "${1:-}"
+image_vars() {
+  local name description value
+  while IFS=$'\t' read -r name description; do
+    value="${!name:-}"
+    case "${name}" in
+      *PASSWORD|STEAM_API_KEY) [ -n "${value}" ] && value="(set)" ;;
+    esac
+    printf 'image\t%s\t%s\t%s\n' "${name}" "${value}" "${description}"
+  done < "${SCRIPT_DIR}/vars.tsv"
+}
+
+# Comment lines directly above a setting become its description.
+ini_vars() {
+  [ -f "$1" ] || return 0
+  awk '
+    function trim(s) { sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s); return s }
+    { line = trim($0); sub(/\r$/, "", line) }
+    line == "" { desc = ""; next }
+    line ~ /^[#;]/ { sub(/^[#;][ \t]*/, "", line); desc = (desc == "" ? line : desc " " line); next }
+    index(line, "=") > 1 {
+      i = index(line, "=")
+      printf "ini\tINI_%s\t%s\t%s\n", substr(line, 1, i - 1), substr(line, i + 1), desc
+    }
+    { desc = "" }
+  ' "$1"
+}
+
+sandbox_vars() {
+  [ -f "$1" ] || return 0
+  awk '
+    function trim(s) { sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s); return s }
+    { line = trim($0); sub(/\r$/, "", line) }
+    line == "" { next }
+    line ~ /^--/ { sub(/^--[ \t]*/, "", line); desc = (desc == "" ? line : desc " " line); next }
+    line ~ /^[A-Za-z0-9_]+[ \t]*=[ \t]*\{$/ {
+      key = line
+      sub(/[ \t]*=.*/, "", key)
+      if (seen_root) stack[++depth] = key
+      seen_root = 1
+      desc = ""
+      next
+    }
+    line ~ /^\}[ \t]*,?$/ { if (depth > 0) depth--; desc = ""; next }
+    line ~ /^[A-Za-z0-9_]+[ \t]*=/ {
+      key = line
+      sub(/[ \t]*=.*/, "", key)
+      value = line
+      sub(/^[^=]*=[ \t]*/, "", value)
+      sub(/[ \t]*,$/, "", value)
+      name = ""
+      for (i = 1; i <= depth; i++) name = name stack[i] "__"
+      printf "sandbox\tSANDBOX_%s%s\t%s\t%s\n", name, key, value, desc
+    }
+    { desc = "" }
+  ' "$1"
+}
+
+rows() {
+  image_vars
+  ini_vars "${SERVER_DIR}/${SERVERNAME:-pzserver}.ini"
+  sandbox_vars "${SERVER_DIR}/${SERVERNAME:-pzserver}_SandboxVars.lua"
+}
+
+rows | awk -F '\t' -v filter="${filter}" -v tsv="${tsv}" '
+  filter != "" && index(tolower($2 " " $4), tolower(filter)) == 0 { next }
+  tsv == "true" { print; next }
+  {
+    if ($1 != kind) {
+      kind = $1
+      printf "%s## %s\n", (shown ? "\n" : ""), (kind == "image" ? "Image settings" : kind == "ini" ? "Server settings (pzserver.ini)" : "Sandbox settings (pzserver_SandboxVars.lua)")
+    }
+    shown = 1
+    if ($4 != "") print "# " $4
+    print $2 "=" $3
+  }
+'

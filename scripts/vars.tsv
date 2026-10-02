@@ -1,0 +1,26 @@
+ADMINUSERNAME	Admin account name created on the first start (default: admin).
+ADMINPASSWORD	Admin account password. Required on the first start, when the server creates its database; ignored afterwards.
+ADMINPASSWORD_FILE	File holding the admin password; takes precedence over ADMINPASSWORD.
+PASSWORD	Server password, written to the INI on every start.
+PASSWORD_FILE	File holding the server password; takes precedence over PASSWORD.
+RCONPASSWORD	RCON password, written to the INI on every start.
+RCONPASSWORD_FILE	File holding the RCON password; takes precedence over RCONPASSWORD.
+WORKSHOP_IDS	Workshop item and collection IDs separated by ';'. Collections are expanded and written to WorkshopItems. Set it empty to clear WorkshopItems.
+STEAM_API_KEY	Steam Web API key, only needed to expand private or unlisted collections in WORKSHOP_IDS.
+SERVERPRESET	Sandbox preset (a file name in media/lua/shared/Sandbox) used to create the SandboxVars file when it does not exist.
+SERVERPRESETREPLACE	Overwrite an existing SandboxVars file with SERVERPRESET on every start (true/false).
+CONFIG_STRICT	Refuse to start when an INI_ or SANDBOX_ variable matches no setting (true/false).
+MEMORY	Java heap size, for example 4096m or 8g. Sets both -Xms and -Xmx.
+SOFTRESET	Start with a soft reset (true/false).
+DEBUG	Start the server in debug mode (true/false).
+COOP	Start as a coop server instead of a dedicated one (true/false).
+NOSTEAM	Start without Steam, for non-Steam clients (true/false).
+MODFOLDERS	Mod folder search order, for example workshop,steam,mods.
+CACHEDIR	Data folder for the server. Leave unset, the volumes expect /home/steam/Zomboid.
+IP	Address the server binds to.
+PORT	Main UDP port (default 16261).
+UDPPORT	Second UDP port (default 16262).
+STEAMPORT1	Steam port 1.
+STEAMPORT2	Steam port 2.
+STEAMVAC	Enable Valve Anti-Cheat (true/false).
+LANG	Locale for the server, for example en_US.UTF-8. Must be installed in the image (see the EXTRA_LOCALES build argument).

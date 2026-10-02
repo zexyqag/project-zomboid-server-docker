@@ -1,0 +1,59 @@
+#!/bin/bash
+# Boots a freshly built image and checks that the server starts, keeps settings written before
+# its first start, creates its database and saves on `docker stop`. Then writes the env reference
+# for the docs site from the running server.
+# Usage: boot_test.sh <image> <reference.json> <image tag shown on the site>
+
+set -euo pipefail
+
+image="$1"
+reference="$2"
+label="$3"
+name="pz-boot-test"
+home="/home/steam/Zomboid"
+
+fail() {
+  echo "Error: $*" >&2
+  docker logs --tail 300 "${name}" >&2 || true
+  exit 1
+}
+trap 'docker rm -f "${name}" >/dev/null 2>&1 || true' EXIT
+
+docker run -d --name "${name}" --health-interval=5s \
+  -e ADMINPASSWORD=boot-test -e INI_PublicName="Boot test" -e CONFIG_STRICT=true \
+  "${image}" >/dev/null
+
+echo "Waiting for the server to start"
+status=""
+for _ in $(seq 1 240); do
+  status="$(docker inspect -f '{{.State.Health.Status}}' "${name}")"
+  [ "${status}" = healthy ] && break
+  [ "$(docker inspect -f '{{.State.Running}}' "${name}")" = true ] || fail "the server exited before it started"
+  sleep 5
+done
+[ "${status}" = healthy ] || fail "the server did not start within 20 minutes"
+
+docker exec "${name}" grep -qx 'PublicName=Boot test' "${home}/Server/pzserver.ini" \
+  || fail "INI_PublicName written before the first start was not kept"
+docker exec "${name}" test -f "${home}/db/pzserver.db" \
+  || fail "no database at Zomboid/db/pzserver.db; configure.sh uses it to tell the first start apart"
+docker exec "${name}" test -s "${home}/Server/pzserver_SandboxVars.lua" \
+  || fail "the server did not write pzserver_SandboxVars.lua"
+
+rows="$(docker exec "${name}" list-env --tsv)"
+for kind in image ini sandbox; do
+  grep -q "^${kind}	" <<< "${rows}" || fail "list-env found no ${kind} settings"
+done
+mkdir -p "$(dirname "${reference}")"
+jq -R -s --arg tag "${label}" '
+  split("\n")
+  | map(select(length > 0) | split("\t") | {kind: .[0], name: .[1], description: (.[3] // "")})
+  | {image_tag: $tag, vars: .}
+' <<< "${rows}" > "${reference}"
+
+echo "Stopping the server"
+docker stop -t 120 "${name}" >/dev/null
+exit_code="$(docker inspect -f '{{.State.ExitCode}}' "${name}")"
+[ "${exit_code}" = 0 ] || fail "the server exited with ${exit_code} on docker stop instead of saving and exiting cleanly"
+docker logs "${name}" 2>&1 | grep -q "Server stopped with exit code 0" || fail "the shutdown did not go through quit"
+echo "Boot test passed"

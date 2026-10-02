@@ -1,190 +1,96 @@
 name: Build and Publish Docker Image
 
-
+# Pushes and pull requests only run the tests. Images are built by the nightly run, which
+# publishes when the game has a new version or main has commits that are not in an image yet,
+# so a day of pushes costs at most one build.
 on:
   push:
     branches:
       - main
     paths:
       - 'scripts/**'
+      - 'smoke/**'
+      - 'ci/**'
+      - 'site/**'
       - 'Dockerfile'
+      - '.github/workflows/docker-image.yml'
   pull_request:
     paths:
       - 'scripts/**'
       - 'smoke/**'
-      - 'Dockerfile'
+      - 'ci/**'
       - 'site/**'
+      - 'Dockerfile'
       - '.github/workflows/docker-image.yml'
   schedule:
     - cron: "0 0 * * *" # daily at midnight UTC
   workflow_dispatch:
     inputs:
       force_rebuild:
-        description: "Force rebuild of stable/unstable images"
-        required: false
-        default: "false"
+        description: "Rebuild and republish even if the current images are up to date"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' }}
+
 jobs:
-  smoke:
-    if: github.event_name != 'schedule'
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Run helper smoke tests
-        run: |
-          echo "Running smoke tests for script changes"
-          bash smoke/run_smoke.sh
+      - name: Lint scripts
+        run: shellcheck -x -S warning scripts/*.sh scripts/lib/*.sh smoke/*.sh ci/*.sh
 
-  env_docs_parser_check:
-    if: github.event_name != 'schedule'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Run env-doc parser contract check
-        run: |
-          set -euo pipefail
-          tmpd="$(mktemp -d)"
-          trap 'rm -rf "$tmpd"' EXIT
-
-          mkdir -p "$tmpd/Server"
-
-          cat > "$tmpd/Server/pzserver.ini" <<'EOF'
-          Public=true
-
-          [ServerOptions]
-          MaxPlayers=24 ; inline ini comment
-          EOF
-
-          cat > "$tmpd/Server/pzserver_SandboxVars.lua" <<'EOF'
-          return {
-            Zones = {
-              ["A\"B"] = 2, -- escaped quote key
-              ['A\'B'] = 3, -- escaped single quote key
-              [42] = 7, -- numeric key
-            },
-            ArrayLike = {
-              10,
-              20,
-            },
-          }
-          EOF
-
-          SERVERNAME=pzserver \
-          ENV_SOURCES_DIR="$tmpd" \
-          OUTPUT_PATH="$tmpd/env.json" \
-          IMAGE_TAG="ci-parser-check" \
-          ENV_DOCS_FAIL_ON_DUPLICATES=true \
-          bash scripts/generate_env_docs.sh >/dev/null
-
-          jq -e '.env.generated.ini.pzserver.ServerOptions.MaxPlayers | select(.env_name=="ini__pzserver__ServerOptions__MaxPlayers" and .description=="inline ini comment")' "$tmpd/env.json" >/dev/null
-          jq -e '.env.generated.lua.pzserver_SandboxVars.Zones["A\"B"] | select(.env_name=="lua__pzserver_SandboxVars__Zones__A\"B")' "$tmpd/env.json" >/dev/null
-          jq -e ".env.generated.lua.pzserver_SandboxVars.Zones[\"A'B\"] | select(.env_name==\"lua__pzserver_SandboxVars__Zones__A'B\")" "$tmpd/env.json" >/dev/null
-          jq -e '.env.generated.lua.pzserver_SandboxVars.Zones["42"] | select(.env_name=="lua__pzserver_SandboxVars__Zones__42")' "$tmpd/env.json" >/dev/null
-          jq -e '((.env.generated.lua.pzserver_SandboxVars.ArrayLike // {}) | length) == 0' "$tmpd/env.json" >/dev/null
+      - name: Run smoke tests
+        run: bash smoke/run_smoke.sh
 
   prepare:
-    if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.force_rebuild == 'true')
+    needs: test
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
       has_builds: ${{ steps.set-matrix.outputs.has_builds }}
       repo_name_lc: ${{ steps.set-matrix.outputs.repo_name_lc }}
-      repo_version: ${{ steps.set-matrix.outputs.repo_version }}
-      latest_stable: ${{ steps.set-matrix.outputs.latest_stable }}
-      latest_unstable: ${{ steps.set-matrix.outputs.latest_unstable }}
-      docs_matrix: ${{ steps.set-matrix.outputs.docs_matrix }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
 
       - name: Decide build matrix
         id: set-matrix
+        env:
+          FORCE_REBUILD: ${{ inputs.force_rebuild || false }}
         run: |
           set -euo pipefail
-          REPO_NAME_LC="${{ github.repository }}"
-          REPO_NAME_LC="${REPO_NAME_LC,,}"
+          REPO_NAME_LC="${GITHUB_REPOSITORY,,}"
           REPO_VERSION="${GITHUB_SHA::7}"
+          eval "$(bash ci/get_latest_versions.sh)"
 
-          chmod +x scripts/get_latest_versions.sh
-          eval "$(scripts/get_latest_versions.sh)"
+          # An image tagged with this game version and commit means nothing changed since the last build.
+          needs_build() {
+            [ "${FORCE_REBUILD}" = "true" ] \
+              || ! docker manifest inspect "ghcr.io/${REPO_NAME_LC}:$1-$2-${REPO_VERSION}" >/dev/null 2>&1
+          }
 
-          BUILD_STABLE=false
-          BUILD_UNSTABLE=false
-
-          if [ "${{ github.event_name }}" = "push" ]; then
-            BUILD_STABLE=true
-            BUILD_UNSTABLE=true
+          builds=()
+          if needs_build stable "${LATEST_STABLE_VERSION}"; then
+            builds+=("stable:${LATEST_STABLE_VERSION}")
+          fi
+          if [ -n "${LATEST_UNSTABLE_VERSION}" ] && needs_build unstable "${LATEST_UNSTABLE_VERSION}"; then
+            builds+=("unstable:${LATEST_UNSTABLE_VERSION}")
           fi
 
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_rebuild }}" = "true" ]; then
-            BUILD_STABLE=true
-            BUILD_UNSTABLE=true
-          fi
-
-          if ! docker manifest inspect ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION} >/dev/null 2>&1; then
-            # New stable server version not yet published.
-            BUILD_STABLE=true
-          fi
-
-          if ! docker manifest inspect ghcr.io/$REPO_NAME_LC:stable-${LATEST_STABLE_VERSION}-${REPO_VERSION} >/dev/null 2>&1; then
-            # Current repo version not yet published for this stable version.
-            BUILD_STABLE=true
-          fi
-
-          if [ -z "${LATEST_UNSTABLE_VERSION}" ]; then
-            # No open beta on Steam.
-            BUILD_UNSTABLE=false
-          else
-            if ! docker manifest inspect ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION} >/dev/null 2>&1; then
-              # New unstable server version not yet published.
-              BUILD_UNSTABLE=true
-            fi
-
-            if ! docker manifest inspect ghcr.io/$REPO_NAME_LC:unstable-${LATEST_UNSTABLE_VERSION}-${REPO_VERSION} >/dev/null 2>&1; then
-              # Current repo version not yet published for this unstable version.
-              BUILD_UNSTABLE=true
-            fi
-          fi
-
-          channels=()
-          if [ "$BUILD_STABLE" = "true" ]; then
-            channels+=("stable")
-          fi
-          if [ "$BUILD_UNSTABLE" = "true" ]; then
-            channels+=("unstable")
-          fi
-
-          matrix=$(printf '%s\n' "${channels[@]}" | jq -R -s '
-            split("\n")
-            | map(select(length>0) | {channel:., branch:(if . == "unstable" then "unstable" else "" end)})
-            | {include:.}
-          ')
-
-          if [ "${#channels[@]}" -eq 0 ]; then
-            echo "has_builds=false" >> "$GITHUB_OUTPUT"
-            echo "matrix={\"include\":[]}" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_builds=true" >> "$GITHUB_OUTPUT"
-            {
-              echo "matrix<<EOF"
-              echo "$matrix"
-              echo "EOF"
-            } >> "$GITHUB_OUTPUT"
-          fi
-
-          docs_tags=("stable-${LATEST_STABLE_VERSION}")
-          if [ -n "${LATEST_UNSTABLE_VERSION}" ]; then
-            docs_tags+=("unstable-${LATEST_UNSTABLE_VERSION}")
-          fi
-          echo "docs_matrix=$(printf '%s\n' "${docs_tags[@]}" | jq -R -s -c 'split("\n") | map(select(length>0)) | {tag:.}')" >> "$GITHUB_OUTPUT"
-
+          matrix="$(printf '%s\n' "${builds[@]}" | jq -R -s -c '
+            split("\n") | map(select(length > 0) | split(":") | {channel: .[0], version: .[1]}) | {include: .}
+          ')"
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
+          echo "has_builds=$([ "${#builds[@]}" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           echo "repo_name_lc=${REPO_NAME_LC}" >> "$GITHUB_OUTPUT"
-          echo "repo_version=${REPO_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "latest_stable=${LATEST_STABLE_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "latest_unstable=${LATEST_UNSTABLE_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Builds: ${builds[*]:-none}"
 
   build:
     needs: prepare
@@ -196,6 +102,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    env:
+      IMAGE: ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}
+      LOCAL_IMAGE: pz-server:candidate
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -210,109 +119,48 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image (retry)
+      # SteamCMD downloads fail now and then, so the build is retried.
+      - name: Build image
         uses: nick-fields/retry@v4
         with:
           timeout_minutes: 60
           max_attempts: 5
           command: |
-            if [ "${{ matrix.channel }}" = "stable" ]; then
-              VERSION="${{ needs.prepare.outputs.latest_stable }}"
-              BRANCH_ARG=""
-            else
-              VERSION="${{ needs.prepare.outputs.latest_unstable }}"
-              BRANCH_ARG="--build-arg STEAMAPPBRANCH=unstable"
-            fi
-
+            BRANCH="public"
+            [ "${{ matrix.channel }}" = "unstable" ] && BRANCH="unstable"
             docker buildx build \
-              $BRANCH_ARG \
-              --cache-from type=gha \
-              --cache-to type=gha,mode=max \
+              --build-arg STEAMAPPBRANCH="${BRANCH}" \
+              --cache-from type=gha,scope=${{ matrix.channel }} \
+              --cache-to type=gha,mode=max,scope=${{ matrix.channel }} \
               --label org.opencontainers.image.revision=${{ github.sha }} \
-              --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }}-${VERSION} \
-              --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }}-${VERSION}-${{ needs.prepare.outputs.repo_version }} \
-              --tag ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.channel }} \
-              --push \
+              --tag "${LOCAL_IMAGE}" \
+              --load \
               .
 
-  docs:
-    needs: [prepare, build]
-    if: needs.build.result == 'success'
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.prepare.outputs.docs_matrix) }}
-    steps:
-      - name: Generate env docs from a booted server
+      - name: Boot test
+        run: |
+          bash ci/boot_test.sh "${LOCAL_IMAGE}" \
+            "out/${{ matrix.channel }}-${{ matrix.version }}.json" \
+            "${{ matrix.channel }}-${{ matrix.version }}-${GITHUB_SHA::7}"
+
+      - name: Publish image
         run: |
           set -euo pipefail
-          IMAGE="ghcr.io/${{ needs.prepare.outputs.repo_name_lc }}:${{ matrix.tag }}"
-          docker pull "${IMAGE}"
-          REVISION="$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "${IMAGE}")"
-          if [ -z "${REVISION}" ] || [ "${REVISION}" = "<no value>" ]; then
-            echo "Error: ${IMAGE} has no revision label" >&2
-            exit 1
-          fi
-
-          mkdir -p zomboid out
-          INI=zomboid/Server/pzserver.ini
-          LUA=zomboid/Server/pzserver_SandboxVars.lua
-          docker run -d --name pz-docs -e ADMINPASSWORD=envdocs -v "$PWD/zomboid:/home/steam/Zomboid" "${IMAGE}"
-
-          # The server writes the INI first and SandboxVars later; wait until both stop growing.
-          previous=""
-          ready=false
-          for _ in $(seq 1 150); do
-            if sudo test -f "${INI}" && sudo test -f "${LUA}"; then
-              current="$(sudo stat -c %s "${INI}" "${LUA}" | paste -sd ' ')"
-              if [ "${current}" = "${previous}" ]; then
-                ready=true
-                break
-              fi
-              previous="${current}"
-            fi
-            sleep 2
-          done
-          if [ "${ready}" != true ]; then
-            echo "Error: the server did not write ${INI} and ${LUA}; container logs:" >&2
-            docker logs pz-docs >&2
-            exit 1
-          fi
-
-          docker exec \
-            -e SERVERNAME=pzserver \
-            -e ENV_SOURCES_DIR=/home/steam/Zomboid \
-            -e OUTPUT_PATH=/tmp/env.json \
-            -e IMAGE_TAG="${{ matrix.tag }}-${REVISION::7}" \
-            -e ENV_DOCS_FAIL_ON_DUPLICATES=true \
-            pz-docs bash /server/scripts/generate_env_docs.sh
-          docker cp pz-docs:/tmp/env.json "out/${{ matrix.tag }}.json"
-          docker rm -f pz-docs
-
-      - name: Check replaced_by mappings
-        run: |
-          set -euo pipefail
-          DOC="out/${{ matrix.tag }}.json"
-          jq -e '[.env.generated.lua | .. | objects | select(has("env_name"))] | length > 0' "${DOC}" >/dev/null
-          jq -e '.env.custom.mods.MOD_IDS.env_name == "MOD_IDS"' "${DOC}" >/dev/null
-          jq -e '.env.custom.mods.WORKSHOP_IDS.env_name == "WORKSHOP_IDS"' "${DOC}" >/dev/null
-          jq -e '.env.custom.security.PASSWORD.env_name == "PASSWORD"' "${DOC}" >/dev/null
-          jq -e '.env.custom.security.RCONPASSWORD.env_name == "RCONPASSWORD"' "${DOC}" >/dev/null
-          for pair in Mods:MOD_IDS WorkshopItems:WORKSHOP_IDS Password:PASSWORD RCONPassword:RCONPASSWORD; do
-            jq -e --arg key "${pair%%:*}" --arg by "${pair##*:}" \
-              '(.env.generated.ini.pzserver[""][$key] | type) != "object" or (.env.generated.ini.pzserver[""][$key].replaced_by | index($by)) != null' \
-              "${DOC}" >/dev/null
+          for tag in "${{ matrix.channel }}" "${{ matrix.channel }}-${{ matrix.version }}" "${{ matrix.channel }}-${{ matrix.version }}-${GITHUB_SHA::7}"; do
+            docker tag "${LOCAL_IMAGE}" "${IMAGE}:${tag}"
+            docker push "${IMAGE}:${tag}"
           done
 
-      - name: Upload env docs
+      - name: Upload env reference
         uses: actions/upload-artifact@v7
         with:
-          name: env-docs-${{ matrix.tag }}
-          path: out/${{ matrix.tag }}.json
+          name: env-${{ matrix.channel }}
+          path: out/${{ matrix.channel }}-${{ matrix.version }}.json
           if-no-files-found: error
 
   pages:
-    needs: docs
+    needs: build
+    if: needs.build.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -324,10 +172,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Download env docs
+      - name: Download env references
         uses: actions/download-artifact@v8
         with:
-          pattern: env-docs-*
+          pattern: env-*
           merge-multiple: true
           path: _site/env
 
@@ -335,27 +183,8 @@ jobs:
         id: pages
         uses: actions/configure-pages@v6
 
-      # Each deploy replaces the whole site, so docs for earlier tags are copied from the live one.
-      - name: Carry forward docs for earlier tags
-        run: |
-          set -euo pipefail
-          base="${{ steps.pages.outputs.base_url }}"
-          status="$(curl -sS -o live-index.json -w '%{http_code}' "${base}/env/index.json")"
-          if [ "${status}" = "404" ]; then
-            echo "No published env docs yet"
-          elif [ "${status}" = "200" ]; then
-            jq -r '.files[].file' live-index.json | grep -E '^[A-Za-z0-9._-]+\.json$' | while IFS= read -r file; do
-              [ -f "_site/env/${file}" ] || curl -fsS -o "_site/env/${file}" "${base}/env/${file}"
-            done
-          else
-            echo "Error: ${base}/env/index.json returned ${status}" >&2
-            exit 1
-          fi
-
       - name: Assemble site
-        run: |
-          cp site/index.html _site/index.html
-          bash scripts/generate_env_index.sh _site/env _site/env/index.json
+        run: bash ci/build_site.sh _site "${{ steps.pages.outputs.base_url }}"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
