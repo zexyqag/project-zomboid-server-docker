@@ -1,8 +1,9 @@
 #!/bin/bash
-# Boots a freshly built image on a game branch and checks that it installs the game, starts the
+# Boots an image on a game branch and checks that it installs the game, starts the
 # server, keeps settings written before its first start, creates its database and saves on
 # `docker stop`, then starts it again to check the update and the settings against the files the
-# server wrote. Writes the env reference for the docs site to <out dir>/<branch>-<build id>.json.
+# server wrote. Writes the env reference for the docs site to <out dir>/<branch>-<build id>.json,
+# with the image version from its org.opencontainers.image.version label.
 # Usage: boot_test.sh <image> <game branch> <out dir>
 
 set -euo pipefail
@@ -14,6 +15,11 @@ name="pz-boot-test"
 # Kept after the test, so a failed run can be inspected.
 game_volume="pz-boot-game"
 home="/home/steam/Zomboid"
+release="$(docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.version"}}' "${image}")"
+if [ -z "${release}" ] || [ "${release}" = "<no value>" ]; then
+  echo "Error: ${image} has no org.opencontainers.image.version label" >&2
+  exit 1
+fi
 
 fail() {
   echo "Error: $*" >&2
@@ -87,10 +93,10 @@ done
 duplicates="$(cut -f2 <<< "${rows}" | sort | uniq -d)"
 [ -z "${duplicates}" ] || fail "list-env produced duplicate names: ${duplicates}"
 mkdir -p "${out_dir}"
-jq -R -s --arg label "${label}" '
+jq -R -s --arg label "${label}" --arg release "${release}" '
   split("\n")
   | map(select(length > 0) | split("\t") | {kind: .[0], name: .[1], description: (.[3] // "")})
-  | {label: $label, vars: .}
+  | {label: $label, release: $release, vars: .}
 ' <<< "${rows}" > "${out_dir}/${branch}-${build}.json"
 
 stop_server 1

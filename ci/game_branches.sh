@@ -1,5 +1,5 @@
 #!/bin/bash
-# Prints "<branch> <build id>" for the Steam branches the nightly run tests: every branch without a
+# Prints "<branch> <build id>" for the Steam branches CI boot-tests: every branch without a
 # password, the same list as the game's "Betas" tab in Steam. Asks SteamCMD in the base image, or
 # reads a saved app_info_print output.
 # Usage: game_branches.sh [app_info_print output file]

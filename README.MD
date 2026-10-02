@@ -3,17 +3,20 @@
 A Project Zomboid dedicated server image, configured through environment variables. Images are published to GitHub Container Registry:
 
 ```
-ghcr.io/zexyqag/project-zomboid-server-docker:latest
+ghcr.io/zexyqag/project-zomboid-server-docker:1
 ```
 
-Tags:
+Images are versioned as major.minor.patch. Tags:
 
-* `latest`: the newest image.
-* `<repo_version>`: one exact build; `<repo_version>` is the first 7 characters of the commit.
+* `1`: the newest 1.x version. It gets fixes and new features, but nothing that needs you to change your setup. Use this one.
+* `1.2` or `1.2.3`: one minor version with its fixes, or one exact version.
+* `latest`: the newest version, including new major versions, which can need changes to your setup.
+
+What changed in each version, and what to change for a new major version, is on the [releases page](https://github.com/zexyqag/project-zomboid-server-docker/releases).
 
 The image doesn't contain the game. The container installs it from Steam on its first start and checks for an update on every start, so a restart brings the server up to date. `GAME_BRANCH` picks a branch from the game's "Betas" list in Steam, such as the stable game, the beta, an older version or Build 41, and the same image serves all of them.
 
-Each night CI boots the image on every branch in that list, whenever the image or the branch's build is new. An image is only published after its stable boot test passes.
+CI boots every new version on every branch in that list, and only publishes it once it boots on the stable game. Every hour it also checks Steam, and boots the newest version on each branch that got a new build.
 
 **WARNING:** On Windows with WSL2 in Docker Desktop, server startup is much slower. That's fine unless you run a lot of mods, where startup can take 15 to 40 minutes. Run the container on Linux or in a Linux VM if you can.
 
@@ -22,7 +25,7 @@ Each night CI boots the image on every branch in that list, whenever the image o
 ```yaml
 services:
   ProjectZomboidDedicatedServer:
-    image: ghcr.io/zexyqag/project-zomboid-server-docker:latest
+    image: ghcr.io/zexyqag/project-zomboid-server-docker:1
     restart: unless-stopped
     stop_grace_period: 120s
     env_file:

@@ -1,10 +1,10 @@
 name: Build and Publish Docker Image
 
-# Pushes and pull requests run the tests, and pushes to main redeploy the docs site. The image holds
-# no game: containers install it on start. The nightly run boots the image on the current stable
-# game and, while one is open, the beta, whenever the image or the game's Steam build is new to it.
-# It publishes the image when main has commits that are not in one yet, and adds an env reference
-# per game build to the site.
+# Pull requests and pushes run the tests. A push to main whose commits call for a new version
+# (ci/next_release.sh) builds the image, boots it on every Steam branch of the game and publishes it
+# under that version once it boots on the stable game. The image holds no game, so every hour the
+# newest release is booted on each branch whose Steam build is new to it. Every boot test that
+# passes adds the env reference for its game build to the docs site.
 on:
   push:
     branches:
@@ -25,18 +25,15 @@ on:
       - 'Dockerfile'
       - '.github/workflows/docker-image.yml'
   schedule:
-    - cron: "0 0 * * *" # daily at midnight UTC
+    - cron: "17 1-23 * * *" # hourly
+    - cron: "17 0 * * *" # daily, which also retries builds that failed
   workflow_dispatch:
-    inputs:
-      force_rebuild:
-        description: "Test and republish the image even if nothing changed"
-        type: boolean
-        default: false
 
-# Test runs replace each other; a push never cancels a nightly or manual build.
+# Pull request runs replace each other. Pushes queue, since each may release a version, and the
+# checks queue apart from them, so a check never cancels a release.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'build' || 'test' }}
-  cancel-in-progress: ${{ github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.event_name == 'push' && 'release' || 'check' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
@@ -53,18 +50,23 @@ jobs:
 
   prepare:
     needs: test
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pages: read
+      actions: read
     outputs:
-      branches: ${{ steps.plan.outputs.branches }}
+      matrix: ${{ steps.plan.outputs.matrix }}
       has_tests: ${{ steps.plan.outputs.has_tests }}
+      release: ${{ steps.plan.outputs.release }}
       publish: ${{ steps.plan.outputs.publish }}
+      notes: ${{ steps.plan.outputs.notes }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Configure Pages
         id: pages
@@ -73,31 +75,54 @@ jobs:
       - name: Decide what to test
         id: plan
         env:
-          FORCE_REBUILD: ${{ inputs.force_rebuild || false }}
+          GH_TOKEN: ${{ github.token }}
+          HOURLY: ${{ github.event.schedule == '17 1-23 * * *' }}
           SITE_URL: ${{ steps.pages.outputs.base_url }}
         run: |
           set -euo pipefail
-          publish=false
-          if [ "${FORCE_REBUILD}" = "true" ] \
-            || ! docker manifest inspect "ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA::7}" >/dev/null 2>&1; then
-            publish=true
+          version=""
+          if [ "${GITHUB_EVENT_NAME}" = push ]; then
+            version="$(bash ci/next_release.sh "${RUNNER_TEMP}/notes.md")"
+          fi
+          release="${version}"
+          if [ -z "${release}" ]; then
+            release="$(git tag -l 'v[0-9]*' --sort=-v:refname | head -n 1)"
+            release="${release#v}"
           fi
 
-          # A new image is tested on every branch; otherwise a branch is tested when its build is new.
+          # A new version is tested on every branch, the newest release on branches without a
+          # reference made with it. Hourly runs skip a build that already failed with that release.
           branches="$(bash ci/game_branches.sh)"
-          published="$(curl -fsS "${SITE_URL}/env/index.json" | jq -r '.files[].file' || true)"
+          tested="$(curl -fsS "${SITE_URL}/env/index.json" | jq -r '.files[] | "\(.file) \(.release // "")"' || true)"
+          failed="$(gh api "repos/${GITHUB_REPOSITORY}/actions/caches?key=boot-failed-&per_page=100" --jq '.actions_caches[].key')"
           tests=()
           while read -r branch build; do
-            if [ "${publish}" = "true" ] || ! grep -qxF "${branch}-${build}.json" <<< "${published}"; then
-              tests+=("${branch}")
+            [ -n "${release}" ] || break
+            marked=false
+            grep -qxF "boot-failed-${branch}-${build}-${release}" <<< "${failed}" && marked=true
+            if [ -z "${version}" ]; then
+              grep -qxF "${branch}-${build}.json ${release}" <<< "${tested}" && continue
+              if [ "${marked}" = true ] && [ "${HOURLY}" = true ]; then
+                echo "Skipping ${branch} build ${build}: it failed with ${release} before, the daily run retries it"
+                continue
+              fi
             fi
+            tests+=("$(jq -n -c --arg branch "${branch}" --arg build "${build}" --argjson marked "${marked}" '{$branch, $build, $marked}')")
           done <<< "${branches}"
 
-          echo "Steam builds: $(paste -sd ' ' <<< "${branches}"); publish: ${publish}; testing: ${tests[*]:-nothing}"
+          echo "Steam builds: $(paste -sd ' ' <<< "${branches}"); new version: ${version:-none}; release tested: ${release:-none}"
+          echo "Testing: $(printf '%s\n' "${tests[@]}" | jq -r -s 'map(.branch) | join(" ")')"
           {
-            echo "branches=$(printf '%s\n' "${tests[@]}" | jq -R -s -c 'split("\n") | map(select(length > 0))')"
+            echo "matrix=$(printf '%s\n' "${tests[@]}" | jq -s -c .)"
             echo "has_tests=$([ "${#tests[@]}" -gt 0 ] && echo true || echo false)"
-            echo "publish=${publish}"
+            echo "release=${release}"
+            echo "publish=$([ -n "${version}" ] && echo true || echo false)"
+            if [ -n "${version}" ]; then
+              delimiter="notes-$(openssl rand -hex 8)"
+              echo "notes<<${delimiter}"
+              cat "${RUNNER_TEMP}/notes.md"
+              echo "${delimiter}"
+            fi
           } >> "$GITHUB_OUTPUT"
 
   build:
@@ -106,20 +131,18 @@ jobs:
     if: needs.prepare.outputs.has_tests == 'true'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
     strategy:
       fail-fast: false
       matrix:
-        branch: ${{ fromJson(needs.prepare.outputs.branches) }}
+        include: ${{ fromJson(needs.prepare.outputs.matrix) }}
     env:
       LOCAL_IMAGE: pz-server:candidate
+      RELEASE: ${{ needs.prepare.outputs.release }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v4
@@ -128,15 +151,27 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up Docker Buildx
+        if: needs.prepare.outputs.publish == 'true'
+        uses: docker/setup-buildx-action@v4
+
       - name: Build image
+        if: needs.prepare.outputs.publish == 'true'
         run: |
           docker buildx build \
             --cache-from type=gha \
             --cache-to type=gha,mode=max \
-            --label org.opencontainers.image.revision=${{ github.sha }} \
+            --label org.opencontainers.image.revision="${GITHUB_SHA}" \
+            --label org.opencontainers.image.version="${RELEASE}" \
             --tag "${LOCAL_IMAGE}" \
             --load \
             .
+
+      - name: Pull the release
+        if: needs.prepare.outputs.publish != 'true'
+        run: |
+          docker pull "ghcr.io/${GITHUB_REPOSITORY,,}:${RELEASE}"
+          docker tag "ghcr.io/${GITHUB_REPOSITORY,,}:${RELEASE}" "${LOCAL_IMAGE}"
 
       - name: Boot test
         id: boot
@@ -152,15 +187,34 @@ jobs:
             ls -laL "${STEAMAPPDIR}/start-server.sh"
             head -c 300 "${STEAMAPPDIR}/start-server.sh" | od -c | head -n 12'
 
-      - name: Publish image
+      # The cache entry only marks the failure for the next runs; its content doesn't matter.
+      - name: Mark the failed build
+        if: failure() && steps.boot.outcome == 'failure' && !matrix.marked
+        run: mkdir -p boot-failed && echo "${GITHUB_RUN_ID}" > boot-failed/run
+
+      - name: Save the failure mark
+        if: failure() && steps.boot.outcome == 'failure' && !matrix.marked
+        uses: actions/cache/save@v6
+        with:
+          path: boot-failed
+          key: boot-failed-${{ matrix.branch }}-${{ matrix.build }}-${{ needs.prepare.outputs.release }}
+
+      - name: Publish the release
         if: needs.prepare.outputs.publish == 'true' && matrix.branch == 'public'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTES: ${{ needs.prepare.outputs.notes }}
         run: |
           set -euo pipefail
           image="ghcr.io/${GITHUB_REPOSITORY,,}"
-          for tag in latest "${GITHUB_SHA::7}"; do
+          IFS=. read -r major minor _ <<< "${RELEASE}"
+          for tag in "${RELEASE}" "${major}.${minor}" "${major}" latest; do
             docker tag "${LOCAL_IMAGE}" "${image}:${tag}"
             docker push "${image}:${tag}"
           done
+          printf '%s\n' "${NOTES}" > "${RUNNER_TEMP}/notes.md"
+          gh release create "v${RELEASE}" --repo "${GITHUB_REPOSITORY}" --target "${GITHUB_SHA}" \
+            --title "v${RELEASE}" --notes-file "${RUNNER_TEMP}/notes.md"
 
       - name: Upload env reference
         uses: actions/upload-artifact@v7
@@ -211,3 +265,16 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+  # GitHub turns off the schedule of a public repository after 60 days without activity, and
+  # enabling the workflow counts as activity.
+  keepalive:
+    if: github.event.schedule == '17 0 * * *'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Keep the schedule enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/docker-image.yml/enable"

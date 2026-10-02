@@ -35,5 +35,5 @@ for file in "${env_dir}"/*-*.json; do
 done
 
 find "${env_dir}" -maxdepth 1 -name '*.json' ! -name index.json -print0 | sort -z \
-  | xargs -0 -r jq -c '{file: (input_filename | split("/") | last), label}' \
+  | xargs -0 -r jq -c '{file: (input_filename | split("/") | last), label, release}' \
   | jq -s '{files: .}' > "${env_dir}/index.json"
