@@ -52,12 +52,6 @@ configure_server() {
   apply_preset "${lua_file}"
   apply_ini_env "${ini_file}"
 
-  local password rcon_password
-  password="$(read_secret PASSWORD PASSWORD_FILE)"
-  rcon_password="$(read_secret RCONPASSWORD RCONPASSWORD_FILE)"
-  [ -n "${password}" ] && set_ini_value "${ini_file}" Password "${password}"
-  [ -n "${rcon_password}" ] && set_ini_value "${ini_file}" RCONPassword "${rcon_password}"
-
   apply_workshop_ids "${ini_file}"
   apply_mod_maps "${ini_file}" "${spawn_file}" "${STEAMAPPDIR}/steamapps/workshop/content/108600"
   apply_sandbox_env "${lua_file}"

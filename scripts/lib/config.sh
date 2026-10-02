@@ -47,18 +47,28 @@ set_ini_value() {
   mv "$1.tmp" "$1"
 }
 
-# Applies every INI_<Key> variable to the INI file. Keys missing from a non-empty file are
-# appended with a warning, because the server ignores unknown keys and a typo would otherwise
-# go unnoticed.
+# Applies every INI_<Key> variable to the INI file. INI_<Key>_FILE reads the value from a file
+# (for Docker secrets) and wins over INI_<Key>. Keys missing from a non-empty file are appended
+# with a warning, because the server ignores unknown keys and a typo would otherwise go unnoticed.
 apply_ini_env() {
-  local ini_file="$1" name check_unknown=true unknown=""
+  local ini_file="$1" name key value check_unknown=true unknown=""
   [ -s "${ini_file}" ] || check_unknown=false
   while IFS= read -r name; do
-    if [ "${check_unknown}" = true ] && ! grep -qi "^${name#INI_}=" "${ini_file}"; then
+    key="${name#INI_}"
+    key="${key%_FILE}"
+    if [[ "${name}" == *_FILE ]]; then
+      [ -f "${!name}" ] || { echo "Warning: ${name} is set but the file does not exist: ${!name}" >&2; continue; }
+      value="$(<"${!name}")"
+    elif [ -n "$(printenv "${name}_FILE")" ]; then
+      continue
+    else
+      value="${!name}"
+    fi
+    if [ "${check_unknown}" = true ] && ! grep -qi "^${key}=" "${ini_file}"; then
       unknown="${unknown} ${name}"
     fi
-    set_ini_value "${ini_file}" "${name#INI_}" "${!name}"
-    echo "Config: ${name#INI_} set from ${name}"
+    set_ini_value "${ini_file}" "${key}" "${value}"
+    echo "Config: ${key} set from ${name}"
   done < <(compgen -e | grep '^INI_' | sort)
   report_unknown "${unknown}" "${ini_file}"
 }

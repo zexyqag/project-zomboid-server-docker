@@ -44,7 +44,7 @@ volumes:
 
 ```bash
 ADMINPASSWORD=change-me
-PASSWORD=change-me-too
+INI_Password=change-me-too
 INI_PublicName=My server
 INI_Public=false
 SANDBOX_ZombieLore__Transmission=3
@@ -63,7 +63,7 @@ docker exec <container> console save
 docker exec <container> console servermsg "Restart in 5 minutes"
 ```
 
-For remote administration, set `RCONPASSWORD` and use any Source RCON client on port 27015.
+For remote administration, set `INI_RCONPassword` and use any Source RCON client on port 27015.
 
 The image has a health check: the container is `healthy` once the server has started, which can take a while with many mods.
 
@@ -94,6 +94,15 @@ INI_AntiCheatProtectionType12=false
 
 On Build 42, `Mods=` entries start with a backslash (`\ModId`). In an env file, write a single backslash; it is passed through unchanged.
 
+`INI_<Key>_FILE` reads the value from a file instead, for Docker secrets, and wins over `INI_<Key>`:
+
+```bash
+INI_Password_FILE=/run/secrets/pz_password
+INI_RCONPassword_FILE=/run/secrets/pz_rcon_password
+```
+
+`list-env` shows password settings as `(set)` instead of their value.
+
 Settings apply from the very first start. A variable that matches no key in an existing INI is still written, with a warning in the log, since it's usually a typo. Set `CONFIG_STRICT=true` to refuse to start instead.
 
 A variable you remove leaves the last value in the INI. Set it to an empty value to clear it.
@@ -118,10 +127,6 @@ The server writes the SandboxVars file during its first start, so sandbox settin
 `ADMINUSERNAME`: Admin account name created on the first start (default: `admin`).
 
 `ADMINPASSWORD`, `ADMINPASSWORD_FILE`: Admin password. Required on the first start, when the server creates its database; ignored afterwards, so it stays out of later launch lines. The `_FILE` variant reads the password from a file (for Docker secrets) and takes precedence.
-
-`PASSWORD`, `PASSWORD_FILE`: Server password, written to the INI on every start.
-
-`RCONPASSWORD`, `RCONPASSWORD_FILE`: RCON password, written to the INI on every start.
 
 `WORKSHOP_IDS`: Workshop item and collection IDs separated by `;`. Collections are expanded through the Steam API and written to `WorkshopItems`. Set it empty to clear `WorkshopItems`. Enable the mods themselves with `INI_Mods`.
 

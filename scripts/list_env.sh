@@ -20,7 +20,7 @@ image_vars() {
   while IFS=$'\t' read -r name description; do
     value="${!name:-}"
     case "${name}" in
-      *PASSWORD|STEAM_API_KEY) [ -n "${value}" ] && value="(set)" ;;
+      ADMINPASSWORD|STEAM_API_KEY) [ -n "${value}" ] && value="(set)" ;;
     esac
     printf 'image\t%s\t%s\t%s\n' "${name}" "${value}" "${description}"
   done < "${SCRIPT_DIR}/vars.tsv"
@@ -36,7 +36,10 @@ ini_vars() {
     line ~ /^[#;]/ { sub(/^[#;][ \t]*/, "", line); desc = (desc == "" ? line : desc " " line); next }
     index(line, "=") > 1 {
       i = index(line, "=")
-      printf "ini\tINI_%s\t%s\t%s\n", substr(line, 1, i - 1), substr(line, i + 1), desc
+      key = substr(line, 1, i - 1)
+      value = substr(line, i + 1)
+      if (tolower(key) ~ /password/ && value != "") value = "(set)"
+      printf "ini\tINI_%s\t%s\t%s\n", key, value, desc
     }
     { desc = "" }
   ' "$1"

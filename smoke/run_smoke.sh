@@ -149,7 +149,7 @@ test_configure() {
   TEST=configure
   new_env
   echo 'rcon from file' > "${WORK}/rcon"
-  export PASSWORD='p&ss|word' RCONPASSWORD_FILE="${WORK}/rcon" ADMINPASSWORD='p@ss word$USER' \
+  export INI_Password='p&ss|word' INI_RCONPassword=ignored INI_RCONPassword_FILE="${WORK}/rcon" ADMINPASSWORD='p@ss word$USER' \
     MEMORY=2048m DEBUG=true ADMINUSERNAME=boss PORT=17000 STEAMVAC=TRUE WORKSHOP_IDS=""
   configure_server > /dev/null 2>&1
   expect_line "${SERVER}/pzserver.ini" 'Password=p&ss|word'
@@ -169,12 +169,14 @@ test_configure() {
 test_list_env() {
   TEST=list-env
   new_env
-  export PASSWORD=secret
+  export ADMINPASSWORD=secret
+  set_ini_value "${SERVER}/pzserver.ini" Password hunter2
   bash "${SCRIPT_DIR}/list_env.sh" > "${WORK}/out"
   expect_line "${WORK}/out" '# Players can hurt and kill other players'
   expect_line "${WORK}/out" 'INI_PVP=true'
   expect_line "${WORK}/out" 'SANDBOX_ZombieLore__Transmission=1'
-  expect_line "${WORK}/out" 'PASSWORD=(set)'
+  expect_line "${WORK}/out" 'ADMINPASSWORD=(set)'
+  expect_line "${WORK}/out" 'INI_Password=(set)'
   expect_line "${WORK}/out" '## Sandbox settings (pzserver_SandboxVars.lua)'
   bash "${SCRIPT_DIR}/list_env.sh" zombielore > "${WORK}/out"
   grep -q '^INI_' "${WORK}/out" && fail "the filter kept unrelated rows"
