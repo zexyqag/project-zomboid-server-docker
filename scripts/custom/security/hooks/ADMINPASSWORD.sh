@@ -18,7 +18,7 @@ manual_apply() {
 
   if [ -n "${admin_value}" ]; then
     if [ ! -f "${INI_FILE}" ]; then
-      ARGS="${ARGS} -adminpassword ${admin_value}"
+      ARGS+=(-adminpassword "${admin_value}")
       echo "*** INFO: Setting admin password via -adminpassword (first setup) ***"
     else
       if [ -n "${PASSWORD:-}" ] || [ -n "${PASSWORD_FILE:-}" ]; then

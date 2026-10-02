@@ -4,6 +4,6 @@ DEPENDS_ON="ARGS_JAVA_END"
 
 manual_apply() {
   if [ -n "${MODFOLDERS:-}" ]; then
-    ARGS="${ARGS} -modfolders ${MODFOLDERS}"
+    ARGS+=(-modfolders "${MODFOLDERS}")
   fi
 }

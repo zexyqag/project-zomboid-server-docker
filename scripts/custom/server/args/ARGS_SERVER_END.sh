@@ -2,5 +2,5 @@ DOCS_IGNORE="true"
 DEPENDS_ON="COOP NOSTEAM CACHEDIR MODFOLDERS DEBUG ADMINUSERNAME"
 
 manual_apply() {
-  ARGS="${ARGS} -servername \"${SERVERNAME}\""
+  ARGS+=(-servername "${SERVERNAME}")
 }

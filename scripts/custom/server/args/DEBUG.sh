@@ -4,6 +4,6 @@ DEPENDS_ON="ARGS_JAVA_END"
 
 manual_apply() {
   if is_true "${DEBUG:-}"; then
-    ARGS="${ARGS} -debug"
+    ARGS+=(-debug)
   fi
 }

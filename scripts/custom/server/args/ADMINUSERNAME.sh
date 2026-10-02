@@ -4,6 +4,6 @@ DEPENDS_ON="ARGS_JAVA_END"
 
 manual_apply() {
   if [ -n "${ADMINUSERNAME:-}" ]; then
-    ARGS="${ARGS} -adminusername ${ADMINUSERNAME}"
+    ARGS+=(-adminusername "${ADMINUSERNAME}")
   fi
 }

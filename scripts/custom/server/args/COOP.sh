@@ -4,6 +4,6 @@ DEPENDS_ON="ARGS_JAVA_END"
 
 manual_apply() {
   if is_true "${COOP:-}"; then
-    ARGS="${ARGS} -coop"
+    ARGS+=(-coop)
   fi
 }

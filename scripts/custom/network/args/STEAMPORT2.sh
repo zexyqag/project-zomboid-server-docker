@@ -4,6 +4,6 @@ DEPENDS_ON="ARGS_SERVER_END"
 
 manual_apply() {
   if [ -n "${STEAMPORT2:-}" ]; then
-    ARGS="${ARGS} -steamport2 ${STEAMPORT2}"
+    ARGS+=(-steamport2 "${STEAMPORT2}")
   fi
 }

@@ -4,6 +4,6 @@ DEPENDS_ON="MEMORY"
 
 manual_apply() {
   if is_true "${SOFTRESET:-}"; then
-    ARGS="${ARGS} -Dsoftreset"
+    ARGS+=(-Dsoftreset)
   fi
 }

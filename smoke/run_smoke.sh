@@ -359,6 +359,32 @@ EOF
   fi
 }
 
+run_launch_args_smoke() {
+  mkdir -p "${TMP_DIR}/launch_home"
+  local actual
+  actual="$(
+    env -i PATH="${PATH}" HOMEDIR="${TMP_DIR}/launch_home" \
+      MEMORY=2048m DEBUG=true ADMINUSERNAME=boss PORT=17000 \
+      ADMINPASSWORD='p@ss word$USER' \
+      bash -c '
+        . "$1/scripts/lib/runtime_helpers.sh"
+        . "$1/scripts/lib/hooks.sh"
+        SERVERNAME=pzserver
+        INI_FILE="${HOMEDIR}/Zomboid/Server/pzserver.ini"
+        ARGS=()
+        run_env_hooks "$1/scripts/custom" >/dev/null
+        printf "%s\n" "${ARGS[@]}"
+      ' _ "${ROOT_DIR}"
+  )"
+  local expected
+  expected="$(printf '%s\n' -Xms2048m -Xmx2048m -- -debug -adminusername boss -servername pzserver -port 17000 -adminpassword 'p@ss word$USER')"
+  if [ "${actual}" != "${expected}" ]; then
+    echo "Unexpected launch args:" >&2
+    diff <(echo "${expected}") <(echo "${actual}") >&2
+    exit 1
+  fi
+}
+
 run_env_docs_rich_smoke() {
   local env_dir="${TMP_DIR}/env_sources_rich"
   local out_json="${TMP_DIR}/env-rich.json"
@@ -789,5 +815,9 @@ echo "Env name contract ok"
 echo "Running rich env docs smoke test..."
 run_env_docs_rich_smoke
 echo "Rich env docs ok"
+
+echo "Running launch args smoke test..."
+run_launch_args_smoke
+echo "Launch args ok"
 
 echo "Smoke tests passed."
