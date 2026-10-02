@@ -7,6 +7,7 @@ manual_apply() {
     # If preset file doesn't exists then show an error and exit
     if [ ! -f "${STEAMAPPDIR}/media/lua/shared/Sandbox/${SERVERPRESET}.lua" ]; then
       echo "*** ERROR: the preset ${SERVERPRESET} doesn't exists. Please fix the configuration before start the server ***"
+      echo "Available presets: $(find "${STEAMAPPDIR}/media/lua/shared/Sandbox" -maxdepth 1 -name '*.lua' -printf '%f\n' 2>/dev/null | sed 's/\.lua$//' | sort | paste -sd ' ')"
       exit 1
     # If SandboxVars files doesn't exists or replace is true, copy the file
     elif [ ! -f "${HOMEDIR}/Zomboid/Server/${SERVERNAME}_SandboxVars.lua" ] || is_true "${SERVERPRESETREPLACE:-}"; then
