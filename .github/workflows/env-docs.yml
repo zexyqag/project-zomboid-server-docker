@@ -166,6 +166,7 @@ jobs:
           mkdir -p "${TAG_DIR}/zomboid"
           SERVER_OUT_DIR="${TAG_DIR}/zomboid/Server"
           TARGET_INI="${SERVER_OUT_DIR}/pzserver.ini"
+          TARGET_LUA="${SERVER_OUT_DIR}/pzserver_SandboxVars.lua"
           docker rm -f "pz-envdocs-${TAG_SAFE}" >/dev/null 2>&1 || true
           CID=$(docker run -d --name "pz-envdocs-${TAG_SAFE}" \
             -e ADMINPASSWORD=envdocs \
@@ -174,7 +175,8 @@ jobs:
             ghcr.io/${REPO_NAME_LC}:${TAG})
           found_ini=""
           for i in {1..120}; do
-            if [ -f "${TARGET_INI}" ]; then
+            # The server writes SandboxVars after the INI, so wait for both.
+            if [ -f "${TARGET_INI}" ] && [ -f "${TARGET_LUA}" ]; then
               found_ini="${TARGET_INI}"
               break
             fi
@@ -182,7 +184,7 @@ jobs:
           done
 
           if [ -z "$found_ini" ]; then
-            echo "Warning: ${TARGET_INI} was not created within wait window; container logs:" >&2
+            echo "Warning: ${TARGET_INI} and ${TARGET_LUA} were not both created within wait window; container logs:" >&2
             docker logs "$CID" >&2 || true
           fi
 
