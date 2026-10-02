@@ -56,6 +56,15 @@ SANDBOX_ZombieLore__Transmission=3
 
 The container runs as the `steam` user (uid 1000). Named volumes work as they are. A bind-mounted folder must be writable by uid 1000: `chown -R 1000:1000 ./data ./workshop-mods`.
 
+To send a command to the server console, use `console`; the reply shows up in the container log:
+
+```bash
+docker exec <container> console save
+docker exec <container> console servermsg "Restart in 5 minutes"
+```
+
+For remote administration, set `RCONPASSWORD` and use any Source RCON client on port 27015.
+
 The image has a health check: the container is `healthy` once the server has started, which can take a while with many mods.
 
 ## Configuration

@@ -46,7 +46,8 @@ RUN set -x \
   && chown -R "${USER}:${USER}" "${STEAMAPPDIR}" "${HOMEDIR}/Zomboid"
 
 COPY --chmod=755 scripts /server/scripts
-RUN ln -s /server/scripts/list_env.sh /usr/local/bin/list-env
+RUN ln -s /server/scripts/list_env.sh /usr/local/bin/list-env \
+  && ln -s /server/scripts/console.sh /usr/local/bin/console
 
 USER ${USER}
 WORKDIR ${HOMEDIR}

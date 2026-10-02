@@ -206,6 +206,7 @@ printf '%s\n' "$@" > "${HOMEDIR}/args"
 echo "LOG  : Network      f:0> *** SERVER STARTED ****"
 while IFS= read -r line; do
   [ "${line}" = quit ] && { echo "saving"; exit 0; }
+  echo "command: ${line}"
 done
 EOF
   chmod +x "${STEAMAPPDIR}/start-server.sh"
@@ -216,6 +217,9 @@ EOF
     sleep 0.1
   done
   [ "${healthy}" = true ] || { fail "the health check never passed"; cat "${WORK}/entry.log" >&2; }
+  bash "${SCRIPT_DIR}/console.sh" servermsg "hello there" > /dev/null || fail "console failed"
+  sleep 0.2
+  grep -qxF 'command: servermsg "hello there"' "${WORK}/entry.log" || fail "console command did not reach the server"
   kill -TERM "${pid}"
   wait "${pid}"
   expect_eq "$?" 0
