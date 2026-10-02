@@ -165,6 +165,7 @@ run_env_docs_smoke() {
     echo "Env docs missing expected meta source mapping for lua_pzserver_SandboxVars" >&2
     exit 1
   fi
+  bash "${ROOT_DIR}/scripts/generate_env_index.sh" "${TMP_DIR}" "${index_json}"
   if [ ! -s "${index_json}" ]; then
     echo "Env docs index did not generate output" >&2
     exit 1
@@ -768,6 +769,7 @@ EOF
     echo "Rich env docs strict duplicate mode missing failure message" >&2
     exit 1
   fi
+  bash "${ROOT_DIR}/scripts/generate_env_index.sh" "${TMP_DIR}" "${index_json}"
   if [ ! -s "${index_json}" ]; then
     echo "Rich env docs index did not generate output" >&2
     exit 1

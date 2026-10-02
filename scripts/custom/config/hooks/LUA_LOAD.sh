@@ -1,3 +1,4 @@
+DOCS_IGNORE="true"
 DESCRIPTION="Load docs-style Lua overrides from environment using apply_lua_vars.sh."
 REPLACES=""
 DEPENDS_ON="SERVERPRESET"

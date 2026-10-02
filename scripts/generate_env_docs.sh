@@ -7,8 +7,8 @@ if [ "${ENV_DOCS_TRACE:-}" = "1" ]; then
 fi
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-output_path="${OUTPUT_PATH:-${repo_root}/docs/env.json}"
-sources_root="${ENV_SOURCES_DIR:-${repo_root}/docs/env_sources}"
+output_path="${OUTPUT_PATH:?OUTPUT_PATH is required}"
+sources_root="${ENV_SOURCES_DIR:?ENV_SOURCES_DIR is required}"
 image_tag="${IMAGE_TAG:-}"
 
 source "${repo_root}/scripts/lib/env_name_codec.sh"
@@ -78,6 +78,8 @@ if [ -d "${env_custom_dir}" ]; then
       1|true|yes|y|on) continue ;;
     esac
     env_name="$(basename "${file}" .sh)"
+    description="$(extract_manual_value "DESCRIPTION" "${file}")"
+    printf '%s\t%s\t\n' "${env_name}" "${description}" >> "${env_declarations_items_file}"
     printf '%s\n' "${env_name}" >> "${declared_envs_file}"
   done <<< "$(find "${env_custom_dir}" -type f -path '*/args/*.sh' -name '*.sh' | sort)"
 fi
@@ -111,60 +113,9 @@ if [ -s "${declared_envs_file}" ]; then
   sort -u "${declared_envs_file}" -o "${declared_envs_file}"
 fi
 
-is_declared() {
-  local key="$1"
-  if [ -s "${declared_envs_file}" ] && grep -qx "${key}" "${declared_envs_file}"; then
-    echo "true"
-  else
-    echo "false"
-  fi
-}
-
 collect_handcrafted_envs() {
-  local refs_raw=""
-  local assigned_raw=""
-  local assigned_for_raw=""
-  local assigned_local_raw=""
-  local refs assigned assigned_for assigned_local
-  local -a scan_files=()
-
-  if [ -d "${env_custom_dir}" ]; then
-    while IFS= read -r file; do
-      [ -z "${file}" ] && continue
-      scan_files+=("${file}")
-    done <<< "$(find "${env_custom_dir}" -type f \( -path '*/hooks/*.sh' -o -path '*/args/*.sh' -o -path '*/vars/*.sh' \) -name '*.sh' -print | sort)"
-  fi
-
-  if [ ${#scan_files[@]} -eq 0 ]; then
-    return
-  fi
-
-  for file in "${scan_files[@]}"; do
-    refs_raw="${refs_raw}
-$(grep -oE '\$\{[A-Z][A-Z0-9_]*\}|\$[A-Z][A-Z0-9_]*' "${file}" || true)"
-    assigned_raw="${assigned_raw}
-$(grep -oE '^[[:space:]]*[A-Z][A-Z0-9_]*=' "${file}" || true)"
-    assigned_for_raw="${assigned_for_raw}
-$(grep -oE '\bfor[[:space:]]+[A-Z][A-Z0-9_]*[[:space:]]+in\b' "${file}" || true)"
-    assigned_local_raw="${assigned_local_raw}
-$(grep -oE '\blocal[[:space:]]+[A-Z][A-Z0-9_]*\b' "${file}" || true)"
-  done
-
-  refs="$(printf '%s\n' "${refs_raw}" | sed -e 's/[${}]//g' | sed '/^$/d' | sort -u)"
-  assigned="$(printf '%s\n' "${assigned_raw}" | sed -e 's/^[[:space:]]*//' -e 's/=.*$//' | sed '/^$/d' | sort -u)"
-  assigned_for="$(printf '%s\n' "${assigned_for_raw}" | awk '{print $2}' | sed '/^$/d' | sort -u)"
-  assigned_local="$(printf '%s\n' "${assigned_local_raw}" | awk '{print $2}' | sed '/^$/d' | sort -u)"
-  assigned="$(printf '%s\n%s\n%s\n' "${assigned}" "${assigned_for}" "${assigned_local}" | sed '/^$/d' | sort -u)"
-
-  ref_envs="$(comm -23 <(printf '%s\n' "${refs}" | sort -u) <(printf '%s\n' "${assigned}" | sort -u))"
-  declared_only=""
-  if [ -s "${env_hooks_items_file}" ] || [ -s "${env_declarations_items_file}" ]; then
-    declared_only="$({
-      [ -s "${env_hooks_items_file}" ] && awk -F '\t' '{print $1}' "${env_hooks_items_file}"
-      [ -s "${env_declarations_items_file}" ] && awk -F '\t' '{print $1}' "${env_declarations_items_file}"
-    } | sed '/^$/d' | sort -u)"
-  fi
-  env_list="$(printf '%s\n%s\n' "${ref_envs}" "${declared_only}" | sed '/^$/d' | sort -u)"
+  local env_list
+  env_list="$( [ -s "${declared_envs_file}" ] && cat "${declared_envs_file}" || true )"
 
   get_env_description() {
     local name="$1"
@@ -180,12 +131,6 @@ $(grep -oE '\blocal[[:space:]]+[A-Z][A-Z0-9_]*\b' "${file}" || true)"
 
   while IFS= read -r env_name; do
     [ -z "${env_name}" ] && continue
-    case "${env_name}" in
-      INI_*|LUA_*) continue ;;
-    esac
-    if [ "$(is_declared "${env_name}")" != "true" ]; then
-      continue
-    fi
     source_path="scripts/custom"
     group_name="hooks"
     subgroup_name=""
@@ -217,23 +162,11 @@ $(grep -oE '\blocal[[:space:]]+[A-Z][A-Z0-9_]*\b' "${file}" || true)"
 
 ini_files=""
 lua_files=""
-if [ -n "${sources_root}" ] && [ -d "${sources_root}" ]; then
+if [ -d "${sources_root}" ]; then
   ini_files="$(find "${sources_root}" -type f -path '*/Server/*' -name '*.ini' | sort)"
   lua_files="$(find "${sources_root}" -type f -path '*/Server/*' -name '*.lua' | sort)"
-
-  # Fallback for source layouts that do not have a Server path.
-  if [ -z "${ini_files}" ]; then
-    ini_files="$(find "${sources_root}" -type f -name '*.ini' | sort)"
-  fi
-  if [ -z "${lua_files}" ]; then
-    lua_files="$(find "${sources_root}" -type f -name '*.lua' | sort)"
-  fi
 else
-  if [ -z "${sources_root}" ]; then
-    echo "Info: ENV_SOURCES_DIR not set; skipping INI/Lua env discovery." >&2
-  else
-    echo "Info: ENV_SOURCES_DIR not found (${sources_root}); skipping INI/Lua env discovery." >&2
-  fi
+  echo "Info: ENV_SOURCES_DIR not found (${sources_root}); skipping INI/Lua env discovery." >&2
 fi
 
 server_name="${SERVERNAME:-}"
@@ -702,5 +635,3 @@ jq -n \
       }
     }
   }' > "${output_path}"
-
-bash "${repo_root}/scripts/generate_env_index.sh" "$(dirname "${output_path}")" "$(dirname "${output_path}")/index.json"
